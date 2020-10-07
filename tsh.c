@@ -11,12 +11,15 @@ char read_buff[BUFSIZE]; //buff for the read
 char PATH[1024];//representing the relative path from the tar
 
 void startPath(char *arg){//instanciate the relative path
+    int arg_size = strlen(arg);
     strcpy(PATH, arg);
-    PATH[strlen(PATH)] = '/';
+    PATH[arg_size] = '/';
+    PATH[arg_size+1] = '\0';
 }
 
 int main(int nb, char **args){
     if(nb<2){ //if missing the .tar
+        //should check also if it's not a .tar
         printf("missing the .tar file to execute this programe\n");
         return -1;
     }
@@ -30,10 +33,12 @@ int main(int nb, char **args){
         perror("");
         return -1;
     }
+    startPath(args[1]);
     while(1){
+        write(1, PATH, strlen(PATH));
         read(0, read_buff, BUFSIZE);//user write his command on the input
         read_buff[strlen(read_buff)-1] = '\0';
-        if(strcmp("exit", read_buff)==0)break;
+        if(memmem(read_buff, strlen(read_buff), "exit", 4))break;
         /*
             if the command wasn't exit
         */
