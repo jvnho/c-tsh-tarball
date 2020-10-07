@@ -8,6 +8,12 @@
 
 #define BUFSIZE 512
 char read_buff[BUFSIZE]; //buff for the read
+char PATH[1024];//representing the relative path from the tar
+
+void startPath(char *arg){//instanciate the relative path
+    strcpy(PATH, arg);
+    PATH[strlen(PATH)] = '/';
+}
 
 int main(int nb, char **args){
     if(nb<2){ //if missing the .tar
@@ -16,6 +22,7 @@ int main(int nb, char **args){
     }
     //we open our .tar in order to execute command on it
     int fd_tar = open(args[1], O_RDWR);
+    //start the path as .tar directory 
     if(errno == ENOENT){//no such file
         perror("");
         return -1;
