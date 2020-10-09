@@ -33,7 +33,7 @@ int if_cd_is_valid(int descriptor, char * PATH, char * directory){
 }
 void cd(char * directory, int tar_descriptor, int path_descriptor, char * PATH){
     if(strcmp(".",directory)==0)return;
-    if(strcmp("..", directory))return;
+    if(strcmp("..", directory)==0)return;
     if(if_cd_is_valid(tar_descriptor, PATH, directory)){
         strcat(PATH, concatString(directory, ""));
         lseek(path_descriptor, 0, SEEK_SET);
