@@ -5,9 +5,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "tar.h"
-/*char * concatString(char * path, char *dir){
-    char * result = mallo
-}*/
+char * concatString(char * path, char *dir){
+    int tail = strlen(path)+strlen(dir)+1;
+    char * result = malloc(tail);
+    strcpy(result, path);
+    strcat(result, dir);
+    result[tail-1] = '\0';
+    return result;
+}
 void getIntoDirectory(int descripteur, char * PATH, char * directory){
     lseek(descripteur, 0, SEEK_SET);
     struct posix_header *tete = malloc(512);
@@ -27,5 +32,7 @@ void cd(int descripteur, char * PATH, char * directory){
 
 }
 int main(void){
+    char *test = concatString("Path/nom/", "directory");
+    printf("%s\n", test);
     return 0;
 }
