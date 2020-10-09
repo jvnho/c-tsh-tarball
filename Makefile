@@ -2,10 +2,13 @@ CC=gcc
 CFLAGS= -Wall -g
 LDLIBS= -lm
 
-ALL=tsh
 
-all : $(ALL)
-tsh : tsh.c
+tsh : tsh.o cd.o
 
+tsh.o : tsh.c cd.h
+cd.o : cd.c tar.h
+
+cleanall:
+	rm -rf *.o main *~ 
 clean:
-	rm -rf *~ $(ALL)
+	rm -rf *~

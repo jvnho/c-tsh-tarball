@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/errno.h>
+#include "cd.h"
 
 #define BUFSIZE 512
 char read_buff[BUFSIZE]; //buff for the read
