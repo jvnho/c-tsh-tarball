@@ -1,3 +1,4 @@
+*.o
 #ignore everything
 *
 #except the makefile and everything that have an extention
