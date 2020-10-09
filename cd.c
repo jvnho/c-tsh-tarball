@@ -6,33 +6,35 @@
 #include <stdio.h>
 #include "tar.h"
 char * concatString(char * path, char *dir){
-    int tail = strlen(path)+strlen(dir)+1;
-    char * result = malloc(tail);
+    int length = strlen(path)+strlen(dir)+2;
+    char * result = malloc(length);
     strcpy(result, path);
     strcat(result, dir);
-    result[tail-1] = '\0';
+    result[length-2] = '/';
+    result[length-1] = '\0';
     return result;
 }
-void getIntoDirectory(int descripteur, char * PATH, char * directory){
-    lseek(descripteur, 0, SEEK_SET);
-    struct posix_header *tete = malloc(512);
-    int nb_bloc_fichier = 0;
-    while(read(descripteur, tete, 512)>0){//parcour de tete en tete jusqu' a la fin
-
-
+int if_cd_is_valid(int descriptor, char * PATH, char * directory){
+    lseek(descriptor, 0, SEEK_SET);
+    struct posix_header *header = malloc(512);
+    int nb_bloc_file = 0;
+    char * recherched_path = concatString(PATH, directory);
+    while(read(descriptor, header, 512)>0){//parcour de tete en tete jusqu' a la fin
+        if(strcmp(header->name, recherched_path)==0)return 1;
         int tmp = 0;
-        sscanf(tete->size, "%o", &tmp);
-        nb_bloc_fichier = (tmp + 512 -1) / 512;
-        for(int i=0; i<nb_bloc_fichier; i++){
-            read(descripteur, tete, 512);
+        sscanf(header->size, "%o", &tmp);
+        nb_bloc_file = (tmp + 512 -1) / 512;
+        for(int i=0; i<nb_bloc_file; i++){
+            read(descriptor, header, 512);
         }
     }
+    return 0;
 }
-void cd(int descripteur, char * PATH, char * directory){
+void cd(int descriptor, char * PATH, char * directory){
 
 }
 int main(void){
-    char *test = concatString("Path/nom/", "directory");
-    printf("%s\n", test);
+    
+
     return 0;
 }
