@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include "tar.h"
 char * concatString(char * path, char *dir){
     int length = strlen(path)+strlen(dir)+2;
@@ -31,10 +32,11 @@ int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     return 0;
 }
 void cd(int descriptor, char * PATH, char * directory){
-
-}
-int main(void){
-    
-
-    return 0;
+    if(strcmp(".",directory)==0)return;
+    if(strcmp("..", directory))return;
+    if(if_cd_is_valid(descriptor, PATH, directory)){
+        strcat(PATH, concatString(directory, ""));
+    }else{
+        printf("no such directory\n");
+    }
 }
