@@ -9,7 +9,9 @@
 #define BUFSIZE 512
 char read_buff[BUFSIZE]; //buff for the read
 char PATH[1024];//representing the relative path from the tar
-
+char *getCommand(){
+    return read_buff + strlen(PATH);
+}
 int main(int nb, char **args){
     if(nb<2){ //if missing the .tar
         //should check also if it's not a .tar
