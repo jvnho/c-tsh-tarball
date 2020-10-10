@@ -3,13 +3,14 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "tsh_memory.h"
-tsh_memory * instanciate_tsh_memory(int path_descriptor, int tar_descriptor){
+tsh_memory * instanciate_tsh_memory(char *path_file_name, char *tar_file_name){
     tsh_memory * result = malloc(sizeof(tsh_memory));
     result->PATH = malloc(BUFSIZE);
     (result->PATH)[0] = '\0';//so it doesn't create a random characteres
-    result->path_descriptor = path_descriptor;
-    result->tar_descriptor = tar_descriptor;
+    result->path_descriptor = open(path_file_name, O_RDWR);
+    result->tar_descriptor = open(tar_file_name, O_RDWR);
     return result;
 }
 void update_path(tsh_memory * state){

@@ -28,7 +28,7 @@ int main(int nb, char **args){
         return -1;
     }
     //we create a memory about the current state so all processu can relate on it
-    memory = instanciate_tsh_memory(open("PATH.txt", O_RDWR), open(args[1], O_RDWR));
+    memory = instanciate_tsh_memory("PATH.txt", args[1]);
     if(errno == ENOENT){//no such file
         perror("");
         return -1;
@@ -43,7 +43,7 @@ int main(int nb, char **args){
         read(0, read_buff, BUFSIZE);//user write his command on the input
         read_buff[strlen(read_buff)-1] = '\0';
         //if(memmem(read_buff, strlen(read_buff), "exit", 4))break;
-        cd(".", memory);
+        cd("TP/TP3", memory);
         update_path(memory);
         write(1, memory->PATH, strlen(memory->PATH));
         read(0, read_buff, BUFSIZE);
