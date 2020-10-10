@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include "tar.h"
+#include "tsh_memory.h"
 char * concatString(char * path, char *dir){
     int length = strlen(path)+strlen(dir)+2;
     char * result = malloc(length);
@@ -31,13 +32,14 @@ int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     }
     return 0;
 }
-void cd(char * directory, int tar_descriptor, int path_descriptor, char * PATH){
+void cd(char * directory, tsh_memory *memory){//modify the current path in the memory
     if(strcmp(".",directory)==0)return;
     if(strcmp("..", directory)==0)return;
-    if(if_cd_is_valid(tar_descriptor, PATH, directory)){
-        strcat(PATH, concatString(directory, ""));
-        lseek(path_descriptor, 0, SEEK_SET);
-        write(path_descriptor, PATH, strlen(PATH));
+    //tar desc, path descri, directory
+    if(if_cd_is_valid(memory->tar_descriptor, memory->PATH, directory)){
+        strcat(memory->PATH, concatString(directory, ""));//?? if we give directory/
+        lseek(memory->path_descriptor, 0, SEEK_SET);
+        write(memory->path_descriptor, memory->PATH, strlen(memory->PATH));
     }else{
         printf("no such directory\n");
     }

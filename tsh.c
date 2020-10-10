@@ -11,7 +11,7 @@
 #define BUFSIZE 512
 tsh_memory * memory;
 char read_buff[BUFSIZE]; //buff for the read
-char PATH[1024];//representing the relative path from the tar
+
 /*char ** getCommand(){//so we can pass it to exec
     char * debut_comande = read_buff + strlen(PATH);
     //comand arg1 arg2 ......
@@ -27,10 +27,8 @@ int main(int nb, char **args){
         printf("missing the .tar file to execute this programe\n");
         return -1;
     }
-    //we open our .tar in order to execute command on it
-    int fd_tar = open(args[1], O_RDWR);
-    int fd_path = open("PATH.txt", O_RDWR);
-    memory = instanciate_tsh_memory(fd_path, fd_tar);
+    //we create a memory about the current state so all processu can relate on it
+    memory = instanciate_tsh_memory(open("PATH.txt", O_RDWR), open(args[1], O_RDWR));
     if(errno == ENOENT){//no such file
         perror("");
         return -1;
@@ -39,17 +37,20 @@ int main(int nb, char **args){
         return -1;
     }
 
-    while(1){
+    /*while(1){*/
         update_path(memory);
         write(1, memory->PATH, strlen(memory->PATH));
         read(0, read_buff, BUFSIZE);//user write his command on the input
         read_buff[strlen(read_buff)-1] = '\0';
-        if(memmem(read_buff, strlen(read_buff), "exit", 4))break;
-
+        //if(memmem(read_buff, strlen(read_buff), "exit", 4))break;
+        cd(".", memory);
+        update_path(memory);
+        write(1, memory->PATH, strlen(memory->PATH));
+        read(0, read_buff, BUFSIZE);
         /*
             if the command wasn't exit
         */
-    }
-    close(fd_tar);
+    /*}*/
+    free_tsh_memory(memory);
     return 0;
 }
