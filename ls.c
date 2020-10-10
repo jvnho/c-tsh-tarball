@@ -7,39 +7,53 @@
 #include <fcntl.h>
 #include <stdio.h>
 
+//int is_already_in_array(int,char**,char*);
+
 #define BUFSIZE 512
 
-char *ARRAY[20];
+char *ARRAY[20]; //allow to keep the file or repository to display
 char NAME[255];
 
 int ls_sans_argument(int fd, char* PATH){
-    struct posix_header *tete = malloc(512);
+    struct posix_header *header = malloc(512);
     int nb_fichier = 0;
-    while(read(fd, tete, BUFSIZE) > 0){
-        strncpy(NAME, tete->name, strlen(PATH)); //allows to check if the current
-        if(strcmp(NAME,PATH) == 0){            //the file belongs to the tree file(=PATH)
-            int i = strlen(PATH), j = 0;
-            if(strcmp(NAME,tete->name) != 0){ //dont want to show the current repository we are in
-                printf("%c \n",tete->name[i]);
-                char *file_path = tete->name;
+    while(read(fd, header, BUFSIZE) > 0){ //reading the entire tarball
+        if( (strcmp(PATH," ") == 0) && header->typeflag == '0'){
+            //cas où on se trouve dans le début du tarball
+        } else {
+            strncpy(NAME, header->name, strlen(PATH));
+            //checking if the current the repository belongs to the current PATH
+            //and making sure the current block is not the PATH
+            if( (strcmp(NAME,PATH) == 0) && (strcmp(NAME,header->name) != 0) ){
+                //printf("%s\n",header->name);
+                char RET_NAME[255];
+                int i = strlen(PATH), j = 0;
+                char *file_path = header->name;
                 while(file_path[i] != '\0' && file_path[i] != '/' ){
-                    NAME[j] = file_path[i];
-                    i++; j++;
+                    RET_NAME[j++] = file_path[i++];
                 }
-                NAME[j++] = '\0';
+                RET_NAME[j++] = '\0';
+                printf("%s\n",RET_NAME);
                 ARRAY[nb_fichier++] = NAME;
-                //printf("%s", ARRAY[1]);
             }
-        } else { //allows to jump to the next block
-            int filesize = 0;
-            sscanf(tete->size, "%o", &filesize);
-            int nb_bloc_fichier = (filesize + 512 -1) / 512;
-            for(int i = 0; i < nb_bloc_fichier; i++) read(fd, tete, BUFSIZE);
         }
+        int filesize = 0;
+        sscanf(header->size, "%o", &filesize);
+        int nb_bloc_fichier = (filesize + 512 -1) / 512;
+        for(int i = 0; i < nb_bloc_fichier; i++) read(fd, header, BUFSIZE);
     }
-    free(tete);
+    //printf("%s", ARRAY[0]);
+    free(header);
     return 1;
 }
+
+// int is_already_in_array(int size, char *array[], char *string){ //servira à ne pas avoir des dossiers en double
+//     for(int i = 0; i < size; i++){
+//         if(strcmp(string, array[i]) == 0)
+//             return 1;
+//     }
+//     return 0;
+// }
 
 int main(int argc, char * argv[]){
     int fd = open(argv[1], O_RDONLY);
