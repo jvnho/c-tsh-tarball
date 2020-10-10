@@ -4,6 +4,8 @@
 #include <sys/uio.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/errno.h>
+#include <stdio.h>
 #include "tsh_memory.h"
 tsh_memory * instanciate_tsh_memory(char *path_file_name, char *tar_file_name){
     tsh_memory * result = malloc(sizeof(tsh_memory));
@@ -11,6 +13,13 @@ tsh_memory * instanciate_tsh_memory(char *path_file_name, char *tar_file_name){
     (result->PATH)[0] = '\0';//so it doesn't create a random characteres
     result->path_descriptor = open(path_file_name, O_RDWR);
     result->tar_descriptor = open(tar_file_name, O_RDWR);
+    if(errno == ENOENT){//no such file
+        perror("");
+        return NULL;
+    }if(errno == EACCES){//permision dinied
+        perror("");
+        return NULL;
+    }
     return result;
 }
 void update_path(tsh_memory * state){

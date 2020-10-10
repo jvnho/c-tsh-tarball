@@ -28,14 +28,7 @@ int main(int nb, char **args){
         return -1;
     }
     //we create a memory about the current state so all processu can relate on it
-    memory = instanciate_tsh_memory("PATH.txt", args[1]);
-    if(errno == ENOENT){//no such file
-        perror("");
-        return -1;
-    }if(errno == EACCES){//permision dinied
-        perror("");
-        return -1;
-    }
+    if((memory = instanciate_tsh_memory("PATH.txt", args[1]))==NULL)return -1;
 
     /*while(1){*/
         update_path(memory);
