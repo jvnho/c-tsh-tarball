@@ -8,42 +8,42 @@
 #include <stdio.h>
 
 #define BUFSIZE 512
-char *ARRAY[20]; // (4096/255): 4096 number of characters max fitting in a string so is 255 for a filename
+
+char *ARRAY[20];
+char NAME[255];
 
 int ls_sans_argument(int fd, char* PATH){
     struct posix_header *tete = malloc(512);
+    int nb_fichier = 0;
     while(read(fd, tete, BUFSIZE) > 0){
-        if(strstr(tete->name, PATH)) { //checks if filename contains PATH (à améliorer)
-            int i = strlen(PATH);
-            char *file_path = tete->name;
-            while(file_path[i] != '\0' && file_path[i] != '/' ){
-                write(1, &file_path[i] ,1);
-                i++;
+        strncpy(NAME, tete->name, strlen(PATH)); //allows to check if the current
+        if(strcmp(NAME,PATH) == 0){            //the file belongs to the tree file(=PATH)
+            int i = strlen(PATH), j = 0;
+            if(strcmp(NAME,tete->name) != 0){ //dont want to show the current repository we are in
+                printf("%c \n",tete->name[i]);
+                char *file_path = tete->name;
+                while(file_path[i] != '\0' && file_path[i] != '/' ){
+                    NAME[j] = file_path[i];
+                    i++; j++;
+                }
+                NAME[j++] = '\0';
+                ARRAY[nb_fichier++] = NAME;
+                //printf("%s", ARRAY[1]);
             }
-            write(1, " " ,1);
         } else { //allows to jump to the next block
-            int tmp = 0;
-            sscanf(tete->size, "%o", &tmp);
-            int nb_bloc_fichier = (tmp + 512 -1) / 512;
-            for(int i = 0; i < nb_bloc_fichier; i++)
-                read(fd, tete, BUFSIZE);
+            int filesize = 0;
+            sscanf(tete->size, "%o", &filesize);
+            int nb_bloc_fichier = (filesize + 512 -1) / 512;
+            for(int i = 0; i < nb_bloc_fichier; i++) read(fd, tete, BUFSIZE);
         }
     }
-    write(1, "\n" ,1);
+    free(tete);
     return 1;
 }
 
 int main(int argc, char * argv[]){
     int fd = open(argv[1], O_RDONLY);
     int ret = ls_sans_argument(fd,"doc1/");
-}
-
-int cut_path_tok(char* PATH){
-    char *token = strtok(PATH, "/");
-    int ret = 0;
-    while(token != NULL)
-        ret++;
-    return ret;
 }
 
 void ls(int fd, char* PATH, int arg, char* argv){
