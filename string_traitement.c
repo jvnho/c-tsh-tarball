@@ -44,7 +44,16 @@ position_mots *get_beginEnd_substring(char *args, int nb_substring){
     if(result[nb_substring-1].fin == 0)result[nb_substring-1].fin = strlen(args)-1;
     return result;
 }
+char ** allocate_2Dmemory(int dim1, position_mots *pos){
+    char ** result = malloc(dim1*sizeof(char *));
+    for(int i=0; i<dim1; i++){
+        result[i] = malloc((pos[i].fin - pos[i].debut+1) * sizeof(char));
+    }
+    return result;
+}
 /*char ** getCommand(int *nb, char *args){
+    *nb = count_args(args);
+    position_mots * position = get_beginEnd_substring(args, *nb);
 
 }*/
 int main(void){
