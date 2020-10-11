@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include "tar.h"
 #include "tsh_memory.h"
+#include "string_traitement.h"
 char * concatString(char * path, char *dir){
     int length = strlen(path)+strlen(dir)+2;
     char * result = malloc(length);
@@ -33,10 +34,12 @@ int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     return 0;
 }
 //path and path descriptor
-void cd(char * directory, int path_descriptor, int tar_descriptor){//modify the current path in the memory
+void cd(char * directory, char *path_fd, char *tar_fd){//modify the current path in the memory
     if(strcmp(".",directory)==0)return;
     if(strcmp("..", directory)==0)return;
-    //tar desc, path descri, directory
+    //change to int format
+    int path_descriptor = string_to_int(path_fd);
+    int tar_descriptor = string_to_int(tar_fd);
     lseek(path_descriptor, 0, SEEK_SET);
     char PATH[512]; PATH[0] = '\0';
     read(path_descriptor, PATH, 512);
