@@ -47,20 +47,22 @@ position_mots *get_beginEnd_substring(char *args, int nb_substring){
 char ** allocate_2Dmemory(int dim1, position_mots *pos){
     char ** result = malloc(dim1*sizeof(char *));
     for(int i=0; i<dim1; i++){
-        result[i] = malloc((pos[i].fin - pos[i].debut+1) * sizeof(char));
+        result[i] = malloc((pos[i].fin - pos[i].debut+2) * sizeof(char));//because of '\0'
     }
     return result;
 }
-/*char ** getCommand(int *nb, char *args){
+char ** getCommand(int *nb, char *args){
     *nb = count_args(args);
     position_mots * position = get_beginEnd_substring(args, *nb);
-
-}*/
-int main(void){
-    int nb_args = count_args(" cd   System/   cours");
-    position_mots *teste = get_beginEnd_substring(" cd   System/   cours", nb_args);
-    for(int i = 0; i<nb_args; i++){
-        printf("debut = %d    fin = %d\n", teste[i].debut, teste[i].fin);
+    char **result = allocate_2Dmemory(*nb, position);
+    int index_char = 0;
+    for(int i=0; i<*nb; i++){
+        for(int j = position[i].debut; j<=position[i].fin; j++){
+            result[i][index_char] = args[j];
+            index_char++;
+        }
+        result[i][index_char] = '\0';
+        index_char = 0;
     }
-    return 0;
+    return result;
 }
