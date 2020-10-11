@@ -64,5 +64,21 @@ char ** getCommand(int *nb, char *args){
         result[i][index_char] = '\0';
         index_char = 0;
     }
+    free(position);
     return result;
+}
+void freeCommand(char **command, int size){
+    for(int i=0; i<size; i++){
+        free(command[i]);
+    }
+    free(command);
+}
+int main(void){
+    int nb_args = 0;
+
+    char **teste = getCommand(&nb_args, " cd  .");
+    for(int i = 0; i<nb_args; i++){
+        printf("%s\n", teste[i]);
+    }
+    return 0;
 }
