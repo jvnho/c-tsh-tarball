@@ -3,4 +3,5 @@
 extern char ** getCommand(int *nb, char *args);
 extern void freeCommand(char **command, int size);
 extern int string_to_int(char *chiffre);
+extern char *int_to_string(int chiffre);
 #endif

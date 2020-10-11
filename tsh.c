@@ -29,12 +29,11 @@ int main(int nb, char **args){
         read_buff[strlen(read_buff)-1] = '\0';
         //if(memmem(read_buff, strlen(read_buff), "exit", 4))break;
         
-        /*
-            if the command wasn't exit
-        */
-    /*}*/
+
+
+    }*/
     
-    printf("%d\n", string_to_int("123"));
+    printf("%s\n", int_to_string(123));
     free_tsh_memory(memory);
     return 0;
 }

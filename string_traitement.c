@@ -84,6 +84,7 @@ int char_to_int(char a){
     if(a == '7')return 7;
     if(a == '8')return 8;
     if(a == '9')return 9;
+    return -1;
 }
 int string_to_int(char *chiffre){
     int puissance10 = 1;
@@ -101,10 +102,31 @@ int getDigitLength(int chiffre){//the numbre of digit
         counter++;
         chiffre/=10;
     }
-    return counter + 1;
+    return counter;
 }
-/*
+char int_to_char(int a){
+    if(a == 0)return '0';
+    if(a == 1)return '1';
+    if(a == 2)return '2';
+    if(a == 3)return '3';
+    if(a == 4)return '4';
+    if(a == 5)return '5';
+    if(a == 6)return '6';
+    if(a == 7)return '7';
+    if(a == 8)return '8';
+    if(a == 9)return '9';
+    return '-';
+}
 char *int_to_string(int chiffre){
     int size = getDigitLength(chiffre);
-
-}*/
+    printf("nombre chiffre %d\n", size);
+    char *result = malloc(size+1);
+    int digit = 0;
+    for(int i = (size-1); 0<=i; i--){
+        digit = chiffre%10;
+        result[i] = int_to_char(digit);
+        chiffre/=10;
+    }
+    result[size] = '\0';
+    return result;
+}
