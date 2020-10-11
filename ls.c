@@ -18,27 +18,23 @@ char NAME[255];
 int ls_sans_argument(int fd, char* PATH){
     struct posix_header *header = malloc(512);
     int nb_fichier = 0, nb_file_to_display = 0;
-    char CUT_PATH[20][255];
+    char BUILD_PATH[20][255];
     while(read(fd, header, BUFSIZE) > 0){ //reading the entire tarball
-        if( (strcmp(PATH," ") == 0) && header->typeflag == '0'){
-            //cas précis où on se trouve dans le début du tarball
-        } else {
-            strncpy(NAME, header->name, strlen(PATH));
-            //checking if the current the repository belongs to the current PATH
-            //and making sure the current block is not the PATH
-            if( (strcmp(NAME,PATH) == 0) && (strcmp(NAME,header->name) != 0) ){
-                int i = strlen(PATH), j = 0;
-                char *file_path = header->name;
-                //splitting the string to keep the name not the full path
-                while(file_path[i] != '\0' && file_path[i] != '/' ){
-                    CUT_PATH[nb_fichier][j++] = file_path[i++];
-                }
-                CUT_PATH[nb_fichier][j++] = '\0';
-                //making sure the file is display only once
-                if( is_already_in_array(nb_file_to_display, ARRAY, CUT_PATH[nb_fichier]) == 0 )
-                    memcpy(ARRAY[nb_file_to_display++], CUT_PATH[nb_fichier], strlen(CUT_PATH[nb_fichier]));
-                nb_fichier++;
+        strncpy(NAME, header->name, strlen(PATH));
+        //checking if the current the repository belongs to the current PATH
+        //and making sure the current block is not the PATH
+        if( (strcmp(NAME,PATH) == 0) && (strcmp(NAME,header->name) != 0) ){
+            int i = strlen(PATH), j = 0;
+            char *file_path = header->name;
+            //splitting the string to keep the name not the full path
+            while(file_path[i] != '\0' && file_path[i] != '/' ){
+                BUILD_PATH[nb_fichier][j++] = file_path[i++];
             }
+            BUILD_PATH[nb_fichier][j++] = '\0';
+            //making sure the file is display only once
+            if( is_already_in_array(nb_file_to_display, ARRAY, BUILD_PATH[nb_fichier]) == 0 )
+                memcpy(ARRAY[nb_file_to_display++], BUILD_PATH[nb_fichier], strlen(BUILD_PATH[nb_fichier]));
+            nb_fichier++;
         }
         //allow to jump to the next header block
         int filesize = 0;
@@ -75,8 +71,8 @@ void ls(int fd, char* PATH, int arg, char* argv){
     }*/
 }
 
-/////// TEST /////////
+///// TEST /////////
 // int main(int argc, char * argv[]){
 //     int fd = open(argv[1], O_RDONLY);
-//     int ret = ls_sans_argument(fd,"doc1/doc2/");
+//     int ret = ls_sans_argument(fd,"");
 // }
