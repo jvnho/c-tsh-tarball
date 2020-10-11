@@ -32,14 +32,19 @@ int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     }
     return 0;
 }
-void cd(char * directory, tsh_memory *memory){//modify the current path in the memory
+//path and path descriptor
+void cd(char * directory, int path_descriptor, int tar_descriptor){//modify the current path in the memory
     if(strcmp(".",directory)==0)return;
     if(strcmp("..", directory)==0)return;
     //tar desc, path descri, directory
-    if(if_cd_is_valid(memory->tar_descriptor, memory->PATH, directory)){
-        strcat(memory->PATH, concatString(directory, ""));//?? if we give directory/
-        lseek(memory->path_descriptor, 0, SEEK_SET);
-        write(memory->path_descriptor, memory->PATH, strlen(memory->PATH));
+    lseek(path_descriptor, 0, SEEK_SET);
+    char PATH[512]; PATH[0] = '\0';
+    read(path_descriptor, PATH, 512);
+    if(if_cd_is_valid(tar_descriptor, PATH, directory)){
+        //read_the actual path 
+        strcat(PATH, concatString(directory, ""));//?? if we give directory/
+        lseek(path_descriptor, 0, SEEK_SET);
+        write(path_descriptor, PATH, strlen(PATH));
     }else{
         printf("no such directory\n");
     }

@@ -73,12 +73,25 @@ void freeCommand(char **command, int size){
     }
     free(command);
 }
-int main(void){
-    int nb_args = 0;
-
-    char **teste = getCommand(&nb_args, " cd  .");
-    for(int i = 0; i<nb_args; i++){
-        printf("%s\n", teste[i]);
+int char_to_int(char a){
+    if(a == '0')return 0;
+    if(a == '1')return 1;
+    if(a == '2')return 2;
+    if(a == '3')return 3;
+    if(a == '4')return 4;
+    if(a == '5')return 5;
+    if(a == '6')return 6;
+    if(a == '7')return 7;
+    if(a == '8')return 8;
+    if(a == '9')return 9;
+}
+int string_to_int(char *chiffre){
+    int puissance10 = 1;
+    int resultat = 0;
+    int tail_chiffre = strlen(chiffre);
+    for(int i = (tail_chiffre-1); 0<=i; i--){
+        resultat = resultat + char_to_int(chiffre[i]) * puissance10;
+        puissance10 *= 10;
     }
-    return 0;
+    return resultat;
 }
