@@ -95,3 +95,16 @@ int string_to_int(char *chiffre){
     }
     return resultat;
 }
+int getDigitLength(int chiffre){//the numbre of digit 
+    int counter = 0;
+    while(chiffre%10!=0){
+        counter++;
+        chiffre/=10;
+    }
+    return counter + 1;
+}
+/*
+char *int_to_string(int chiffre){
+    int size = getDigitLength(chiffre);
+
+}*/
