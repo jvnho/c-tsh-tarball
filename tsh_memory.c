@@ -7,6 +7,7 @@
 #include <sys/errno.h>
 #include <stdio.h>
 #include "tsh_memory.h"
+#include "string_traitement.h"
 tsh_memory * instanciate_tsh_memory(char *path_file_name, char *tar_file_name){
     tsh_memory * result = malloc(sizeof(tsh_memory));
     result->PATH = malloc(BUFSIZE);
@@ -31,4 +32,11 @@ void free_tsh_memory(tsh_memory *state){
     close(state->tar_descriptor);
     free(state->PATH);
     free(state);
+}
+void getCommand_plus_fd(char **command_typed, tsh_memory *memory){
+    char **result = realloc(command_typed, (memory->tail_comand + 2) * sizeof(char*));
+    memory->tail_comand += 2;
+    result[(memory->tail_comand)-2] = int_to_string(memory->path_descriptor);
+    result[(memory->tail_comand)-1] = int_to_string(memory->tar_descriptor);
+    memory->comand = result;
 }

@@ -22,18 +22,14 @@ int main(int nb, char **args){
     //we create a memory about the current state so all processu can relate on it
     if((memory = instanciate_tsh_memory("PATH.txt", args[1]))==NULL)return -1;
 
-    /*while(1){
+    /*while(1){*/
         update_path(memory);
         write(1, memory->PATH, strlen(memory->PATH));
         read(0, read_buff, BUFSIZE);//user write his command on the input
         read_buff[strlen(read_buff)-1] = '\0';
         //if(memmem(read_buff, strlen(read_buff), "exit", 4))break;
-        
-
-
-    }*/
-    
-    printf("%s\n", int_to_string(123));
+        getCommand_plus_fd(getCommand(&memory->tail_comand, read_buff),memory);
+    /*}*/
     free_tsh_memory(memory);
     return 0;
 }

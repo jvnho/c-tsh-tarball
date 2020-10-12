@@ -119,7 +119,6 @@ char int_to_char(int a){
 }
 char *int_to_string(int chiffre){
     int size = getDigitLength(chiffre);
-    printf("nombre chiffre %d\n", size);
     char *result = malloc(size+1);
     int digit = 0;
     for(int i = (size-1); 0<=i; i--){
