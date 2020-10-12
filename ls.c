@@ -11,18 +11,17 @@ int is_in_array(int,char[20][255],char*);
 void print_array_to_STROUT(char[20][255],int);
 
 char ARRAY[20][255]; //allow to keep the file or repository to display
-char NAME[255];
 
 #define BUFSIZE 512
 
 int ls_sans_argument(int fd, char* PATH){
     struct posix_header *header = malloc(512);
     int nb_file_to_display = 0;
-    char CUT_PATH[255];
+    char FILE_PATH[255], CUT_PATH[255];
     while(read(fd, header, BUFSIZE) > 0){ //reading the entire tarball
-        strncpy(NAME, header->name, strlen(PATH));//splitting the file path to make it match with the given PATH
+        strncpy(FILE_PATH, header->name, strlen(PATH));//splitting the file path to make it matched with the given PATH
         //checking if the current file/repository belongs to the given PATH and if it's not itself (to not print in)
-        if(strcmp(NAME,PATH) == 0 && strcmp(NAME,header->name) != 0){
+        if(strcmp(FILE_PATH,PATH) == 0 && strcmp(FILE_PATH,header->name) != 0){
             int i = strlen(PATH), j = 0;
             while(header->name[i] != '\0' && header->name[i] != '/' ){ //keeping the name of the file path
                 i++; j++;
@@ -68,7 +67,7 @@ void ls(int fd, char* PATH, int arg, char* argv){
 }
 
 /// TEST /////////
-int main(int argc, char * argv[]){
-    int fd = open(argv[1], O_RDONLY);
-    int ret = ls_sans_argument(fd,"");
-}
+// int main(int argc, char * argv[]){
+//     int fd = open(argv[1], O_RDONLY);
+//     int ret = ls_sans_argument(fd,"");
+// }
