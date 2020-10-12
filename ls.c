@@ -18,7 +18,7 @@ char NAME[255];
 int ls_sans_argument(int fd, char* PATH){
     struct posix_header *header = malloc(512);
     int nb_fichier = 0, nb_file_to_display = 0;
-    char BUILD_PATH[20][255];
+    char BUILD_PATH[255];
     while(read(fd, header, BUFSIZE) > 0){ //reading the entire tarball
         strncpy(NAME, header->name, strlen(PATH));
         //checking if the current the repository belongs to the current PATH
@@ -28,12 +28,13 @@ int ls_sans_argument(int fd, char* PATH){
             char *file_path = header->name;
             //splitting the string to keep the name not the full path
             while(file_path[i] != '\0' && file_path[i] != '/' ){
-                BUILD_PATH[nb_fichier][j++] = file_path[i++];
+                i++; j++;
             }
-            BUILD_PATH[nb_fichier][j++] = '\0';
+            strncpy(BUILD_PATH,file_path+strlen(PATH),j);
+            BUILD_PATH[j++] = '\0';
             //making sure the file is display only once
-            if( is_already_in_array(nb_file_to_display, ARRAY, BUILD_PATH[nb_fichier]) == 0 )
-                memcpy(ARRAY[nb_file_to_display++], BUILD_PATH[nb_fichier], strlen(BUILD_PATH[nb_fichier]));
+            if( is_already_in_array(nb_file_to_display, ARRAY, BUILD_PATH) == 0 )
+                memcpy(ARRAY[nb_file_to_display++], BUILD_PATH, strlen(BUILD_PATH));
             nb_fichier++;
         }
         //allow to jump to the next header block
@@ -71,7 +72,7 @@ void ls(int fd, char* PATH, int arg, char* argv){
     }*/
 }
 
-///// TEST /////////
+/// TEST /////////
 // int main(int argc, char * argv[]){
 //     int fd = open(argv[1], O_RDONLY);
 //     int ret = ls_sans_argument(fd,"");
