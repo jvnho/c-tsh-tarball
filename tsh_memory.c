@@ -24,8 +24,10 @@ tsh_memory * instanciate_tsh_memory(char *path_file_name, char *tar_file_name){
     return result;
 }
 void update_path(tsh_memory * state){//change the path variable according to the path file
+    
     lseek(state->path_descriptor, 0, SEEK_SET);
     read(state->path_descriptor, state->PATH, BUFSIZE);
+    freeCommand(state->comand, state->tail_comand);
 }
 void free_tsh_memory(tsh_memory *state){
     close(state->path_descriptor);
@@ -33,10 +35,6 @@ void free_tsh_memory(tsh_memory *state){
     free(state->PATH);
     free(state);
 }
-void getCommand_plus_fd(char **command_typed, tsh_memory *memory){
-    char **result = realloc(command_typed, (memory->tail_comand + 2) * sizeof(char*));
-    memory->tail_comand += 2;
-    result[(memory->tail_comand)-2] = int_to_string(memory->path_descriptor);
-    result[(memory->tail_comand)-1] = int_to_string(memory->tar_descriptor);
-    memory->comand = result;
+void getCommand(char **command_typed, tsh_memory *memory){
+    memory->comand = command_typed;
 }

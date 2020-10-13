@@ -13,5 +13,5 @@ typedef struct tsh_memory{
 extern tsh_memory * instanciate_tsh_memory(char *path_file_name, char *tar_file_name);
 extern void update_path(tsh_memory * state);
 extern void free_tsh_memory(tsh_memory *state);
-extern void getCommand_plus_fd(char **command_typed, tsh_memory *memory);
+extern void getCommand(char **command_typed, tsh_memory *memory);
 #endif

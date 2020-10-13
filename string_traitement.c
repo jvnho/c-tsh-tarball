@@ -45,15 +45,15 @@ position_mots *get_beginEnd_substring(char *args, int nb_substring){
     return result;
 }
 char ** allocate_2Dmemory(int dim1, position_mots *pos){
-    char ** result = malloc(dim1*sizeof(char *));
+    char ** result = malloc((dim1 +3)*sizeof(char *));//+2 for the fd_path and the fd_tar + pour le null
     for(int i=0; i<dim1; i++){
         result[i] = malloc((pos[i].fin - pos[i].debut+2) * sizeof(char));//because of '\0'
     }
     return result;
 }
-char ** getCommand(int *nb, char *args){
+char ** to_array_of_string(int *nb, char *args, char *path_fd, char *tar_fd){//to create a char**
     *nb = count_args(args);
-    position_mots * position = get_beginEnd_substring(args, *nb);
+    position_mots * position = get_beginEnd_substring(args, *nb);//for the 2 fd, 1 pour  le null
     char **result = allocate_2Dmemory(*nb, position);
     int index_char = 0;
     for(int i=0; i<*nb; i++){
@@ -64,6 +64,10 @@ char ** getCommand(int *nb, char *args){
         result[i][index_char] = '\0';
         index_char = 0;
     }
+    result[*nb] = path_fd;
+    result[(*nb)+1] = tar_fd;
+    result[(*nb)+2] = NULL;
+    *nb = *nb + 2;
     free(position);
     return result;
 }
@@ -127,5 +131,16 @@ char *int_to_string(int chiffre){
         chiffre/=10;
     }
     result[size] = '\0';
+    return result;
+}
+//voir le cas ou dir se termine par un slach
+char * concatString(char * path, char *dir){
+    int length = strlen(path)+strlen(dir)+2;
+    char * result = malloc(length);
+    strcpy(result, path);
+    result[strlen(path)] = '\0';
+    strcat(result, dir);
+    result[length-2] = '/';
+    result[length-1] = '\0';
     return result;
 }
