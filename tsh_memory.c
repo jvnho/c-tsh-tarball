@@ -8,20 +8,22 @@
 #include <stdio.h>
 #include "tsh_memory.h"
 #include "string_traitement.h"
-tsh_memory * instanciate_tsh_memory(char *tar_file_name){
-    tsh_memory * result = malloc(sizeof(tsh_memory));
-    (result->PATH)[0] = '\0';//so it doesn't create a random characteres
+void instanciate_tsh_memory(char *tar_file_name, tsh_memory *result){
+    (result->FAKE_PATH)[0] = '\0';//so it doesn't create a random characteres
+    result->tar_name = tar_file_name;
     result->tar_descriptor = int_to_string(open(tar_file_name, O_RDWR));
     if(errno == ENOENT){//no such file
         perror("");
-        return NULL;
     }if(errno == EACCES){//permision dinied
         perror("");
-        return NULL;
     }
+}
+tsh_memory * create_memory(){
+    tsh_memory * result = malloc(sizeof(tsh_memory));
+    (result->FAKE_PATH)[0] = '\0';//so it doesn't create a random characteres
     return result;
 }
 void free_tsh_memory(tsh_memory *state){//at the end
-    close(atoi(state->tar_descriptor));
+    //close(string_to_int(state->tar_descriptor)); 
     free(state);
 }

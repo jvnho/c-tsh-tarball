@@ -10,26 +10,16 @@
 #include "tsh_memory.h"
 #include "cd.h"
 
-#define MAX_COMMAND 512
 tsh_memory * memory;
-char read_buff[MAX_COMMAND]; //buff for the read
-int main(int nb, char **args){
-    if(nb<2){ //if missing the .tar
-        //should check also if it's not a .tar
-        printf("missing the .tar file to execute this programe\n");
-        return -1;
-    }
+int main(void){
     //we create a memory about the current state so all processu can relate on it
-    if((memory = instanciate_tsh_memory(args[1]))==NULL)return -1;
-    
-    /*while(1){*/
-        write(1, memory->PATH, strlen(memory->PATH));
-        read(0, read_buff, MAX_COMMAND);//user write his command on the input
-        read_buff[strlen(read_buff)-1] = '\0';
-        //if(memmem(read_buff, strlen(read_buff), "exit", 4))break;
-
-        cd("System", memory->PATH,memory->tar_descriptor);
-    /*}*/
-    //free_tsh_memory(memory);
+    if((memory = create_memory())==NULL)return -1;
+    while(1){
+        write(1, memory->FAKE_PATH, strlen(memory->FAKE_PATH));
+        read(0, memory->comand, MAX_COMMAND);//user write his command on the input
+        memory->comand[strlen(memory->comand)-1] = '\0';
+        if(memmem(memory->comand, strlen(memory->comand), "exit", 4))break;
+    }
+    free_tsh_memory(memory);
     return 0;
 }
