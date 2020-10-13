@@ -29,14 +29,6 @@ int main(int nb, char **args){
         //if(memmem(read_buff, strlen(read_buff), "exit", 4))break;
 
         cd("System", memory->PATH,memory->tar_descriptor);
-        write(1, memory->PATH, strlen(memory->PATH));
-        read(0, read_buff, MAX_COMMAND);//user write his command on the input
-        read_buff[strlen(read_buff)-1] = '\0';
-
-        cd("TP", memory->PATH,memory->tar_descriptor);
-        write(1, memory->PATH, strlen(memory->PATH));
-        read(0, read_buff, MAX_COMMAND);//user write his command on the input
-        read_buff[strlen(read_buff)-1] = '\0';
     /*}*/
     //free_tsh_memory(memory);
     return 0;

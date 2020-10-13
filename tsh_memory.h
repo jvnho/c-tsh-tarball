@@ -5,12 +5,10 @@
 typedef struct tsh_memory{
     char PATH[BUFSIZE];//the current path
     char * tar_descriptor;//so we can get information about the main file (the .tar)
-    char **comand;//the command that we are typing
+    char *comand;//the command that we are typing
     int tail_comand;
 }tsh_memory;
 
 extern tsh_memory * instanciate_tsh_memory(char *tar_file_name);
-extern void update_path(tsh_memory * state);
 extern void free_tsh_memory(tsh_memory *state);
-extern void getCommand(char **command_typed, tsh_memory *memory);
 #endif

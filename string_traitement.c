@@ -44,39 +44,6 @@ position_mots *get_beginEnd_substring(char *args, int nb_substring){
     if(result[nb_substring-1].fin == 0)result[nb_substring-1].fin = strlen(args)-1;
     return result;
 }
-char ** allocate_2Dmemory(int dim1, position_mots *pos){
-    char ** result = malloc((dim1 +3)*sizeof(char *));//+2 for the fd_path and the fd_tar + pour le null
-    for(int i=0; i<dim1; i++){
-        result[i] = malloc((pos[i].fin - pos[i].debut+2) * sizeof(char));//because of '\0'
-    }
-    return result;
-}
-char ** to_array_of_string(int *nb, char *args, char *path_fd, char *tar_fd){//to create a char**
-    *nb = count_args(args);
-    position_mots * position = get_beginEnd_substring(args, *nb);//for the 2 fd, 1 pour  le null
-    char **result = allocate_2Dmemory(*nb, position);
-    int index_char = 0;
-    for(int i=0; i<*nb; i++){
-        for(int j = position[i].debut; j<=position[i].fin; j++){
-            result[i][index_char] = args[j];
-            index_char++;
-        }
-        result[i][index_char] = '\0';
-        index_char = 0;
-    }
-    result[*nb] = path_fd;
-    result[(*nb)+1] = tar_fd;
-    result[(*nb)+2] = NULL;
-    *nb = *nb + 2;
-    free(position);
-    return result;
-}
-void freeCommand(char **command, int size){
-    for(int i=0; i<size; i++){
-        free(command[i]);
-    }
-    free(command);
-}
 int char_to_int(char a){
     if(a == '0')return 0;
     if(a == '1')return 1;
