@@ -8,12 +8,10 @@
 #include <stdio.h>
 #include "tsh_memory.h"
 #include "string_traitement.h"
-tsh_memory * instanciate_tsh_memory(char *path_file_name, char *tar_file_name){
+tsh_memory * instanciate_tsh_memory(char *tar_file_name){
     tsh_memory * result = malloc(sizeof(tsh_memory));
-    result->PATH = malloc(BUFSIZE);
     (result->PATH)[0] = '\0';//so it doesn't create a random characteres
-    result->path_descriptor = open(path_file_name, O_RDWR);
-    result->tar_descriptor = open(tar_file_name, O_RDWR);
+    result->tar_descriptor = int_to_string(open(tar_file_name, O_RDWR));
     if(errno == ENOENT){//no such file
         perror("");
         return NULL;
@@ -24,15 +22,11 @@ tsh_memory * instanciate_tsh_memory(char *path_file_name, char *tar_file_name){
     return result;
 }
 void update_path(tsh_memory * state){//change the path variable according to the path file
-    
-    lseek(state->path_descriptor, 0, SEEK_SET);
-    read(state->path_descriptor, state->PATH, BUFSIZE);
     freeCommand(state->comand, state->tail_comand);
+
 }
-void free_tsh_memory(tsh_memory *state){
-    close(state->path_descriptor);
-    close(state->tar_descriptor);
-    free(state->PATH);
+void free_tsh_memory(tsh_memory *state){//at the end
+    close(atoi(state->tar_descriptor));
     free(state);
 }
 void getCommand(char **command_typed, tsh_memory *memory){

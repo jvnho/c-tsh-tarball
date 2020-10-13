@@ -11,6 +11,7 @@
 
 int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     lseek(descriptor, 0, SEEK_SET);
+    
     struct posix_header *header = malloc(512);
     int nb_bloc_file = 0;
     char * recherched_path = concatString(PATH, directory);
@@ -32,9 +33,7 @@ void cd(char * directory, char *PATH, char *tar_fd){//modify the current path in
     if(strcmp(".",directory)==0)return;
     if(strcmp("..", directory)==0)return;
     int tar_descriptor = atoi(tar_fd);
-
     if(if_cd_is_valid(tar_descriptor, PATH, directory)){
-        //read_the actual path 
         strcat(PATH, concatString(directory, ""));//?? if we give directory/
     }else{
         printf("no such directory\n");

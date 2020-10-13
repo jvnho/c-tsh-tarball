@@ -135,6 +135,7 @@ char *int_to_string(int chiffre){
 }
 //voir le cas ou dir se termine par un slach
 char * concatString(char * path, char *dir){
+    
     int length = strlen(path)+strlen(dir)+2;
     char * result = malloc(length);
     strcpy(result, path);
