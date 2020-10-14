@@ -10,14 +10,17 @@
 #define BUFSIZE 512
 
 int is_in_array(char*);
-void print_array_to_STROUT();
+void print_ls_to_STROUT(int);
 void free_array_of_string();
+void fill_info_array(struct posix_header*);
 
 char **ARRAY; //allow to keep the file or repository to display
+char **FILE_INFO; // allow to keep file info (i.e size, uname, gname,...) if -l is given as argument
 int NUM_FILE = 0; //keeps a track of the size of ARRAY
 char FILE_PATH[255], CUT_PATH[255];//FILE_PATH: path of the file , CUT_PATH = filename cut from the path
 
-int ls_sans_argument(int fd, char* PATH){
+int ls(int fd, char* PATH, int arg_l){
+    int ret_lseek = lseek(fd, 0, SEEK_SET);
     struct posix_header *header = malloc(512);
     if(header == NULL)
         return 0;
@@ -34,7 +37,12 @@ int ls_sans_argument(int fd, char* PATH){
             CUT_PATH[j++] = '\0';
 
             if( is_in_array(CUT_PATH) == 0){ //checking if the file is not is the array (to not print in more than once)
-                ARRAY = (char**) realloc(ARRAY, (NUM_FILE+1) * sizeof(char*));//reallocating size of ARRAY
+                
+                if(arg_l == 1){
+                    fill_info_array(header);//making FILE_INFO's array if -l argument is given
+                }
+
+                ARRAY = (char**) realloc(ARRAY, (NUM_FILE+1) * sizeof(char*));//reallocating size for ARRAY
                 if(ARRAY == NULL) return 0;
 
                 ARRAY[NUM_FILE] = (char*) malloc(255);//allocating size for ARRAY entry
@@ -49,7 +57,7 @@ int ls_sans_argument(int fd, char* PATH){
         int nb_bloc_fichier = (filesize + 512 -1) / 512;
         for(int i = 0; i < nb_bloc_fichier; i++) read(fd, header, BUFSIZE);
     }
-    print_array_to_STROUT();
+    print_ls_to_STROUT(arg_l);
     free(header);
     free_array_of_string();
     return 1;
@@ -63,11 +71,27 @@ int is_in_array(char *string){ //checking if string is in ARRAY
     return 0;
 }
 
-void print_array_to_STROUT(){
-    for(int i = 0; i < NUM_FILE; i++){
-        write(1, strcat(ARRAY[i]," "), strlen(ARRAY[i])+1);
+void fill_info_array(struct posix_header *header){
+    FILE_INFO = (char**) realloc(FILE_INFO,(NUM_FILE+1)*sizeof(char*)); //reallocating size for FILE_INFO
+    FILE_INFO[NUM_FILE] = (char*) malloc(255);// allocating space for array entry
+    int filesize = 0;
+    sscanf(header->size,"%o",&filesize);
+    char *c= malloc( (strlen(header->uname)+strlen(header->gname)+strlen(header->size)+12) * sizeof(char));
+    sprintf(c, "%s %s %s %d", "----------",header->uname, header->gname, filesize);
+    memcpy(FILE_INFO[NUM_FILE], c, strlen(c));
+}
+
+void print_ls_to_STROUT(int arg_l){
+    if(arg_l == 0){
+        for(int i = 0; i < NUM_FILE; i++)
+            write(1, strcat(ARRAY[i]," "), strlen(ARRAY[i])+2);
+        write(1,"\n",1);
+    } else { //print with -l
+        for(int i = 0; i < NUM_FILE; i++){
+            write(1, strcat(FILE_INFO[i]," "), strlen(FILE_INFO[i])+1);
+            write(1, strcat(ARRAY[i]," \n"), strlen(ARRAY[i])+2);
+        }
     }
-    write(1,"\n",1);
 }
 
 void free_array_of_string(){
@@ -75,22 +99,12 @@ void free_array_of_string(){
         free(ARRAY[i]);
 }
 
-void ls(int fd, char* PATH, int arg, char* argv){
-    int ret_lseek = lseek(fd, 0, SEEK_SET);
-    if(arg == 0){
-        ls_sans_argument(fd,PATH);
-    }
-    /* else {
-        ls avec option -l et/ou avec argument
-    }*/
-}
-
 ///////// TEST /////////
-// int main(int argc, char * argv[]){
-//     int fd = open(argv[1], O_RDONLY);
-//     int ret = 0;
-//     if(argv[2] != NULL)
-//         ret = ls_sans_argument(fd, argv[2]);
-//     else
-//         ret = ls_sans_argument(fd,"");
-// }
+int main(int argc, char * argv[]){
+    int fd = open(argv[1], O_RDONLY);
+    int ret = 0;
+    if(argv[2] != NULL)
+        ret = ls(fd, argv[2], 0);
+    else
+        ret = ls(fd,"", 1);
+}
