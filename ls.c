@@ -13,6 +13,8 @@ int is_in_array(char*);
 void print_ls_to_STROUT(int);
 void free_array_of_string();
 void fill_info_array(struct posix_header*);
+char* octal_to_string(char*);
+char is_file_or_repository(char);
 
 char **ARRAY; //allow to keep the file or repository to display
 char **FILE_INFO; // allow to keep file info (i.e size, uname, gname,...) if -l is given as argument
@@ -37,7 +39,7 @@ int ls(int fd, char* PATH, int arg_l){
             CUT_PATH[j++] = '\0';
 
             if( is_in_array(CUT_PATH) == 0){ //checking if the file is not is the array (to not print in more than once)
-                
+
                 if(arg_l == 1){
                     fill_info_array(header);//making FILE_INFO's array if -l argument is given
                 }
@@ -77,7 +79,7 @@ void fill_info_array(struct posix_header *header){
     int filesize = 0;
     sscanf(header->size,"%o",&filesize);
     char *c= malloc( (strlen(header->uname)+strlen(header->gname)+strlen(header->size)+12) * sizeof(char));
-    sprintf(c, "%s %s %s %d", "----------",header->uname, header->gname, filesize);
+    sprintf(c, "%c%s %s %s %d", is_file_or_repository(header->typeflag), octal_to_string(header->mode), header->uname, header->gname, filesize);
     memcpy(FILE_INFO[NUM_FILE], c, strlen(c));
 }
 
@@ -99,12 +101,50 @@ void free_array_of_string(){
         free(ARRAY[i]);
 }
 
-///////// TEST /////////
-int main(int argc, char * argv[]){
-    int fd = open(argv[1], O_RDONLY);
-    int ret = 0;
-    if(argv[2] != NULL)
-        ret = ls(fd, argv[2], 0);
-    else
-        ret = ls(fd,"", 1);
+char* octal_to_string(char *mode){
+    char *ret = malloc(sizeof(char)*9);
+    for(int i = 0; i < strlen(mode); i++){
+        switch(mode[i]){
+            case '1': strcat(ret,"r--");
+            break;
+
+            case '2': strcat(ret,"-w-");
+            break;
+
+            case '4': strcat(ret,"--x");
+            break;
+
+            case '3': strcat(ret,"rw-");
+            break;
+
+            case '5': strcat(ret,"r-x");
+            break;
+
+            case '6': strcat(ret,"-wx");
+            break;
+
+            case '7': strcat(ret,"rwx");
+
+            default://if char == 'zero' it does nothing (i.e mode is 00666, 00111,...)
+            break;
+        }
+    }
+    return ret;
 }
+
+char is_file_or_repository(char typeflag){
+    if(typeflag == '0')
+        return '-';
+    else
+        return 'd';
+}
+
+///////// TEST /////////
+// int main(int argc, char * argv[]){
+//     int fd = open(argv[1], O_RDONLY);
+//     int ret = 0;
+//     if(argv[2] != NULL)
+//         ret = ls(fd, argv[2], 1);
+//     else
+//         ret = ls(fd,"", 1);
+// }
