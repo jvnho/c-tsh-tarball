@@ -1,3 +1,4 @@
+*.o
 #ignore everything
 *.tar
 test.c

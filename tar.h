@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 /* tar Header Block, from POSIX 1003.1-1990.  */
 
 #define BLOCKSIZE 512
