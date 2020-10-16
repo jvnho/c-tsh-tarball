@@ -103,7 +103,8 @@ void free_array_of_string(){
 
 char* octal_to_string(char *mode){
     char *ret = malloc(sizeof(char)*9);
-    for(int i = 0; i < strlen(mode); i++){
+    ret[0] = '\0';
+        for(int i = 0; i < strlen(mode); i++){
         switch(mode[i]){
             case '1': strcat(ret,"r--");
             break;
@@ -124,6 +125,7 @@ char* octal_to_string(char *mode){
             break;
 
             case '7': strcat(ret,"rwx");
+            break;
 
             default://if char == 'zero' it does nothing (i.e mode is 00666, 00111,...)
             break;
@@ -140,11 +142,11 @@ char is_file_or_repository(char typeflag){
 }
 
 ///////// TEST /////////
-// int main(int argc, char * argv[]){
-//     int fd = open(argv[1], O_RDONLY);
-//     int ret = 0;
-//     if(argv[2] != NULL)
-//         ret = ls(fd, argv[2], 1);
-//     else
-//         ret = ls(fd,"", 1);
-// }
+ int main(int argc, char * argv[]){
+     int fd = open(argv[1], O_RDONLY);
+     int ret = 0;
+     if(argv[2] != NULL)
+        ret = ls(fd, argv[2], 1);
+    else
+       ret = ls(fd,"", 1);
+}
