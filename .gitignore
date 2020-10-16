@@ -1,5 +1,8 @@
+*.o
 #ignore everything
+*.tar
+test.c
 *
 #except the makefile and everything that have an extention
 !MAKEFILE
-!*.*
+!*.c

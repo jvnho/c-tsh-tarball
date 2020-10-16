@@ -5,44 +5,26 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/errno.h>
-
-#define BUFSIZE 512
-char read_buff[BUFSIZE]; //buff for the read
-char PATH[1024];//representing the relative path from the tar
-
-void startPath(char *arg){//instanciate the relative path
-    int arg_size = strlen(arg);
-    strcpy(PATH, arg);
-    PATH[arg_size] = '/';
-    PATH[arg_size+1] = '\0';
-}
-
-int main(int nb, char **args){
-    if(nb<2){ //if missing the .tar
-        //should check also if it's not a .tar
-        printf("missing the .tar file to execute this programe\n");
-        return -1;
-    }
-    //we open our .tar in order to execute command on it
-    int fd_tar = open(args[1], O_RDWR);
-    //start the path as .tar directory 
-    if(errno == ENOENT){//no such file
-        perror("");
-        return -1;
-    }if(errno == EACCES){//permision dinied
-        perror("");
-        return -1;
-    }
-    startPath(args[1]);
+#include <sys/wait.h>
+#include "string_traitement.h"
+#include "tsh_memory.h"
+#include "cd.h"
+char * PATH;
+tsh_memory * memory;
+int main(void){
+    //we create a memory about the current state so all processu can relate on it
+    if((memory = create_memory())==NULL)return -1;
+    /*
+        if we are in a normal circonstance we print PWD of the main processu
+        else we concat the PWD of the normal processu with the fake path(the position in tar)
+    */
     while(1){
+        PATH = getPath(memory);
         write(1, PATH, strlen(PATH));
-        read(0, read_buff, BUFSIZE);//user write his command on the input
-        read_buff[strlen(read_buff)-1] = '\0';
-        if(memmem(read_buff, strlen(read_buff), "exit", 4))break;
-        /*
-            if the command wasn't exit
-        */
+        read(0, memory->comand, MAX_COMMAND);//user write his command on the input
+        memory->comand[strlen(memory->comand)-1] = '\0';
+        if(memmem(memory->comand, strlen(memory->comand), "exit", 4))break;
     }
-    close(fd_tar);
+    free_tsh_memory(memory);
     return 0;
 }
