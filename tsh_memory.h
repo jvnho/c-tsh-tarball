@@ -5,7 +5,7 @@
 #define MAX_COMMAND 512
 typedef struct tsh_memory{
     char FAKE_PATH[BUFSIZE];//the current path from the tar
-    char * tar_name;
+    char tar_name[BUFSIZE];
     char * tar_descriptor;//so we can get information about the main file (the .tar)
     char comand[MAX_COMMAND];//the command that we are typing
     char REAL_PATH[BUFSIZE];//the buff when we read the getcwd
