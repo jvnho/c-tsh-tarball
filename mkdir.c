@@ -1,6 +1,8 @@
-
 #include <string.h>
+#include <unistd.h>
 #include "tar.h" 
+#include "string_traitement.h"
+#include "tsh_memory.h"
 struct posix_header create_header(char * name){
     struct posix_header result;
     strcpy(result.name, name);//add the name
@@ -21,4 +23,13 @@ struct posix_header create_header(char * name){
     result.prefix[0] = '\0';             
     result.junk[0]= '\0';  
     return result;
+}
+void mkdir(char *dir_name, tsh_memory *memory){
+    char *name = concatString(memory->FAKE_PATH, dir_name);
+    struct posix_header new_head = create_header(name);
+    lseek(string_to_int(memory->tar_descriptor), -2, SEEK_END);//because at the end of a tar file we have 2 null
+    char end = '\0';
+    write(string_to_int(memory->tar_descriptor), &new_head, sizeof(struct posix_header));
+    write(string_to_int(memory->tar_descriptor), &end, sizeof(char));
+    write(string_to_int(memory->tar_descriptor), &end, sizeof(char));
 }
