@@ -37,7 +37,7 @@ char * getPath(tsh_memory *state){
     state->REAL_PATH[len+1] = '\0';//avoid the random characteres
 
     if(strlen(state->tar_name)!=0){
-        //concat Real + tar_name + fake
+        //concat Real + tar_name + fake (before calling strcat make sure the first string has '\0')
         strcat(state->REAL_PATH, state->tar_name);//concat with the tar directory
         state->REAL_PATH[strlen(state->REAL_PATH)] = '\0';
         strcat(state->REAL_PATH, state->FAKE_PATH);
