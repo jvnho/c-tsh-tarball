@@ -18,15 +18,14 @@ int main(void){
         if we are in a normal circonstance we print PWD of the main processu
         else we concat the PWD of the normal processu with the fake path(the position in tar)
     */
-    
-    while(1){
+    //instanciate_tsh_memory("teste");
+    /*while(1){*/
         PATH = getPath(memory);
         write(1, PATH, strlen(PATH));
         read(0, memory->comand, MAX_COMMAND);//user write his command on the input
         memory->comand[strlen(memory->comand)-1] = '\0';
-        if(memmem(memory->comand, strlen(memory->comand), "exit", 4))break;
-        printf("com = %s\n", memory->comand);
-    }
+        //if(memmem(memory->comand, strlen(memory->comand), "exit", 4))break;
+    /*}*/
     free_tsh_memory(memory);
     return 0;
 }

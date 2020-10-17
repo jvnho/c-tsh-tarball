@@ -25,18 +25,18 @@ tsh_memory * create_memory(){
     return result;
 }
 char * getPath(tsh_memory *state){
-    if(strlen(state->FAKE_PATH)==0){//the path of the main processus
-        getcwd(state->REAL_PATH, sizeof(state->REAL_PATH));
-        //add a $ at the end
-        int length = strlen(state->REAL_PATH);
-        state->REAL_PATH[length] = '$';
-        state->REAL_PATH[length+1] = ' ';
-        state->REAL_PATH[length+2] = '\0';
+    getcwd(state->REAL_PATH, sizeof(state->REAL_PATH)); 
+    if(strlen(state->FAKE_PATH)!=0){//the path of the main processus
+        state->REAL_PATH[strlen(state->REAL_PATH)] = '\0';
+        strcat(state->REAL_PATH, state->FAKE_PATH);
         return state->REAL_PATH;
-    }else{
-        //concat the real + fake
     }
-    return NULL;
+    //add a $ at the end
+    int length = strlen(state->REAL_PATH);
+    state->REAL_PATH[length] = '$';
+    state->REAL_PATH[length+1] = ' ';
+    state->REAL_PATH[length+2] = '\0';
+    return state->REAL_PATH;
 }
 void free_tsh_memory(tsh_memory *state){//at the end
     //close(string_to_int(state->tar_descriptor)); 
