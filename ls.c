@@ -125,11 +125,11 @@ char is_file_or_repository(char typeflag){
 }
 
 ///////// TEST /////////
- int main(int argc, char * argv[]){
-     int fd = open(argv[1], O_RDONLY);
-     int ret = 0;
-     if(argv[2] != NULL)
-        ret = ls(fd, argv[2], 1);
-    else
-       ret = ls(fd,"", 1);
-}
+//  int main(int argc, char * argv[]){
+//      int fd = open(argv[1], O_RDONLY);
+//      int ret = 0;
+//      if(argv[2] != NULL)
+//         ret = ls(fd, argv[2], 1);
+//     else
+//        ret = ls(fd,"", 1);
+// }

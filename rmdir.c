@@ -3,12 +3,14 @@
 #include <string.h>
 #include <tar.h>
 #include <unistd.h>
+
 #include "tar.h"
+
 #define BLOCKSIZE 512
 
 char FILE_PATH[512];//will allow to save the path and ONLY the path of the file pointed by the posix_header
 
-int occ_counter_path(int fd, char* full_path){
+int occ_counter_path(int fd, char* full_path){//counts the number of times the path appears in the tarball
     lseek(fd, 0, SEEK_SET);
     int occurence = 0;
     struct posix_header *header = malloc(512);
