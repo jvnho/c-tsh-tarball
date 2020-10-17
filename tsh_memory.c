@@ -14,7 +14,7 @@ void instanciate_tsh_memory(char *tar_file_name, tsh_memory *result){
     strcpy(result->tar_name, tar_file_name);
     int len = strlen(result->tar_name);
     result->tar_name [len]= '/';
-    result->tar_name [len]= '\0';
+    result->tar_name [len+1]= '\0';
     //open the .tar file
     result->tar_descriptor = int_to_string(open(tar_file_name, O_RDWR));
     if(errno == ENOENT){//no such file
@@ -30,11 +30,18 @@ tsh_memory * create_memory(){
     return result;
 }
 char * getPath(tsh_memory *state){
+    //get the pwd in the real path buffer and add '/'
     getcwd(state->REAL_PATH, sizeof(state->REAL_PATH)); 
-    if(strlen(state->FAKE_PATH)!=0){//the path of the main processus
+    int len = strlen(state->REAL_PATH);
+    state->REAL_PATH[len] = '/';
+    state->REAL_PATH[len+1] = '\0';//avoid the random characteres
+
+    if(strlen(state->tar_name)!=0){
+        //concat Real + tar_name + fake
+        strcat(state->REAL_PATH, state->tar_name);//concat with the tar directory
         state->REAL_PATH[strlen(state->REAL_PATH)] = '\0';
         strcat(state->REAL_PATH, state->FAKE_PATH);
-        return state->REAL_PATH;
+        state->REAL_PATH[strlen(state->REAL_PATH)] = '\0';
     }
     //add a $ at the end
     int length = strlen(state->REAL_PATH);
