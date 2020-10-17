@@ -10,6 +10,7 @@
 #include "tsh_memory.h"
 #include "cd.h"
 #include "pwd.h"
+#include "mkdir.h"
 char * PATH;
 tsh_memory * memory;
 int main(void){
