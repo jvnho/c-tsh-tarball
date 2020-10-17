@@ -18,7 +18,7 @@ int main(void){
         if we are in a normal circonstance we print PWD of the main processu
         else we concat the PWD of the normal processu with the fake path(the position in tar)
     */
-    //instanciate_tsh_memory("teste");
+    instanciate_tsh_memory("test.tar", memory);
     /*while(1){*/
         PATH = getPath(memory);
         write(1, PATH, strlen(PATH));
