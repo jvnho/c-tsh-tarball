@@ -1,39 +1,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <stdio.h>
-struct posix_header
-{                              /* byte offset */
-  char name[100];               /*   0 */
-  char mode[8];                 /* 100 */
-  char uid[8];                  /* 108 */
-  char gid[8];                  /* 116 */
-  char size[12];                /* 124 */
-  char mtime[12];               /* 136 */
-  char chksum[8];               /* 148 */
-  char typeflag;                /* 156 */
-  char linkname[100];           /* 157 */
-  char magic[6];                /* 257 */
-  char version[2];              /* 263 */
-  char uname[32];               /* 265 */
-  char gname[32];               /* 297 */
-  char devmajor[8];             /* 329 */
-  char devminor[8];             /* 337 */
-  char prefix[155];             /* 345 */
-  char junk[12];                /* 500 */
-};                              
-char * concatString2(char * path, char *dir){
-    
-    int length = strlen(path)+strlen(dir)+2;
-    char * result = malloc(length);
-    strcpy(result, path);
-    result[strlen(path)] = '\0';
-    strcat(result, dir);
-    result[length-2] = '/';
-    result[length-1] = '\0';
-    return result;
-}
+#include "tar.h"
 struct posix_header create_header(char * name){
+    
     struct posix_header result;
     strcpy(result.name, name);//add the name
     sprintf(result.mode, "0000700");
@@ -42,14 +14,14 @@ struct posix_header create_header(char * name){
     
     result.gid[0] = '\0';//how to get the id of the group
     
-    sprintf(result.size, "%0llo", 0);  
+    sprintf(result.size, "%0o", 0);  
     result.mtime[0] = '\0';//how to get the time of the arrchivement
-    result.chksum[0] = '\0';//how to get checksum
+    set_checksum(&result);
     result.typeflag = '5';
     result.linkname[0] = '\0';   
-        
-    strcpy(result.magic, "ustar");                
-    result.version[0] = '\0';//depends of the user
+    
+    strcpy(result.magic, "ustar");  
+    strcpy(result.version, "00") ;             
     result.uname[0] = '\0';//how to get the user name
     result.gname[0] = '\0';//how to get group name
     strcpy(result.devmajor, "000000");
@@ -58,12 +30,19 @@ struct posix_header create_header(char * name){
     result.junk[0]= '\0';  
     return result;
 }
-void mkdir(char *dir_name, char *fake_path, char *tar_descriptor){
-    char *name = concatString2(fake_path, dir_name);
-    struct posix_header new_head = create_header(name);
-    lseek(atoi(tar_descriptor), -2, SEEK_END);//because at the end of a tar file we have 2 null
+void mkdir(char *dir_name, int tar_descriptor){
+
+    struct posix_header new_head = create_header(dir_name);
+    lseek((tar_descriptor), -(2*512), SEEK_END);//because at the end of a tar file we have 2 null
     char end = '\0';
-    write(atoi(tar_descriptor), &new_head, sizeof(struct posix_header));
-    write(atoi(tar_descriptor), &end, sizeof(char));
-    write(atoi(tar_descriptor), &end, sizeof(char));
+    write((tar_descriptor), &new_head, sizeof(struct posix_header));
+    write((tar_descriptor), &end, sizeof(char));
+    write((tar_descriptor), &end, sizeof(char));
+}
+int main(int n, char** args){
+    //dir fake ouverture
+    printf("sfsdfsd");
+    int ouverture = open(args[2], O_RDWR);
+    
+    mkdir(args[1], ouverture);
 }
