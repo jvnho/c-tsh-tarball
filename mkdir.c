@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdio.h>
 struct posix_header
 {                              /* byte offset */
   char name[100];               /*   0 */
@@ -20,7 +21,7 @@ struct posix_header
   char devminor[8];             /* 337 */
   char prefix[155];             /* 345 */
   char junk[12];                /* 500 */
-};     
+};                              
 char * concatString2(char * path, char *dir){
     
     int length = strlen(path)+strlen(dir)+2;
@@ -35,14 +36,18 @@ char * concatString2(char * path, char *dir){
 struct posix_header create_header(char * name){
     struct posix_header result;
     strcpy(result.name, name);//add the name
-    strcpy(result.mode, "000755");
+    sprintf(result.mode, "0000700");
+     
     result.uid[0] = '\0';//how to get the id of the creator
+    
     result.gid[0] = '\0';//how to get the id of the group
-    strcpy(result.size, "00000000000 13742577272 013525");
+    
+    sprintf(result.size, "%0llo", 0);  
     result.mtime[0] = '\0';//how to get the time of the arrchivement
     result.chksum[0] = '\0';//how to get checksum
     result.typeflag = '5';
-    result.linkname[0] = '\0';          
+    result.linkname[0] = '\0';   
+        
     strcpy(result.magic, "ustar");                
     result.version[0] = '\0';//depends of the user
     result.uname[0] = '\0';//how to get the user name
