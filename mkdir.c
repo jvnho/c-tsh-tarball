@@ -33,17 +33,36 @@ struct posix_header *create_header(char * name){
     result->junk[0]= '\0';  
     return result;
 }
+void put_at_the_first_null(int descriptor){
+    lseek(descriptor, 0, SEEK_SET);
+    struct posix_header *header = malloc(512);
+    int nb_bloc_file = 0;
+    int j = 1;
+    while(read(descriptor, header, 512)>0){//parcour de tete en tete jusqu' a la fin
+        
+        printf("%d em tete = %s\n", j, header->name);
+        if(header == NULL)printf("premier_null\n");
+        int tmp = 0;
+        sscanf(header->size, "%o", &tmp);
+        nb_bloc_file = (tmp + 512 -1) / 512;
+        for(int i=0; i<nb_bloc_file; i++){
+            printf("   %d em bloc contenu\n", i+1);
+            read(descriptor, header, 512);
+        }
+        j++;
+    }
+}
 void mkdir2(char *dir_name, int tar_descriptor){
 
     struct posix_header *new_head = create_header(dir_name);
-    lseek((tar_descriptor), -(2*512), SEEK_END);//because at the end of a tar file we have 2 null
-    char end = '\0';
+    put_at_the_first_null(tar_descriptor);
+    /*char end = '\0';
     write((tar_descriptor), new_head, sizeof(struct posix_header));
     write((tar_descriptor), &end, sizeof(char));
-    write((tar_descriptor), &end, sizeof(char));
+    write((tar_descriptor), &end, sizeof(char));*/
 }
 int main(int n, char** args){
-    //dir fake ouverture
-    int ouverture = open(args[1], O_RDWR);
-    mkdir2(args[2], ouverture);
+    //directory/ nomDuTar
+    int ouverture = open(args[2], O_RDWR );
+    mkdir2(args[1], ouverture);
 }
