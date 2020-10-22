@@ -21,6 +21,7 @@ int occ_counter_path(int fd, char* full_path, int* file_offset){//returns the nu
             strncpy(FILE_PATH, header->name, strlen(full_path));
             if(strcmp(FILE_PATH, full_path) == 0){
                 *file_offset = read_length;
+                *file_size = header->size;
                 occurence++;
             }
         }
@@ -44,6 +45,7 @@ int rmdir_func(int fd, char* PATH, char *rep){
     if(rep[strlen(rep)-2] != '/') return 0; //rep given is not written as a repository
     char *full_path = concate_path_rep(PATH,rep);
     int file_offset = 0;//will allow to start reading the tarball from the file and not the beginning of the tarball
+    int file_size = 0;
     if(occ_counter_path(fd,full_path,&file_offset) != 1) return 0; //if the repository is not empty or not found then returns 0
 
     /* PROCEDURE TO DELETE THE HEADER AND FILE BLOCKS */
