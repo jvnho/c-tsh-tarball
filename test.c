@@ -10,46 +10,80 @@
 #include "string_traitement.h"
 
 
+// write like printf("")
+    void display(char* str){
+        write(1,str,sizeof(char)*strlen(str));
 
-char **ARRAY; //allow to keep the file or repository to display
-int NUM_FILE = 0; //keeps a track of the size of ARRAY
-char FILE_PATH[255]; //FILE_PATH
+    }
+    
 
 
-int cat(int desc, char* PATH, int arg){
+char myPath[256]; //FILE_PATH of my array 256  
+
+
+int cat(int desc, char* path, int arg){ // I should use pointer rather than int next time
     lseek(desc, 0, SEEK_SET);
 
-    struct posix_header *header = malloc(512);
+    struct posix_header *header = malloc(512); // 
 
     if(header == NULL){
         return 0;
 
     } 
 
+   if(path != NULL && path[0]!= 32 && path[0] != 10){ // ascii code of Line Feed(saut de line) and space
+
     while(read(desc, header, BLOCKSIZE) > 0){ // blocksize = 512
 
-        strncpy(FILE_PATH, header->name, strlen(PATH));
-        if(strcmp(FILE_PATH,PATH) == 0 && strcmp(FILE_PATH,header->name) != 0){
+        strncpy(myPath, header->name, strlen(path));
+        if(strcmp(myPath,path) == 0 && strcmp(myPath,header->name) != 0){ 
+            int file_s = 0;
+        sscanf(header->size, "%o", &file_s);
+        int nb_bloc_fichier = (file_s + 512 -1) / 512;
+        for(int i = 0; i < nb_bloc_fichier; i++){
+            read(desc, header, BLOCKSIZE);
+            //condition
+            display(header); //display
+            
 
-        
-                ARRAY = (char**) realloc(ARRAY, (NUM_FILE+1) * sizeof(char*));
-                if(ARRAY == NULL) return 0;
-
-                ARRAY[NUM_FILE] = (char*) malloc(255);
-                if(ARRAY[NUM_FILE] == NULL) return 0;
-
-               
-             }
+        } 
+       
+             
         }
+    //else 
+    else{
         //jump to the next header block
         int file_s = 0;
         sscanf(header->size, "%o", &file_s);
         int nb_bloc_fichier = (file_s + 512 -1) / 512;
         for(int i = 0; i < nb_bloc_fichier; i++){
             read(desc, header, BLOCKSIZE);
+            //sans afficher car out of condition
 
         } 
     }
+        
+    }
+   }
+
+    //display all without condition
+    char myStr[255];
+    read(0,&myStr, sizeof(myStr));
+    while(myStr[0]!= 'Q' ){ //exit
+        int myRead= read(0,&myStr, sizeof(myStr));
+        if (myRead != 0){
+            write(1,&myStr,sizeof(myStr));
+
+        }
+        
+        
+
+    }
+
+
+        return 0;
+    }
+
     
 
 
