@@ -128,7 +128,6 @@ void getPreTar(char *initial_string, char *result){
     if(first_slach_beforTar == 0) return;//there is not a pre tar
     else if(first_slach_beforTar == -1){//the is not a .tar, so everithing is a pre tar
         strcpy(result, initial_string);
-        return;
     }else{
         //copy destionation source(from where) size(how many char)
         memcpy(result, initial_string, first_slach_beforTar + 1);// +1 because index start from 0
