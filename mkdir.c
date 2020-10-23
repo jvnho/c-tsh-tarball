@@ -72,6 +72,4 @@ void mkdir_in_tar(char *dir_name, int tar_descriptor){
     char end_bloc[512];
     memset(end_bloc, 0, 512);
     write(tar_descriptor, end_bloc, 512);
-    //affiche(tar_descriptor);
-
 }
