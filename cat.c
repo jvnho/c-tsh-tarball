@@ -15,55 +15,57 @@
         write(1,str,sizeof(char)*strlen(str));
 
     }
-    
 
 
-char myPath[256]; // path of my array 256  
+
+char myPath[256]; // path of my array 256
 
 
-int cat(int desc, char* path, int arg){ // I should use pointer rather than int next time
+int cat(int desc, char **args, int arg){
+    if(arg == 0){
+        //call cat_all
+    } else {
+        for(int i = 0; i < arg; i++){
+            cat_2(desc, args[i]);
+        }
+    }
+}
+
+int cat_2(int desc, char* path){ // I should use pointer rather than int next time
     lseek(desc, 0, SEEK_SET);
 
-    struct posix_header *header = malloc(512); // 
+    struct posix_header *header = malloc(512); //
 
     if(header == NULL){
         return 0;
 
-    } 
+    }
 
    if(path != NULL && path[0]!= 32 && path[0] != 10){ // ascii code of Line Feed(saut de line) and space
 
     while(read(desc, header, BLOCKSIZE) > 0){ // blocksize = 512
-
-        strncpy(myPath, header->name, strlen(path));
-        if(strcmp(myPath,path) == 0 && strcmp(myPath,header->name) != 0){ 
-            int myFile = 0;
-        sscanf(header->size, "%o", &myFile);
-        int nb_bloc_fichier = (myFile + 512 -1) / 512;
-        for(int i = 0; i < nb_bloc_fichier; i++){
-            read(desc, header, BLOCKSIZE);
-            //condition
-            display(header); //display
-            
-
-        } 
-       
-             
+        if(header-> typeflag == '0'){//if file pointed by header is a ordinary file
+            strncpy(myPath, header->name, strlen(path));
+            if(strcmp(myPath,path) == 0 && strcmp(myPath,header->name) != 0){
+                int myFile = 0;
+                sscanf(header->size, "%o", &myFile);
+                char buffer[header->size];
+                read(desc, buffer, &myFile);
+                write(1, buffer, strlen(buffer));
+                //condition
+                //display(header); //display
+            } else {
+                //jump to the next header block
+                int file_s = 0;
+                sscanf(header->size, "%o", &file_s);
+                int nb_bloc_fichier = (file_s + 512 -1) / 512;
+                for(int i = 0; i < nb_bloc_fichier; i++){
+                    read(desc, header, BLOCKSIZE);
+                //sans afficher car out of condition
+                }
+            }
         }
-    else{
-        //jump to the next header block
-        int file_s = 0;
-        sscanf(header->size, "%o", &file_s);
-        int nb_bloc_fichier = (file_s + 512 -1) / 512;
-        for(int i = 0; i < nb_bloc_fichier; i++){
-            read(desc, header, BLOCKSIZE);
-            //sans afficher car out of condition
-
-        } 
     }
-        
-    }
-   }
 
     //display all without condition
     char myStr[255];
@@ -74,9 +76,6 @@ int cat(int desc, char* path, int arg){ // I should use pointer rather than int 
             write(1,&myStr,sizeof(myStr));
 
         }
-        
-        
-
     }
 
 
