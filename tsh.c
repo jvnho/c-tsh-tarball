@@ -23,6 +23,8 @@ int main(void){
         memory->comand[strlen(memory->comand)-1] = '\0';
         if(memmem(memory->comand, strlen(memory->comand), "exit", 4))break;
     }*/
+    instanciate_tsh_memory("test2.tar", memory);
+    printf("teste mkdir = %d\n", mkdir("mon_teste", memory));
     free_tsh_memory(memory);
     return 0;
 }

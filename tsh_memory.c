@@ -55,6 +55,6 @@ void free_tsh_memory(tsh_memory *state){//at the end
     free(state);
 }
 int in_a_tar(tsh_memory *state){
-    if(strlen(state->FAKE_PATH))return 1;
+    if(strlen(state->tar_descriptor))return 1;
     return 0;
 }
