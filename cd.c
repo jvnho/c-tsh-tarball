@@ -49,6 +49,7 @@ int cd(char *directory, tsh_memory *memory){
     }
     // beforeTar/ directory.tar / afterTar
     char beforTar[512]; char tarName[512]; char afterTar[512];
+    getPreTar(directory, beforTar);
     //if we have a pre Tar we apply chdir on that part 
     if(strlen(beforTar)){
         if(chdir(beforTar)==-1){

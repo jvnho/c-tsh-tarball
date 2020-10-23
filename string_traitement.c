@@ -134,3 +134,19 @@ void getPreTar(char *initial_string, char *result){
         result[first_slach_beforTar + 1] = '\0';
     }
 }
+void getTarName(char *initial_string, char *result){
+    int first_slach_beforTar = get_index_first_slach(initial_string);
+    result[0] = '\0';
+    if(first_slach_beforTar == -1)return;//there is nothing to complete
+    //cherching the ending index .tar<-
+    char *substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
+    int ending_index = substring - initial_string + strlen("tar");
+    if(first_slach_beforTar == 0){//copy form 0 to ending index
+        memcpy(result, initial_string, ending_index + 1);
+        result[ending_index + 1] = '\0';
+    }else{//copy form first_slach + 1 to ending index
+        memcpy(result, initial_string + first_slach_beforTar + 1, ending_index - first_slach_beforTar);
+        result[ending_index - first_slach_beforTar] = '\0';
+    }
+    
+}
