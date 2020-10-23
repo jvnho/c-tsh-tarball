@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <sys/errno.h>
 #include "tar.h"
+#include "tsh_memory.h"
 struct posix_header *create_header(char * name){
     
     struct posix_header *result = malloc(512);
@@ -78,5 +79,9 @@ int mkdir_in_tar(char *dir_name, int tar_descriptor){
         perror("");
         return -1;
     }
+    return 0;
+}
+int mkdir(char *dir_name, tsh_memory *memory){
+    
     return 0;
 }
