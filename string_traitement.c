@@ -112,3 +112,26 @@ char * concatString(char * path, char *dir){
     result[length-1] = '\0';
     return result;
 }
+int get_index_first_slach(char *initial_string){
+    char * substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
+    if(substring == NULL)return -1;//there is not a .tar -> so there is not first slach befor .tar
+    int index_point = substring - initial_string;
+    for(int i = index_point; 0<=i; i--){
+        if(initial_string[i] == '/')return i;
+    }
+    return 0;
+}
+//return the substring befor the directory.tar
+void getPreTar(char *initial_string, char *result){
+    int first_slach_beforTar = get_index_first_slach(initial_string);
+    result[0] = '\0';
+    if(first_slach_beforTar == 0) return;//there is not a pre tar
+    else if(first_slach_beforTar == -1){//the is not a .tar, so everithing is a pre tar
+        strcpy(result, initial_string);
+        return;
+    }else{
+        //copy destionation source(from where) size(how many char)
+        memcpy(result, initial_string, first_slach_beforTar + 1);// +1 because index start from 0
+        result[first_slach_beforTar + 1] = '\0';
+    }
+}
