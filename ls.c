@@ -12,7 +12,6 @@
 void ls_in_tar(int,char*,int);
 int is_in_array(char*);
 void print_ls_to_STROUT(int);
-void free_array_of_string();
 void fill_info_array(struct posix_header);
 char* octal_to_string(char*);
 char is_file_or_repository(char);
