@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <sys/errno.h>
 #include "tar.h"
 struct posix_header *create_header(char * name){
     
@@ -62,14 +63,20 @@ void put_at_the_first_null(int descriptor){
         j++;
     }
 }
-void mkdir_in_tar(char *dir_name, int tar_descriptor){
+int mkdir_in_tar(char *dir_name, int tar_descriptor){
     struct posix_header *new_head = create_header(dir_name);
     put_at_the_first_null(tar_descriptor);
-    write((tar_descriptor), new_head, 512);//write on the first ending bloc
-    
+    if(write((tar_descriptor), new_head, 512)==-1){//write on the first ending bloc
+        perror("");
+        return -1;
+    }
     //add the last bloc of zero at the end
     lseek(tar_descriptor, 0, SEEK_END);
     char end_bloc[512];
     memset(end_bloc, 0, 512);
-    write(tar_descriptor, end_bloc, 512);
+    if(write(tar_descriptor, end_bloc, 512)==-1){
+        perror("");
+        return -1;
+    }
+    return 0;
 }
