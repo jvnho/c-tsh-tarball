@@ -56,4 +56,10 @@ int cd(char *directory, tsh_memory *memory){
             return -1;
         }
     }
+    //if the is a directory.tar we instanciate the memory, and continue with the afterTar if it'exist
+    if(strlen(tarName)){
+        if(instanciate_tsh_memory(tarName, memory)==-1) return -1;
+        if(strlen(afterTar)) return cd_in_tar(afterTar, memory->FAKE_PATH, memory->tar_descriptor);
+    }
+    return 0;
 }
