@@ -7,12 +7,10 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-#define BUFSIZE 512
-
 int is_in_array(char*);
 void print_ls_to_STROUT(int);
 void free_array_of_string();
-void fill_info_array(struct posix_header*);
+void fill_info_array(struct posix_header);
 char* octal_to_string(char*);
 char is_file_or_repository(char);
 
@@ -23,36 +21,33 @@ char FILE_PATH[255], CUT_PATH[255];//FILE_PATH: path of the file , CUT_PATH = fi
 
 int ls(int fd, char* PATH, int arg_l){
     lseek(fd, 0, SEEK_SET);
-    struct posix_header *header = malloc(512);
-    if(header == NULL)
-        return 0;
-    while(read(fd, header, BUFSIZE) > 0){ //reading the entire tarball
-        strncpy(FILE_PATH, header->name, strlen(PATH));//splitting the file path to make it matched with the given PATH
+    struct posix_header hd;
+    while(read(fd, &hd, BLOCKSIZE) > 0){ //reading the entire tarball
+        strncpy(FILE_PATH, hd.name, strlen(PATH));//splitting the file path to make it matched with the given PATH
         //checking if the current file/repository belongs to the given PATH and if it's not itself (to not print in)
-        if(strcmp(FILE_PATH,PATH) == 0 && strcmp(FILE_PATH,header->name) != 0){
+        if(strcmp(FILE_PATH,PATH) == 0 && strcmp(FILE_PATH,hd.name) != 0){
 
             int i = strlen(PATH), taille_nom = 0;
-            while(header->name[i] != '\0' && header->name[i] != '/' ){
+            while(hd.name[i] != '\0' && hd.name[i] != '/' ){
                 i++; taille_nom++;
             }
-            strncpy(CUT_PATH, header->name+strlen(PATH), taille_nom); //"cutting" the filepath
+            strncpy(CUT_PATH, hd.name+strlen(PATH), taille_nom); //"cutting" the filepath
             CUT_PATH[taille_nom++] = '\0';
 
             if( is_in_array(CUT_PATH) == 0){ //checking if the file is not is the array (to not print in more than once)
                 if(arg_l == 1){
-                    fill_info_array(header);//making FILE_INFO's array if -l argument is given
+                    fill_info_array(hd);//making FILE_INFO's array if -l argument is given
                 }
-                memcpy(ARRAY[NUM_FILE++], CUT_PATH, strlen(CUT_PATH));//copying CUT_PATH(i.e file/rep name to ARRAY)
+                strcpy(ARRAY[NUM_FILE++], CUT_PATH);//copying CUT_PATH(i.e file/rep name to ARRAY)
             }
         }
-        //allow to jump to the next header block
+        //allow to jump to the next hd block
         int filesize = 0;
-        sscanf(header->size, "%o", &filesize);
+        sscanf(hd.size, "%o", &filesize);
         int nb_bloc_fichier = (filesize + 512 -1) / 512;
-        for(int i = 0; i < nb_bloc_fichier; i++) read(fd, header, BUFSIZE);
+        for(int i = 0; i < nb_bloc_fichier; i++) read(fd, &hd, BLOCKSIZE);
     }
     print_ls_to_STROUT(arg_l);
-    free(header);
     return 1;
 }
 
@@ -63,12 +58,12 @@ int is_in_array(char *string){ //checking if string is in ARRAY
     return 0;
 }
 
-void fill_info_array(struct posix_header *header){
+void fill_info_array(struct posix_header hd){
     int filesize = 0;
-    sscanf(header->size,"%o",&filesize);
-    char *c = malloc( (strlen(header->uname)+strlen(header->gname)+strlen(header->size)+12) * sizeof(char));
-    sprintf(c, "%c%s %s %s %d", is_file_or_repository(header->typeflag), octal_to_string(header->mode), header->uname, header->gname, filesize);
-    memcpy(FILE_INFO[NUM_FILE], c, strlen(c));
+    sscanf(hd.size,"%o",&filesize);
+    char *c = malloc( (strlen(hd.uname)+strlen(hd.gname)+strlen(hd.size)+12) * sizeof(char));
+    sprintf(c, "%c%s %s %s %d", is_file_or_repository(hd.typeflag), octal_to_string(hd.mode), hd.uname, hd.gname, filesize);
+    strcpy(FILE_INFO[NUM_FILE], c);
 }
 
 void print_ls_to_STROUT(int arg_l){
