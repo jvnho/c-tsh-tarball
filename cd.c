@@ -28,14 +28,17 @@ int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     return 0;
 }
 //path and path descriptor
-void cd_in_tar(char * directory, char *PATH, char *tar_fd){//modify the current path in the memory
+int cd_in_tar(char * directory, char *PATH, char *tar_fd){//modify the current path in the memory
     
-    if(strcmp(".",directory)==0)return;
-    if(strcmp("..", directory)==0)return;
+    if(strcmp(".",directory)==0)return 0;
+    if(strcmp("..", directory)==0)return 0;//todo
     int tar_descriptor = atoi(tar_fd);
     if(if_cd_is_valid(tar_descriptor, PATH, directory)){
         strcat(PATH, concatString(directory, ""));//?? if we give directory/
+        return 0;
     }else{
-        printf("no such directory\n");
+        write(1, "no such directory\n", strlen("no such directory\n"));
+        return -1;
     }
+    return 0;
 }
