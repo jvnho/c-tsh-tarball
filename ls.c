@@ -74,7 +74,7 @@ int is_in_array(char *string){ //checking if string is in ARRAY
 void fill_info_array(struct posix_header hd){
     int filesize = 0;
     sscanf(hd.size,"%o",&filesize);
-    char *c = malloc( (strlen(hd.uname)+strlen(hd.gname)+strlen(hd.size)+12) * sizeof(char));
+    char c[(strlen(hd.uname)+strlen(hd.gname)+strlen(hd.size)+12) * sizeof(char)];
     sprintf(c, "%c%s %s %s %d", is_file_or_repository(hd.typeflag), octal_to_string(hd.mode), hd.uname, hd.gname, filesize);
     strcpy(FILE_INFO[NUM_FILE], c);
 }
