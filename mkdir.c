@@ -3,9 +3,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <sys/wait.h>
 #include <sys/errno.h>
 #include "tar.h"
 #include "tsh_memory.h"
+#include "string_traitement.h"
 struct posix_header *create_header(char * name){
     
     struct posix_header *result = malloc(512);
@@ -81,7 +83,19 @@ int mkdir_in_tar(char *dir_name, int tar_descriptor){
     }
     return 0;
 }
+//to do with more than one argument
 int mkdir(char *dir_name, tsh_memory *memory){
-    
+    if(in_a_tar(memory)){//in tar -> so use our implementation of mkdir
+        return mkdir_in_tar(concatString(memory->FAKE_PATH, dir_name), string_to_int(memory->tar_descriptor));
+    }else{//normal circonstances so we exec the normal mkdir
+        int pid = fork();
+        if(pid==0){//child
+            execlp("mkdir", "mkdir", dir_name, NULL);
+        }else{//parent
+            int status;
+            waitpid(pid, &status, WUNTRACED);
+            if(WEXITSTATUS(status)==-1)return -1;
+        }
+    }
     return 0;
 }
