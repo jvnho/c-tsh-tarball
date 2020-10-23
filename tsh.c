@@ -16,8 +16,6 @@ tsh_memory * memory;
 int main(void){
     //we create a memory about the current state so all processu can relate on it
     if((memory = create_memory())==NULL)return -1;
-    instanciate_tsh_memory("test2.tar", memory);
-    mkdir("dossier2", "dossier", memory->tar_descriptor);
     /*while(1){
         PATH = getPath(memory);
         write(1, PATH, strlen(PATH));

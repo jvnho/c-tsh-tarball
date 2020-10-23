@@ -62,7 +62,7 @@ void put_at_the_first_null(int descriptor){
         j++;
     }
 }
-void mkdir2(char *dir_name, int tar_descriptor){
+void mkdir_in_tar(char *dir_name, int tar_descriptor){
     struct posix_header *new_head = create_header(dir_name);
     put_at_the_first_null(tar_descriptor);
     write((tar_descriptor), new_head, 512);//write on the first ending bloc
@@ -74,9 +74,4 @@ void mkdir2(char *dir_name, int tar_descriptor){
     write(tar_descriptor, end_bloc, 512);
     //affiche(tar_descriptor);
 
-}
-int main(int n, char** args){
-    //directory/ nomDuTar
-    int ouverture = open(args[2], O_RDWR );
-    mkdir2(args[1], ouverture);
 }

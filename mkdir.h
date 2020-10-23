@@ -1,5 +1,4 @@
 #ifndef MKDIR_H
 #define MKDIR_H
-
-extern void mkdir(char *dir_name, char *fake_path, char *tar_descriptor);
+extern void mkdir_in_tar(char *dir_name, int tar_descriptor);
 #endif
