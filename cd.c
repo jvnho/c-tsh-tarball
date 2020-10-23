@@ -28,7 +28,7 @@ int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     return 0;
 }
 //path and path descriptor
-void cd(char * directory, char *PATH, char *tar_fd){//modify the current path in the memory
+void cd_in_tar(char * directory, char *PATH, char *tar_fd){//modify the current path in the memory
     
     if(strcmp(".",directory)==0)return;
     if(strcmp("..", directory)==0)return;
