@@ -2,11 +2,14 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
-#include "tar.h"
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdio.h>
 
+#include "tar.h"
+#include "tsh_memory.h"
+
+void ls_in_tar(int,char*,int);
 int is_in_array(char*);
 void print_ls_to_STROUT(int);
 void free_array_of_string();
@@ -19,7 +22,19 @@ char FILE_INFO[128][255]; // allow to keep file info (i.e size, uname, gname,...
 int NUM_FILE = 0; //keeps a track of the size of ARRAY
 char FILE_PATH[255], CUT_PATH[255];//FILE_PATH: path of the file , CUT_PATH = filename cut from the path
 
-int ls(int fd, char* PATH, int arg_l){
+void ls(tsh_memory memory){
+    if(memory.tar_name != NULL){
+        int arg = 0;
+        if(memory.comand == NULL)
+            arg = 0;
+        else arg = 1;
+        ls_in_tar(atoi(memory.tar_descriptor), memory.FAKE_PATH, arg);
+    } else {
+        //execvp...
+    }
+}
+
+void ls_in_tar(int fd, char* PATH, int arg_l){
     lseek(fd, 0, SEEK_SET);
     struct posix_header hd;
     while(read(fd, &hd, BLOCKSIZE) > 0){ //reading the entire tarball
@@ -48,7 +63,6 @@ int ls(int fd, char* PATH, int arg_l){
         for(int i = 0; i < nb_bloc_fichier; i++) read(fd, &hd, BLOCKSIZE);
     }
     print_ls_to_STROUT(arg_l);
-    return 1;
 }
 
 int is_in_array(char *string){ //checking if string is in ARRAY
@@ -105,11 +119,10 @@ char is_file_or_repository(char typeflag){
 }
 
 ///////// TEST /////////
- int main(int argc, char * argv[]){
-     int fd = open(argv[1], O_RDONLY);
-     int ret = 0;
-     if(argv[2] != NULL)
-        ret = ls(fd, argv[2], 0);
-    else
-       ret = ls(fd,"", 0);
-}
+//  int main(int argc, char * argv[]){
+//      int fd = open(argv[1], O_RDONLY);
+//      if(argv[2] != NULL)
+//         ls_in_tar(fd, argv[2], 1);
+//     else
+//         ls_in_tar(fd,"", 1);
+// }
