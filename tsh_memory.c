@@ -9,7 +9,7 @@
 #include <string.h>
 #include "tsh_memory.h"
 #include "string_traitement.h"
-void instanciate_tsh_memory(char *tar_file_name, tsh_memory *result){
+int instanciate_tsh_memory(char *tar_file_name, tsh_memory *result){
     //instanciate the name of tar 
     strcpy(result->tar_name, tar_file_name);
     int len = strlen(result->tar_name);
@@ -19,9 +19,12 @@ void instanciate_tsh_memory(char *tar_file_name, tsh_memory *result){
     result->tar_descriptor = int_to_string(open(tar_file_name, O_RDWR));
     if(errno == ENOENT){//no such file
         perror("");
+        return -1;
     }if(errno == EACCES){//permision dinied
         perror("");
+        return -1;
     }
+    return 0;
 }
 tsh_memory * create_memory(){
     tsh_memory * result = malloc(sizeof(tsh_memory));

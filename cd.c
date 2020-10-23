@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <sys/errno.h>
 #include "tar.h"
 #include "tsh_memory.h"
 #include "string_traitement.h"
@@ -41,4 +42,18 @@ int cd_in_tar(char * directory, char *PATH, char *tar_fd){//modify the current p
         return -1;
     }
     return 0;
+}
+int cd(char *directory, tsh_memory *memory){
+    if(in_a_tar(memory)){//in a anormal circonstances
+        return cd_in_tar(directory, memory->FAKE_PATH, memory->tar_descriptor);
+    }
+    // beforeTar/ directory.tar / afterTar
+    char beforTar[512]; char tarName[512]; char afterTar[512];
+    //if we have a pre Tar we apply chdir on that part 
+    if(strlen(beforTar)){
+        if(chdir(beforTar)==-1){
+            perror("");
+            return -1;
+        }
+    }
 }

@@ -11,7 +11,7 @@ typedef struct tsh_memory{
     char REAL_PATH[BUFSIZE];//the buff when we read the getcwd
 }tsh_memory;
 
-extern void instanciate_tsh_memory(char *tar_file_name, tsh_memory *result);
+extern int instanciate_tsh_memory(char *tar_file_name, tsh_memory *result);
 extern tsh_memory * create_memory();
 extern char * getPath(tsh_memory *state);
 extern void free_tsh_memory(tsh_memory *state);
