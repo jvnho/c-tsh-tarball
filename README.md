@@ -136,12 +136,23 @@ Sinon, de retour dans la fonction `rmdir_in_tar` on va refaire un parcours tar m
 faire un décalage de tous les blocs jusqu'à la fin.
 
 **2.7 cat.c**
-La fonction cat prend en argument le `(int desc, char **args, int arg)`:
-comme un cat dans un shell classique elle va elle va vérifier la première condition `(arg == 0)` alors on affiche le contenu sans condition spécifique,
-pour cela elle fait appel à une fonction `cat_all()` qui à pour but de parcourir le tar et afficher d'un write, (une fonction `display(char* str)` facultative a été créée pour cela).
+La fonction cat prend en argument  ***tsh_memory** , on regarde tout d'abord
+si l'utilisateur est dans un tar...
+
+- Si la condtion passe, on fait appel à notre méthode cat_in_tar
+- Sinon on fait un exec d'un cat classique.
 
 
-Si la condition du `cat_all()` ne passe pas, c'est `int cat_2(int desc, char* path)`qui prend en argument **le descripteur du fichier ouvert, le PATH** qui sera donc appeler est va lire notre tar avec les conditions spécifiques indiqué pour lancer `read(desc, buffer, &myFile)` et  `write(1, buffer, strlen(buffer))`. Pour se rapprocher au maximum de ce que l'on peut rencontrer dans l'utilisation d'un cat classique
+alors on affiche le contenu sans condition spécifique,
+
+La fonction  `cat_in_tar(int desc, char* path)` va prendre  en argument **le descripteur du fichier ouvert, le PATH**
+
+Elle va se charger des conditions necessaires à l'ulitation d'un cat et le parcours du tar, ainsi elle va se charger de lire notre tar avec les conditions spécifiques indiqué pour lancer `read(desc, buffer, &myFile)` et  `write(1, buffer, strlen(buffer))`.
+
+Elle fait également appel à une fonction `cat_all()` qui à pour but de parcourir le tar et afficher à l'aide d'un write, (une fonction `display(char* str)` facultative a été créée pour cela).
+
+
+ Pour se rapprocher au maximum de ce que l'on peut rencontrer dans l'utilisation d'un cat classique
 certain réglage et améliotation sans encore en cours d'élaboration...
 
 
