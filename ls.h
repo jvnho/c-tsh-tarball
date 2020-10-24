@@ -3,6 +3,6 @@
 
 #include "tsh_memory.h"
 
-extern int ls(tsh_memory memory);
+extern int ls(tsh_memory *memory);
 
 #endif

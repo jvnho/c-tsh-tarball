@@ -25,24 +25,24 @@ char FILE_INFO[128][255]; // allow to keep file info (i.e size, uname, gname,...
 int NUM_FILE = 0; //keeps a track of the size of ARRAY
 char FILE_PATH[255], CUT_PATH[255];//FILE_PATH: path of the file , CUT_PATH = filename cut from the path
 
-int ls(tsh_memory memory){
+int ls(tsh_memory *memory){
     //user is in tarball
-    if(is_in_tar(memory)){
+    if(in_a_tar(memory) == 1){
         int arg = 0;
-        if(memory.comand == NULL)
+        if(memory->comand == NULL)
             arg = 0;
         else arg = 1;
-        ls_in_tar(atoi(memory.tar_descriptor), memory.FAKE_PATH, arg);
+        ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, arg);
     } else {
         //circumstances where we exec the normal ls
         int pid = fork();
         if(pid == 0){//child
-            execlp("ls", "ls", getArg(memory.comand), NULL);
+            execlp("ls", "ls", NULL);
         } else {//parent
             int status;
             waitpid(pid, &status, WUNTRACED);
             if(WEXITSTATUS(status) == -1)
-                return -1;  
+                return -1;
         }
     }
     return 1;
@@ -135,10 +135,10 @@ char *getArg(char* cmd){
 }
 
 ///////// TEST /////////
- int main(int argc, char * argv[]){
-    //  int fd = open(argv[1], O_RDONLY);
-    //  if(argv[2] != NULL)
-    //     ls_in_tar(fd, argv[2], 1); //ex: ./ls archive.tar dossier1/
-    // else
-    //     ls_in_tar(fd,"", 1);
-}
+//  int main(int argc, char * argv[]){
+//     //  int fd = open(argv[1], O_RDONLY);
+//     //  if(argv[2] != NULL)
+//     //     ls_in_tar(fd, argv[2], 1); //ex: ./ls archive.tar dossier1/
+//     // else
+//     //     ls_in_tar(fd,"", 1);
+// }

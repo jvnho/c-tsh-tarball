@@ -5,36 +5,37 @@
 #include <stdio.h>
 #include <sys/wait.h>
 #include <sys/errno.h>
+#include <time.h>
 #include "tar.h"
 #include "tsh_memory.h"
 #include "string_traitement.h"
 struct posix_header *create_header(char * name){
-    
+
     struct posix_header *result = malloc(512);
     strcpy(result->name, name);//add the name
     sprintf(result->mode, "000755 ");
     sprintf(result->uid, "000765 ");
     sprintf(result->gid, "000024 ");
 
-    sprintf(result->size, "%011o", 0); 
-    sprintf(result->mtime, "%011o", 1603298969);
-     
-    result->mtime[0] = '\0';//how to get the time of the arrchivement
-    
-    result->typeflag = '5';
-    result->linkname[0] = '\0';   
-    
-    strcpy(result->magic, "ustar"); 
-    result->version[0]='0';
-    result->version[1]= '0'; 
+    sprintf(result->size, "%011o", 0);
+    sprintf(result->mtime, "%011lo", time(NULL));
 
-    strcpy(result->uname, "sarobidy");    
-    strcpy(result->gname, "staff");
-    
+    result->mtime[0] = '\0';//how to get the time of the arrchivement
+
+    result->typeflag = '5';
+    result->linkname[0] = '\0';
+
+    strcpy(result->magic, "ustar");
+    result->version[0]='0';
+    result->version[1]= '0';
+
+    strcpy(result->uname, getlogin());
+    strcpy(result->gname, getlogin());
+
     strcpy(result->devmajor, "000000 ");
-    strcpy(result->devminor, "000000 ");             
-    result->prefix[0] = '\0';             
-    result->junk[0]= '\0';  
+    strcpy(result->devminor, "000000 ");
+    result->prefix[0] = '\0';
+    result->junk[0]= '\0';
     set_checksum(result);
     return result;
 }
