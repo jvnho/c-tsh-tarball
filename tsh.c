@@ -25,7 +25,7 @@ int main(void){
     }*/
     PATH = getPath(memory);
     write(1, PATH, strlen(PATH));
-    printf("result cd = %d\n", cd("test2", memory));
+    printf("result cd = %d\n", cd("test2/test3.tar/doc", memory));
     PATH = getPath(memory);
     write(1, PATH, strlen(PATH));
 

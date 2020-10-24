@@ -44,13 +44,12 @@ int cd_in_tar(char * directory, char *PATH, char *tar_fd){//modify the current p
     return 0;
 }
 int cd(char *directory, tsh_memory *memory){
-    printf("in tar  = %d\n", in_a_tar(memory));
     if(in_a_tar(memory)){//in a anormal circonstances
         return cd_in_tar(directory, memory->FAKE_PATH, memory->tar_descriptor);
     }
     
     // beforeTar/ directory.tar / afterTar
-    /*char beforTar[512]; char tarName[512]; char afterTar[512];
+    char beforTar[512]; char tarName[512]; char afterTar[512];
     //instanciate the format befor/ inside/ after (tar)
     getPreTar(directory, beforTar);
     getTarName(directory, tarName);
@@ -66,6 +65,6 @@ int cd(char *directory, tsh_memory *memory){
     if(strlen(tarName)){
         if(instanciate_tsh_memory(tarName, memory)==-1) return -1;
         if(strlen(afterTar)) return cd_in_tar(afterTar, memory->FAKE_PATH, memory->tar_descriptor);
-    }*/
+    }
     return 0;
 }

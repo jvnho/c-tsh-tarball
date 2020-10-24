@@ -16,7 +16,7 @@ int instanciate_tsh_memory(char *tar_file_name, tsh_memory *result){
     result->tar_name [len]= '/';
     result->tar_name [len+1]= '\0';
     //open the .tar file
-    result->tar_descriptor = int_to_string(open(tar_file_name, O_RDWR));
+    strcpy(result->tar_descriptor, int_to_string(open(tar_file_name, O_RDWR)));
     if(errno == ENOENT){//no such file
         perror("");
         return -1;
@@ -30,6 +30,7 @@ tsh_memory * create_memory(){
     tsh_memory * result = malloc(sizeof(tsh_memory));
     (result->FAKE_PATH)[0] = '\0';//so it doesn't create a random characteres
     result->tar_name[0] = '\0';
+    result->tar_descriptor[0] = '\0';
     return result;
 }
 char * getPath(tsh_memory *state){
