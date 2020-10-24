@@ -23,10 +23,7 @@ int main(void){
         memory->comand[strlen(memory->comand)-1] = '\0';
         if(memmem(memory->comand, strlen(memory->comand), "exit", 4))break;
     }*/
-    char * teste = "dossier1/dossier2/test2.tar";
-    char result[512];
-    getPostTar(teste, result);
-    printf("result = %s\n", result);
+    
     free_tsh_memory(memory);
     return 0;
 }
