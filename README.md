@@ -1,4 +1,3 @@
-
 **1 - STRUCTURE GENERALE DU CODE**
 
 **1.1 le main:** Le `tsh.c` contient le *main* qui traitera toutes les commandes.
@@ -93,6 +92,27 @@ concatener le répertoire courant du processus, avec **tar_ name et FAKE_PATH**
 		et on écrit un nouveau bloc null a la fin du tar pour compenser 
 		
 **2.5 ls.c**
+
+La fonction prend en argument un ***tsh_memory** , on regarde tout d'abord 
+si l'utilisateur est dans un tar. 
+
+
+*  Si oui, on fait appel à notre méthode ls_in_tar 
+  
+*  Sinon on fait un exec d'un ls normal.
+
+`ls_in_tar(int fd, char* PATH, int arg_l)`
+
+La fonction `ls_in_tar` prend en argument **le descripteur du fichier ouvert, le PATH** (i.e le FAKE_PATH) et **un int arg_l qui vaut 1 si "-l" a été entré sinon 0.**
+
+On fait un parcours du tarball, on récupère dans un premier temps **uniquement les chemins des différentes entêtes de fichiers**, s'il est égal à PATH ça veut dire que c'est un élément à afficher,
+ce nom d'entête va être coupé: on incrémente un réel `taille_nom` tant qu'on ne rencontre pas le caractère **"/" ou "\0"** qui marque respectivement la fin pour un répertoire et un dossier.
+
+On a donc un **index de début** (taille de PATH) et de **fin** (taille_nom), on coupe le nom d'entête, on le stocke dans un tableau global `ARRAY`, ceci afin d'éviter d'éventuels doublons.
+
+Si l'argument "-l" a été donné, on récupère parallelement les informations sur les fichiers en les stockant dans un tablau global `FILE_INFO`.
+
+A la fin on affiche le tableau ARRAY et éventuellemt FILE_INFO.
 
 **2.6 rmdir.c**
 
