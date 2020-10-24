@@ -153,7 +153,7 @@ Elle fait également appel à une fonction `cat_all()` qui à pour but de parcou
 
 
  Pour se rapprocher au maximum de ce que l'on peut rencontrer dans l'utilisation d'un cat classique
-certain réglage et améliotation sans encore en cours d'élaboration...
+certains réglages et améliorations, sans encore en cours d'élaboration...
 
 
 
