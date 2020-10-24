@@ -26,13 +26,14 @@ int main(void){
     PATH = getPath(memory);
     write(1, PATH, strlen(PATH));
     /*
-        change le chemin sur ton truc a toi 
+        change le chemin du cd sur ton truc a toi 
         essaye
-        cd cheminNormal
-        cd cheminNormal/dossier.tar
-        cd dossier.tar
-        cd dossier.tar/trucDansTar
-        cd cheminNormal/dossier.tar/trucDans tar
+            cd cheminNormal
+            cd cheminNormal/dossier.tar
+            cd dossier.tar
+            cd dossier.tar/trucDansTar
+            cd cheminNormal/dossier.tar/trucDans tar
+        Comme il y la ligne mkdir après le cd normalement a chaque fois tu va avoir un nouveau dossier dossMkdir
     */
     printf("resultat du cd = %d\n", cd("test2", memory)); //*** cd ***/
     PATH = getPath(memory);//affiche le path après le cd
