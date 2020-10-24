@@ -9,6 +9,7 @@
 #include "tsh_memory.h"
 #include "string_traitement.h"
 
+char myPath[256]; // path of my array 256
 
 // write like printf("")
     void display(char* str){
@@ -16,14 +17,26 @@
 
     }
 
+    void cat_all(){ 
+        char myStr[255];
+    read(0,&myStr, sizeof(myStr));
+    while(myStr[0]!= 'Q' ){ //exit
+        int myRead= read(0,&myStr, sizeof(myStr));
+        if (myRead != 0){
+            write(1,&myStr,sizeof(myStr));
+
+        }
+    }
+
+    }
 
 
-char myPath[256]; // path of my array 256
 
 
 int cat(int desc, char **args, int arg){
     if(arg == 0){
         //call cat_all
+        cat_all();
     } else {
         for(int i = 0; i < arg; i++){
             cat_2(desc, args[i]);
@@ -41,7 +54,7 @@ int cat_2(int desc, char* path){ // I should use pointer rather than int next ti
 
     }
 
-   if(path != NULL && path[0]!= 32 && path[0] != 10){ // ascii code of Line Feed(saut de line) and space
+   if(path != NULL){ 
 
     while(read(desc, header, BLOCKSIZE) > 0){ // blocksize = 512
         if(header-> typeflag == '0'){//if file pointed by header is a ordinary file
@@ -49,9 +62,10 @@ int cat_2(int desc, char* path){ // I should use pointer rather than int next ti
             if(strcmp(myPath,path) == 0 && strcmp(myPath,header->name) != 0){
                 int myFile = 0;
                 sscanf(header->size, "%o", &myFile);
-                char buffer[header->size];
+                char buffer[*header->size];
                 read(desc, buffer, &myFile);
                 write(1, buffer, strlen(buffer));
+                //display(header);
                 //condition
                 //display(header); //display
             } else {
@@ -67,17 +81,10 @@ int cat_2(int desc, char* path){ // I should use pointer rather than int next ti
         }
     }
 
-    //display all without condition
-    char myStr[255];
-    read(0,&myStr, sizeof(myStr));
-    while(myStr[0]!= 'Q' ){ //exit
-        int myRead= read(0,&myStr, sizeof(myStr));
-        if (myRead != 0){
-            write(1,&myStr,sizeof(myStr));
-
-        }
-    }
-
+    //display all without conditions
+    cat_all();
 
         return 0;
+
+   }
     }
