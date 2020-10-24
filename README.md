@@ -137,7 +137,7 @@ faire un décalage de tous les blocs jusqu'à la fin.
 
 **2.7 cat.c**
 La fonction cat prend en argument le `(int desc, char **args, int arg)`:
-comme un cat dans un shell classique elle va elle va vérifier la première condition (si notre arg == 0) alors on affiche le contenu sans condition spécifique,
+comme un cat dans un shell classique elle va elle va vérifier la première condition `(arg == 0)` alors on affiche le contenu sans condition spécifique,
 pour cela elle fait appel à une fonction `cat_all()` qui à pour but de parcourir le tar et afficher d'un write, (une fonction `display(char* str)` facultative a été créée pour cela).
 
 
