@@ -116,12 +116,31 @@ A la fin on affiche le tableau ARRAY et éventuellemt FILE_INFO.
 
 **2.6 rmdir.c**
 
+La fonction prend en argument un ***tsh_memory** , on regarde tout d'abord 
+si l'utilisateur est dans un tar. 
+
+
+*  Si oui, on fait appel à notre méthode rmdir_in_tar 
+  
+*  Sinon on fait un exec d'un rmdir normal.
+
+`rmdir_in_tar(int fd, char* full_path)`
+
+La fonction `rmdir_in_tar` prend en argument le **le descripteur du fichier ouvert** et **full_path qui est la concaténation du FAKE_PATH** (chemin dans le tar) et **du nom du répertoire** que l'utilisateur veut supprimer.
+
+On fait appel à une méthode auxilliaire `occ_counter_path(int fd, char *full_path, off_t file_offset)` qui va se charger de parcourir tout le tar et de compter les **occurences d'apparition** de full_path dans le tarball: elle prend en plus un argument file_offset qui va renvoyer
+la `position du pointeur` si on trouve une éventuelle égalitée entre full_path et le nom de l'entête. 
+Elle renvoie un entier, si celui-ci est différent de un ça veut dire que soit il n'existe pas un tel repertoire ou soit qu'il n'est pas vide. 
+
+Sinon, de retour dans la fonction `rmdir_in_tar` on va refaire un parcours tar mais on va positionner le descripteur à l'endroit où apparait le répertoire qu'on veut supprimer (i.e `file_offset`) et on va
+faire un décalage de tous les blocs jusqu'à la fin.
+
 **2.7 cat.c**
 
 
 **3 - FUTURS FONCTIONALITÉS**
 Pour associer les commandes et les fonctions à appeler, on pensait faire un tableau de string contenant la liste des commandes (tab1) et un second tableau de pointeur de fonction (tab2) 
-et utiliser une fonction **"appel_de_fonction"** qui: 
+et utiliser une fonction `appel_de_fonction` qui: 
 
 *  prend en argument le nom de la commande en string et ses arguments
 
