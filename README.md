@@ -149,7 +149,7 @@ La fonction  `cat_in_tar(int desc, char* path)` va prendre  en argument **le des
 
 Elle va se charger des conditions necessaires à l'ulitation d'un cat et le parcours du tar, ainsi elle va se charger de lire notre tar avec les conditions spécifiques indiqué pour lancer `read(desc, buffer, &myFile)` et  `write(1, buffer, strlen(buffer))`.
 
-Elle fait également appel à une fonction `cat_all()` qui à pour but de parcourir le tar et afficher à l'aide d'un write, (une fonction `display(char* str)` facultative a été créée pour cela).
+Elle fait également appel à une fonction `cat_all()` qui à pour but de lire et d'afficher tant que les conditions le permettent à l'aide d'un read et write, (une fonction `display(char* str)` facultative a été créée pour cela).
 
 
  Pour se rapprocher au maximum de ce que l'on peut rencontrer dans l'utilisation d'un cat classique
