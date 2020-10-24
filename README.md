@@ -3,13 +3,13 @@
 
 **1.1 le main:** Le `tsh.c` contient le *main* qui traitera toutes les commandes.
     Il a :
-    
-*  une variable **globale memory** de type `tsh_memory` qui contiendra tout sur l'état courant dans l'exécution : 
+
+*  une variable **globale memory** de type `tsh_memory` qui contiendra tout sur l'état courant dans l'exécution :
         si on est dans un .tar (il contient l'ouverture pour ce .tar, le nom de ce .tar, la position courante dans ce .tar)
 
 *  une boucle principale qui affiche le répertoire courant, puis read sur l'entrée standard puis exécute la commande correspondante ce qui est dans le *buffer* du read.
       **(pour le moment on a pas encore fait le lien entre la commande écrit via le read et l’appel de fonction correspondante)**
-      
+
 
 **1.2 les commandes**
     Les commandes sont dans des fichiers `nomDeCommande.c` puis importé dans le main, et la logique des commandes est la suivante :
@@ -36,30 +36,30 @@ typedef struct tsh_memory{
 
 **Les champs:**
 
-    - FAKE_PATH: Position courante depuis qu'on est rentré dans .tar 
+    - FAKE_PATH: Position courante depuis qu'on est rentré dans .tar
         ->il facilitera le pwd plus général  (chemin absolu + FakePath)
         ->il permettrait aussi de valider le cd dans un .tar (est ce que ca existe?? FakePath/iDossier)
-        
+
     - tar_name: Pour stocker le nom du fichier.tar
         ->il facilitera le pwd plus général  (chemin absolu + tar_name + FakePath)
-        
+
     - tar_descriptor: Pour stocker le descripteur du fichier.tar ouvert.
-    
+
     - command: Sert de buffer pour le read dans le main.
 
 **Les méthodes:**
 
-    - create_memory() -> crée une instance de tsh_memory 
-    
+    - create_memory() -> crée une instance de tsh_memory
+
     - free_tsh_memory(tsh_memory *state) -> libère toute la memoire alloué par state
-    
-    - instanciate_tsh_memory(char *tar_file_name, tsh_memory *result) 
+
+    - instanciate_tsh_memory(char *tar_file_name, tsh_memory *result)
         -> initialise les champs de result en fonction du fichier .tar dont on passe le nom.
-    
+
     - getPath(tsh_memory *state) -> retourne la position courante global depuis position absolue
-    
+
     - in_a_tar(tsh_memory *state) -> retourne un 0 ou 1 si on est dans un faux dossier (.tar)
-    
+
 **2.2 cd.c:**  `cd(char *directory, tsh_memory *memory)`
 
 *  Si on est dans un .tar
@@ -67,7 +67,7 @@ typedef struct tsh_memory{
 			postionCouranteDansTar = positionCouranteDansTar/directory/
 
 *  Sinon,
-		on découpe le *directory* sous 3 sous string 
+		on découpe le *directory* sous 3 sous string
 			**CheminAvantTar/  dossier.tar  CheminAprèsTar**
 		Si il y a le Sous String CheminAvantTar/
 			On fait un chdir sur le CheminAvantTar
@@ -90,8 +90,8 @@ concatener le répertoire courant du processus, avec **tar_ name et FAKE_PATH**
 *  Si on est dans un .tar
 		on crée une variable *posix_header* qui aura comme name FAKE_PATH/directory
 		on crée le posix_header sur le premier bloc nul du .tar
-		et on écrit un nouveau bloc null a la fin du tar pour compenser 
-		
+		et on écrit un nouveau bloc null a la fin du tar pour compenser
+
 **2.5 ls.c**
 
 **2.6 rmdir.c**
@@ -100,8 +100,8 @@ concatener le répertoire courant du processus, avec **tar_ name et FAKE_PATH**
 
 
 **3 - FUTURS FONCTIONALITÉS**
-Pour associer les commandes et les fonctions à appeler, on pensait faire un tableau de string contenant la liste des commandes (tab1) et un second tableau de pointeur de fonction (tab2) 
-et utiliser une fonction **"appel_de_fonction"** qui: 
+Pour associer les commandes et les fonctions à appeler, on pensait faire un tableau de string contenant la liste des commandes (tab1) et un second tableau de pointeur de fonction (tab2)
+et utiliser une fonction **"appel_de_fonction"** qui:
 
 *  prend en argument le nom de la commande en string et ses arguments
 
@@ -117,10 +117,10 @@ ex: 	tab1 ["cd", "mkdir"]  tab2 [cd, mkdir]
 **PROBLEME**
 Mais pour cela il faudra déjà réussir récupérer efficacement toutes les **sous string correspondants au nom de la commande et ses arguments** (dans un char * buffer_du_read)
 Ce qui s'avère très compliqué vu qu'on aura plusieurs commandes notamment à cause du pipe
-- comment, dans un char* chercher chaque commande en sous string (vu qu'on a plusieurs ) 
+- comment, dans un char* chercher chaque commande en sous string (vu qu'on a plusieurs )
 et découper toutes ces commandes en paquet avec leur argument respectif  (vu que chaque commande auront une liste de (char *) argument)
 et tout ca sans faire trop de malloc, car c'est une opération répétée à chaque fois que l'utilisateur rentre une commande.
 
 **PROBLEMATIQUE**
-Comment le shell gère les commandes qu'il prend par le read, 
+Comment le shell gère les commandes qu'il prend par le read,
 sachant que le buffer du read peut contenir plusieurs commandes avec des caractères pipe et chaque commandes peuvent avoir une liste d’arguments, le tout dans un buffer_du_read qui est un char*.
