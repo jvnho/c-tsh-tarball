@@ -108,7 +108,61 @@ char * concatString(char * path, char *dir){
     strcpy(result, path);
     result[strlen(path)] = '\0';
     strcat(result, dir);
-    result[length-2] = '/';
-    result[length-1] = '\0';
+    if(dir[strlen(dir)-1] == '/'){
+        result[length - 2] = '\0';
+    }else{
+        result[length-2] = '/';
+        result[length-1] = '\0';
+    }
     return result;
+}
+int get_index_first_slach(char *initial_string){
+    char * substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
+    if(substring == NULL)return -1;//there is not a .tar -> so there is not first slach befor .tar
+    int index_point = substring - initial_string;
+    for(int i = index_point; 0<=i; i--){
+        if(initial_string[i] == '/')return i;
+    }
+    return 0;
+}
+//return the substring befor the directory.tar
+void getPreTar(char *initial_string, char *result){
+    int first_slach_beforTar = get_index_first_slach(initial_string);
+    result[0] = '\0';
+    if(first_slach_beforTar == 0) return;//there is not a pre tar
+    else if(first_slach_beforTar == -1){//the is not a .tar, so everithing is a pre tar
+        strcpy(result, initial_string);
+    }else{
+        //copy destionation source(from where) size(how many char)
+        memcpy(result, initial_string, first_slach_beforTar + 1);// +1 because index start from 0
+        result[first_slach_beforTar + 1] = '\0';
+    }
+}
+//return the substring matched to the tar name
+void getTarName(char *initial_string, char *result){
+    int first_slach_beforTar = get_index_first_slach(initial_string);
+    result[0] = '\0';
+    if(first_slach_beforTar == -1)return;//there is nothing to complete
+    //cherching the ending index .tar<-
+    char *substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
+    int ending_index = substring - initial_string + strlen("tar");
+    if(first_slach_beforTar == 0){//copy form 0 to ending index
+        memcpy(result, initial_string, ending_index + 1);
+        result[ending_index + 1] = '\0';
+    }else{//copy form first_slach + 1 to ending index
+        memcpy(result, initial_string + first_slach_beforTar + 1, ending_index - first_slach_beforTar);
+        result[ending_index - first_slach_beforTar] = '\0';
+    }
+}
+//
+void getPostTar(char *initial_string, char *result){
+    char *substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
+    result[0] = '\0';
+    int len_initial = strlen(initial_string);
+    //there is not a .tar so there is not an after .tar
+    if(substring == NULL)return;
+    int begin_index = substring - initial_string + strlen(".tar/");//from where we take the substring
+    if(begin_index > len_initial) return;//the .tar is at the end -> also don't have a postTar
+    memcpy(result, initial_string + begin_index, len_initial - begin_index + 1);
+    result[len_initial - begin_index + 1] = '\0';
 }

@@ -5,12 +5,16 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "tar.h"
 #include "tsh_memory.h"
+#include "ls.h"
 
 void ls_in_tar(int,char*,int);
 int is_in_array(char*);
+char* getArg(char*);
 void print_ls_to_STROUT(int);
 void fill_info_array(struct posix_header);
 char* octal_to_string(char*);
@@ -21,16 +25,27 @@ char FILE_INFO[128][255]; // allow to keep file info (i.e size, uname, gname,...
 int NUM_FILE = 0; //keeps a track of the size of ARRAY
 char FILE_PATH[255], CUT_PATH[255];//FILE_PATH: path of the file , CUT_PATH = filename cut from the path
 
-void ls(tsh_memory memory){
-    if(memory.tar_name != NULL){
+int ls(tsh_memory *memory){
+    //user is in tarball
+    if(in_a_tar(memory) == 1){
         int arg = 0;
-        if(memory.comand == NULL)
+        if(memory->comand == NULL)
             arg = 0;
         else arg = 1;
-        ls_in_tar(atoi(memory.tar_descriptor), memory.FAKE_PATH, arg);
+        ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, arg);
     } else {
-        //execvp...
+        //circumstances where we exec the normal ls
+        int pid = fork();
+        if(pid == 0){//child
+            execlp("ls", "ls", NULL);
+        } else {//parent
+            int status;
+            waitpid(pid, &status, WUNTRACED);
+            if(WEXITSTATUS(status) == -1)
+                return -1;
+        }
     }
+    return 1;
 }
 
 void ls_in_tar(int fd, char* PATH, int arg_l){
@@ -111,17 +126,19 @@ char* octal_to_string(char *mode){
 }
 
 char is_file_or_repository(char typeflag){
-    if(typeflag == '0')
-        return '-';
-    else
+    if(typeflag == '0') return '-';
         return 'd';
+}
+
+char *getArg(char* cmd){
+    return strstr(cmd,"-");
 }
 
 ///////// TEST /////////
 //  int main(int argc, char * argv[]){
-//      int fd = open(argv[1], O_RDONLY);
-//      if(argv[2] != NULL)
-//         ls_in_tar(fd, argv[2], 1);
-//     else
-//         ls_in_tar(fd,"", 1);
+//     //  int fd = open(argv[1], O_RDONLY);
+//     //  if(argv[2] != NULL)
+//     //     ls_in_tar(fd, argv[2], 1); //ex: ./ls archive.tar dossier1/
+//     // else
+//     //     ls_in_tar(fd,"", 1);
 // }

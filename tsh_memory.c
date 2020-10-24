@@ -9,24 +9,28 @@
 #include <string.h>
 #include "tsh_memory.h"
 #include "string_traitement.h"
-void instanciate_tsh_memory(char *tar_file_name, tsh_memory *result){
+int instanciate_tsh_memory(char *tar_file_name, tsh_memory *result){
     //instanciate the name of tar 
     strcpy(result->tar_name, tar_file_name);
     int len = strlen(result->tar_name);
     result->tar_name [len]= '/';
     result->tar_name [len+1]= '\0';
     //open the .tar file
-    result->tar_descriptor = int_to_string(open(tar_file_name, O_RDWR));
+    strcpy(result->tar_descriptor, int_to_string(open(tar_file_name, O_RDWR)));
     if(errno == ENOENT){//no such file
         perror("");
+        return -1;
     }if(errno == EACCES){//permision dinied
         perror("");
+        return -1;
     }
+    return 0;
 }
 tsh_memory * create_memory(){
     tsh_memory * result = malloc(sizeof(tsh_memory));
     (result->FAKE_PATH)[0] = '\0';//so it doesn't create a random characteres
     result->tar_name[0] = '\0';
+    result->tar_descriptor[0] = '\0';
     return result;
 }
 char * getPath(tsh_memory *state){
@@ -53,4 +57,8 @@ char * getPath(tsh_memory *state){
 void free_tsh_memory(tsh_memory *state){//at the end
     //close(string_to_int(state->tar_descriptor)); 
     free(state);
+}
+int in_a_tar(tsh_memory *state){
+    if(strlen(state->tar_descriptor))return 1;
+    return 0;
 }
