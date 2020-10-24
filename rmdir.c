@@ -38,7 +38,9 @@ int occ_counter_path(int fd, char* full_path, off_t* file_offset){//returns the 
     while(read(fd, &hd, 512) > 0){//reading the entire tarball
         strncpy(FILE_PATH, hd.name, strlen(full_path));
         if(strcmp(FILE_PATH, full_path) == 0){
-            *file_offset = lseek(fd,0,SEEK_CUR);
+            if(hd.typeflag == '5'){
+                *file_offset = lseek(fd,0,SEEK_CUR);
+            }
             occurence++;
         }
         //allow to jump to the next header block
@@ -55,7 +57,7 @@ int rmdir_in_tar(int fd, char* full_path){
     //offset will allow to start reading the tarball from a certain offset and not necessarily the beginning of the tarball
     off_t file_offset = 0;
     if(occ_counter_path(fd, full_path, &file_offset) != 1){
-        char s[] = "repository is not empty or it's a file\n";
+        char s[] = "repository is not empty\n";
         write(1, s, strlen(s));
         return 0;//the repository is not empty or not found then it does nothing and returns 0
     }
@@ -69,13 +71,14 @@ int rmdir_in_tar(int fd, char* full_path){
     return 1;
 }
 
-char * concate_path_rep(char *PATH, char *rep_name){//concating tar full with the empty rep that user wants to delete
+char * concate_path_rep(char *PATH, char *rep_name){//concating tar path with the empty repository name user wants to delete
     char *ret = malloc( strlen(PATH) + strlen(rep_name) + 1);
-    sprintf(ret, "%s%s%c", PATH, rep_name, '\0');
+    sprintf(ret, "%s%s%s", PATH, rep_name, "\0");
     return ret;
 }
 
-int main(int argc, char **argv){
-    int fd = open(argv[1], O_RDWR);
-    rmdir_in_tar(fd, concate_path_rep(argv[2],argv[3]));
-}
+///////// TEST /////////
+// int main(int argc, char **argv){
+//     int fd = open(argv[1], O_RDWR);
+//     rmdir_in_tar(fd, concate_path_rep(argv[2],argv[3]));
+// }
