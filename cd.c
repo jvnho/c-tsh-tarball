@@ -44,6 +44,7 @@ int cd_in_tar(char * directory, char *PATH, char *tar_fd){//modify the current p
     return 0;
 }
 int cd(char *directory, tsh_memory *memory){
+    
     if(in_a_tar(memory)){//in a anormal circonstances
         return cd_in_tar(directory, memory->FAKE_PATH, memory->tar_descriptor);
     }

@@ -23,7 +23,12 @@ int main(void){
         memory->comand[strlen(memory->comand)-1] = '\0';
         if(memmem(memory->comand, strlen(memory->comand), "exit", 4))break;
     }*/
-    
+    PATH = getPath(memory);
+    write(1, PATH, strlen(PATH));
+    printf("result cd = %d\n", cd("test2", memory));
+    PATH = getPath(memory);
+    write(1, PATH, strlen(PATH));
+
     free_tsh_memory(memory);
     return 0;
 }
