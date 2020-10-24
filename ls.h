@@ -1,6 +1,8 @@
 #ifndef LS_H
 #define LS_H
 
-extern int ls(int fd, char* PATH, int arg_l);
+#include "tsh_memory.h"
+
+extern void ls(tsh_memory memory);
 
 #endif
