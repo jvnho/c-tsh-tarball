@@ -9,6 +9,17 @@
 #include "tsh_memory.h"
 #include "string_traitement.h"
 
+#include "tar.h"
+#include "tsh_memory.h"
+#include "ls.h"
+
+void displat(char *str);
+void cat_all();
+int cat(tsh_memory *memory);
+void cat_in_tar(int desc, char* path);
+
+
+
 char myPath[256]; // path of my array 256
 
 // write like printf("")
@@ -30,21 +41,39 @@ char myPath[256]; // path of my array 256
 
     }
 
+int cat(tsh_memory *memory){
+    if(in_a_tar(memory) == 1){
+        cat_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH);
+
+   }
+   else{
+       cat_all();
+       /*
+        for(int i = 0; i < arg; i++){
+            cat_in_tar(desc, args[i]);
+            */
+   }
+
+   return 1;
+}
 
 
-
+/*
 int cat(int desc, char **args, int arg){
+
     if(arg == 0){
         //call cat_all
         cat_all();
     } else {
         for(int i = 0; i < arg; i++){
-            cat_2(desc, args[i]);
+            cat_in_tar(desc, args[i]);
         }
+    
     }
 }
+*/
 
-int cat_2(int desc, char* path){ // I should use pointer rather than int next time
+void cat_in_tar(int desc, char* path){ 
     lseek(desc, 0, SEEK_SET);
 
     struct posix_header *header = malloc(512); //
