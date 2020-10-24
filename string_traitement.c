@@ -134,6 +134,7 @@ void getPreTar(char *initial_string, char *result){
         result[first_slach_beforTar + 1] = '\0';
     }
 }
+//return the substring matched to the tar name
 void getTarName(char *initial_string, char *result){
     int first_slach_beforTar = get_index_first_slach(initial_string);
     result[0] = '\0';
@@ -148,5 +149,16 @@ void getTarName(char *initial_string, char *result){
         memcpy(result, initial_string + first_slach_beforTar + 1, ending_index - first_slach_beforTar);
         result[ending_index - first_slach_beforTar] = '\0';
     }
-    
+}
+//
+void getPostTar(char *initial_string, char *result){
+    char *substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
+    result[0] = '\0';
+    int len_initial = strlen(initial_string);
+    //there is not a .tar so there is not an after .tar
+    if(substring == NULL)return;
+    int begin_index = substring - initial_string + strlen(".tar/");//from where we take the substring
+    if(begin_index > len_initial) return;//the .tar is at the end -> also don't have a postTar
+    memcpy(result, initial_string + begin_index, len_initial - begin_index + 1);
+    result[len_initial - begin_index + 1] = '\0';
 }
