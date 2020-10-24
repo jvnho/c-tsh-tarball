@@ -143,7 +143,7 @@ si l'utilisateur est dans un tar...
 - Sinon on fait un exec d'un cat classique.
 
 
-alors on affiche le contenu sans condition spécifique,
+alors on affiche le contenu sans condition spécifique
 
 La fonction  `cat_in_tar(int desc, char* path)` va prendre  en argument **le descripteur du fichier ouvert, le PATH**
 
