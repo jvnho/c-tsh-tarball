@@ -1,4 +1,3 @@
-
 **1 - STRUCTURE GENERALE DU CODE**
 
 **1.1 le main:** Le `tsh.c` contient le *main* qui traitera toutes les commandes.
@@ -94,14 +93,54 @@ concatener le répertoire courant du processus, avec **tar_ name et FAKE_PATH**
 
 **2.5 ls.c**
 
+La fonction prend en argument un ***tsh_memory** , on regarde tout d'abord
+si l'utilisateur est dans un tar.
+
+
+*  Si oui, on fait appel à notre méthode ls_in_tar
+
+*  Sinon on fait un exec d'un ls normal.
+
+`ls_in_tar(int fd, char* PATH, int arg_l)`
+
+La fonction `ls_in_tar` prend en argument **le descripteur du fichier ouvert, le PATH** (i.e le FAKE_PATH) et **un int arg_l qui vaut 1 si "-l" a été entré sinon 0.**
+
+On fait un parcours du tarball, on récupère dans un premier temps **uniquement les chemins des différentes entêtes de fichiers**, s'il est égal à PATH ça veut dire que c'est un élément à afficher,
+ce nom d'entête va être coupé: on incrémente un réel `taille_nom` tant qu'on ne rencontre pas le caractère **"/" ou "\0"** qui marque respectivement la fin pour un répertoire et un dossier.
+
+On a donc un **index de début** (taille de PATH) et de **fin** (taille_nom), on coupe le nom d'entête, on le stocke dans un tableau global `ARRAY`, ceci afin d'éviter d'éventuels doublons.
+
+Si l'argument "-l" a été donné, on récupère parallelement les informations sur les fichiers en les stockant dans un tablau global `FILE_INFO`.
+
+A la fin on affiche le tableau ARRAY et éventuellemt FILE_INFO.
+
 **2.6 rmdir.c**
+
+La fonction prend en argument un ***tsh_memory** , on regarde tout d'abord
+si l'utilisateur est dans un tar.
+
+
+*  Si oui, on fait appel à notre méthode rmdir_in_tar
+
+*  Sinon on fait un exec d'un rmdir normal.
+
+`rmdir_in_tar(int fd, char* full_path)`
+
+La fonction `rmdir_in_tar` prend en argument le **le descripteur du fichier ouvert** et **full_path qui est la concaténation du FAKE_PATH** (chemin dans le tar) et **du nom du répertoire** que l'utilisateur veut supprimer.
+
+On fait appel à une méthode auxilliaire `occ_counter_path(int fd, char *full_path, off_t file_offset)` qui va se charger de parcourir tout le tar et de compter les **occurences d'apparition** de full_path dans le tarball: elle prend en plus un argument file_offset qui va renvoyer
+la `position du pointeur` si on trouve une éventuelle égalitée entre full_path et le nom de l'entête.
+Elle renvoie un entier, si celui-ci est différent de un ça veut dire que soit il n'existe pas un tel repertoire ou soit qu'il n'est pas vide.
+
+Sinon, de retour dans la fonction `rmdir_in_tar` on va refaire un parcours tar mais on va positionner le descripteur à l'endroit où apparait le répertoire qu'on veut supprimer (i.e `file_offset`) et on va
+faire un décalage de tous les blocs jusqu'à la fin.
 
 **2.7 cat.c**
 
 
 **3 - FUTURS FONCTIONALITÉS**
 Pour associer les commandes et les fonctions à appeler, on pensait faire un tableau de string contenant la liste des commandes (tab1) et un second tableau de pointeur de fonction (tab2)
-et utiliser une fonction **"appel_de_fonction"** qui:
+et utiliser une fonction `appel_de_fonction` qui:
 
 *  prend en argument le nom de la commande en string et ses arguments
 
