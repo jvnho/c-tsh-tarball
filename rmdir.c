@@ -4,51 +4,48 @@
 #include <tar.h>
 #include <unistd.h>
 
-#include "tar.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
-#define BLOCKSIZE 512
+#include "tar.h"
 
 char FILE_PATH[512];//will allow to save the path and ONLY the path of the file pointed by the posix_header
 
-int occ_counter_path(int fd, char* full_path, int* file_offset){//returns the number of times the path appears in the tarball and returns to a pointer 'file_offset' the position of the rep
+int occ_counter_path(int fd, char* PATH, int* file_offset){//returns the number of times the path appears in the tarball and returns to a pointer 'file_offset' the position of the rep
     lseek(fd, 0, SEEK_SET);
     int occurence = 0;
     int read_length = 0;
-    struct posix_header *header = malloc(512);
-    if(header == NULL) return 0;
-    while(read_length = read(fd, header, 512) > 0){//reading the entire tarball
-        if(header->typeflag == '5'){ //if the file pointed by posix_header is a repository
-            strncpy(FILE_PATH, header->name, strlen(full_path));
-            if(strcmp(FILE_PATH, full_path) == 0){
-                *file_offset = read_length;
-                *file_size = header->size;
-                occurence++;
-            }
+    struct posix_header hd;
+    while(read_length = read(fd, &hd, 512) > 0){//reading the entire tarball
+        strncpy(FILE_PATH, hd.name, strlen(PATH));
+        if(strcmp(FILE_PATH, PATH) == 0){
+            *file_offset = read_length;
+            occurence++;
         }
         //allow to jump to the next header block
         int filesize = 0;
-        sscanf(header->size, "%o", &filesize);
+        sscanf(hd.size, "%o", &filesize);
         int nb_bloc_fichier = (filesize + 512 -1) / 512;
-        for(int i = 0; i < nb_bloc_fichier; i++) read(fd, header, BLOCKSIZE);
+        for(int i = 0; i < nb_bloc_fichier; i++) read(fd, &hd, BLOCKSIZE);
     }
     return occurence;
 }
 
-char *concate_path_rep(char *PATH, char *rep){//temporary function, will be using the function concateString located in string_traitement.c
-    char *s = malloc((strlen(PATH) + strlen(rep) + 1) * sizeof(char));
-    s[0] = '\0';
-    sprintf(s,"%s%s%c", PATH, rep,'\0');//concates the PATH and the rep name !!CHECK IF SPRINTF IS NULL TERMINATED!!
-    return s;
-}
-
 int rmdir_func(int fd, char* PATH, char *rep){
-    if(rep[strlen(rep)-2] != '/') return 0; //rep given is not written as a repository
-    char *full_path = concate_path_rep(PATH,rep);
+    //if(rep[strlen(rep)-2] != '/') return 0; //rep given is not written as a repository
     int file_offset = 0;//will allow to start reading the tarball from the file and not the beginning of the tarball
-    int file_size = 0;
-    if(occ_counter_path(fd,full_path,&file_offset) != 1) return 0; //if the repository is not empty or not found then returns 0
-
+    // if(occ_counter_path(fd,PATH,&file_offset) != 1) return 0; //if the repository is not empty or not found then returns 0
+    // char zero[512];
+    // memset(zero,0,512);
+    // write(fd,zero,512);
+    printf("%d\n", occ_counter_path(fd,PATH,&file_offset));
     /* PROCEDURE TO DELETE THE HEADER AND FILE BLOCKS */
 
     return 1;
+}
+
+int main(int argc, char **argv){
+    int fd = open(argv[1], O_RDWR);
+    rmdir_func(fd,"",argv[2]);
 }
