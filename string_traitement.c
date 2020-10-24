@@ -108,8 +108,12 @@ char * concatString(char * path, char *dir){
     strcpy(result, path);
     result[strlen(path)] = '\0';
     strcat(result, dir);
-    result[length-2] = '/';
-    result[length-1] = '\0';
+    if(dir[strlen(dir)-1] == '/'){
+        result[length - 2] = '\0';
+    }else{
+        result[length-2] = '/';
+        result[length-1] = '\0';
+    }
     return result;
 }
 int get_index_first_slach(char *initial_string){

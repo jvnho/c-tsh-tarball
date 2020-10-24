@@ -25,10 +25,19 @@ int main(void){
     }*/
     PATH = getPath(memory);
     write(1, PATH, strlen(PATH));
-    printf("result cd = %d\n", cd("test2/test3.tar/doc", memory));
-    PATH = getPath(memory);
+    /*
+        change le chemin sur ton truc a toi 
+        essaye
+        cd cheminNormal
+        cd cheminNormal/dossier.tar
+        cd dossier.tar
+        cd dossier.tar/trucDansTar
+        cd cheminNormal/dossier.tar/trucDans tar
+    */
+    printf("result cd = %d\n", cd("test2/test3.tar/doc/", memory)); 
+    PATH = getPath(memory);//affiche le path après le cd
     write(1, PATH, strlen(PATH));
-
+    mkdir("dossMkdir", memory);
     free_tsh_memory(memory);
     return 0;
 }

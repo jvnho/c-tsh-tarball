@@ -35,7 +35,8 @@ int cd_in_tar(char * directory, char *PATH, char *tar_fd){//modify the current p
     if(strcmp("..", directory)==0)return 0;//todo
     int tar_descriptor = atoi(tar_fd);
     if(if_cd_is_valid(tar_descriptor, PATH, directory)){
-        strcat(PATH, concatString(directory, ""));//?? if we give directory/
+        if(directory[strlen(directory)-1] == '/')strcat(PATH, directory);
+        else strcat(PATH, concatString(directory, ""));//?? if we give directory/
         return 0;
     }else{
         write(1, "no such directory\n", strlen("no such directory\n"));

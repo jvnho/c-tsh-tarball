@@ -60,7 +60,6 @@ void put_at_the_first_null(int descriptor){
         sscanf(header->size, "%o", &tmp);
         nb_bloc_file = (tmp + 512 -1) / 512;
         for(int i=0; i<nb_bloc_file; i++){
-            printf("   %d em bloc contenu\n", i+1);
             read(descriptor, header, 512);
         }
         j++;
