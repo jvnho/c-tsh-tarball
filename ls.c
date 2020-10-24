@@ -29,10 +29,10 @@ int ls(tsh_memory *memory){
     //user is in tarball
     if(in_a_tar(memory) == 1){
         int arg = 0;
-        if(memory->comand == NULL)
-            arg = 0;
-        else arg = 1;
-        ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, arg);
+        // if(memory->comand == NULL)
+        //     arg = 0;
+        // else arg = 1;
+        ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, 0);
     } else {
         //circumstances where we exec the normal ls
         int pid = fork();
