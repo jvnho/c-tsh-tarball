@@ -38,7 +38,6 @@ int occ_counter_path(int fd, char* full_path, off_t* file_offset){//returns the 
     int occurence = 0;
     struct posix_header hd;
     while(read(fd, &hd, 512) > 0){//reading the entire tarball
-        printf("%ld\n", lseek(fd,0,SEEK_CUR));
         strncpy(FILE_PATH, hd.name, strlen(full_path));
         if(strcmp(FILE_PATH, full_path) == 0){
             if(hd.typeflag == '5'){
