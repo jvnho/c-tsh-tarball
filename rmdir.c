@@ -3,21 +3,23 @@
 #include <string.h>
 #include <tar.h>
 #include <unistd.h>
-#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/types.h> /* A SUPPR INCLUDE DE "OPEN"*/
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/wait.h>
 
 #include "tar.h"
 #include "tsh_memory.h"
+#include "rmdir.h"
 
 int rmdir_in_tar(int, char*);
+char *concate_path_rep(char*,char*);
 
 char FILE_PATH[512];//will allow to save the path and ONLY the path of the file pointed by the posix_header
 
 // int rmdir_func(tsh_memory *mem){
 //     if(in_a_tar(mem)){ //if the user is in a tar
-//         rmdir_in_tar(atoi(mem->tar_descriptor), concate_path_rep(mem->FAKE_PATH, arg));
+//         rmdir_in_tar(atoi(mem->tar_descriptor), concate_path_rep(mem->FAKE_PATH, "rep1/"));
 //     } else { //otherwise, we exec the normal rmdir on the current path
 //         int pid = fork();
 //         if(pid == 0){ //child processus
@@ -36,10 +38,11 @@ int occ_counter_path(int fd, char* full_path, off_t* file_offset){//returns the 
     int occurence = 0;
     struct posix_header hd;
     while(read(fd, &hd, 512) > 0){//reading the entire tarball
+        printf("%ld\n", lseek(fd,0,SEEK_CUR));
         strncpy(FILE_PATH, hd.name, strlen(full_path));
         if(strcmp(FILE_PATH, full_path) == 0){
             if(hd.typeflag == '5'){
-                *file_offset = lseek(fd,0,SEEK_CUR);
+                *file_offset = lseek(fd,0,SEEK_CUR);//position of the blocks RIGHT NEXT to the one the user wants to delete
             }
             occurence++;
         }
@@ -62,7 +65,7 @@ int rmdir_in_tar(int fd, char* full_path){
         return 0;//the repository is not empty or not found then it does nothing and returns 0
     }
     // procedure to shift blocks
-    lseek(fd,file_offset, SEEK_SET); //starting from the file the user wants to delete
+    lseek(fd,file_offset, SEEK_SET); //starting from the end of the file the user wants to delete
     while(read(fd, &hd, BLOCKSIZE) > 0){ //to the end of the tar
         lseek(fd, (-BLOCKSIZE*2), SEEK_CUR); //going back to the last block
         write(fd, &hd, BLOCKSIZE); //writes what it has it the posix_header struct (and move the offset to next block)
