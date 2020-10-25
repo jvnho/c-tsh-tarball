@@ -17,7 +17,7 @@ char FILE_PATH[512];//will allow to save the path and ONLY the path of the file 
 
 // int rmdir_func(tsh_memory *mem){
 //     if(in_a_tar(mem)){ //if the user is in a tar
-//         rmdir_in_tar(atoi(mem->tar_descriptor), mem->FAKE_PATH);
+//         rmdir_in_tar(atoi(mem->tar_descriptor), concate_path_rep(mem->FAKE_PATH, arg));
 //     } else { //otherwise, we exec the normal rmdir on the current path
 //         int pid = fork();
 //         if(pid == 0){ //child processus
