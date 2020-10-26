@@ -3,9 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/wait.h>
-// #include <sys/stat.h> /* A SUPPR */
-// #include <fcntl.h>
-// #include <sys/types.h>
+#include <sys/types.h>
 
 #include "tar.h"
 #include "tsh_memory.h"
@@ -27,10 +25,6 @@ char FILE_PATH[255], CUT_PATH[255];//FILE_PATH: path of the file , CUT_PATH = fi
 int ls(tsh_memory *memory){
     //user is in tarball
     if(in_a_tar(memory) == 1){
-        //int arg = 0;
-        // if(memory->comand == NULL)
-        //     arg = 0;
-        // else arg = 1;
         ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, 0);
     } else {
         //circumstances where we exec the normal ls
@@ -132,12 +126,3 @@ char is_file_or_repository(char typeflag){
 char *getArg(char* cmd){
     return strstr(cmd,"-");
 }
-
-///////// TEST /////////
-//  int main(int argc, char * argv[]){
-//     //  int fd = open(argv[1], O_RDONLY);
-//     //  if(argv[2] != NULL)
-//     //     ls_in_tar(fd, argv[2], 1); //ex: ./ls archive.tar dossier1/
-//     // else
-//     //     ls_in_tar(fd,"", 1);
-// }
