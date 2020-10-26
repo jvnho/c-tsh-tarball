@@ -11,15 +11,15 @@
 #include "tar.h"
 #include "tsh_memory.h"
 #include "rmdir.h"
+#include "string_traitement.h"
 
 int rmdir_in_tar(int, char*);
-char *concate_path_rep(char*,char*);
 
 char FILE_PATH[512];//will allow to save the path and ONLY the path of the file pointed by the posix_header
 
 // int rmdir_func(tsh_memory *mem){
 //     if(in_a_tar(mem)){ //if the user is in a tar
-//         rmdir_in_tar(atoi(mem->tar_descriptor), concate_path_rep(mem->FAKE_PATH, "rep1/"));
+//         rmdir_in_tar(atoi(mem->tar_descriptor), concatString(mem->FAKE_PATH, "rep1/"));
 //     } else { //otherwise, we exec the normal rmdir on the current path
 //         int pid = fork();
 //         if(pid == 0){ //child processus
@@ -73,14 +73,8 @@ int rmdir_in_tar(int fd, char* full_path){
     return 1;
 }
 
-char * concate_path_rep(char *PATH, char *rep_name){//concating tar path with the empty repository name user wants to delete
-    char *ret = malloc( strlen(PATH) + strlen(rep_name) + 1);
-    sprintf(ret, "%s%s%s", PATH, rep_name, "\0");
-    return ret;
-}
-
 ///////// TEST /////////
 // int main(int argc, char **argv){
 //     int fd = open(argv[1], O_RDWR);
-//     rmdir_in_tar(fd, concate_path_rep(argv[2],argv[3]));
+//     rmdir_in_tar(fd, concatString(argv[2],argv[3]));
 // }
