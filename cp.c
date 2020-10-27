@@ -13,3 +13,7 @@ int cp_in_tar(char *source, char *target, char *path, int tar_fd){
 
     return 0;
 }
+int main(void){
+
+    return 0;
+}
