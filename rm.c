@@ -4,6 +4,7 @@
 #include <fcntl.h>
 
 #include "tar.h"
+#include "string_traitement.h"
 
 int get_file_offset(int fd, char* full_path, int *nb_content_bloc, off_t *file_offset){ //returns 1 if the file given exists else -1
     lseek(fd, 0, SEEK_SET);
@@ -25,8 +26,8 @@ int get_file_offset(int fd, char* full_path, int *nb_content_bloc, off_t *file_o
     return -1;//no such file
 }
 
+//create a 512 bytes block of zero byte, in order to compare with header
 int is_a_end_bloc(struct posix_header *header){
-    //create a string that has all the bloc zero byte, in order to compare with header
     char end_bloc[512];
     memset(end_bloc, 0, 512);
     //then compare
@@ -64,5 +65,5 @@ int rm_in_tar(int fd, char* full_path){
 
 // int main(void){
 //     int fd = open("f.tar", O_RDWR);
-//     rm_in_tar(fd,"plusvide/zozo");
+//     rm_in_tar(fd,"vide/");
 // }
