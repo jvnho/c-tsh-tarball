@@ -11,6 +11,7 @@
 #include "string_traitement.h"
 
 int rmdir_in_tar(int, char*);
+int occ_counter_path(int, char*, off_t*);
 
 char FILE_PATH[512];//will allow to save the path and ONLY the path of the file pointed by the posix_header
 
@@ -28,6 +29,25 @@ int rmdir_func(tsh_memory *mem){
                 return -1;
         }
     }
+}
+
+int rmdir_in_tar(int fd, char* full_path){
+    struct posix_header hd;
+    //offset will allow to start reading the tarball from a certain offset and not necessarily the beginning of the tarball
+    off_t file_offset = 0;
+    if(occ_counter_path(fd, full_path, &file_offset) != 1){
+        char s[] = "repository is not empty\n";
+        write(1, s, strlen(s));
+        return 0;//the repository is not empty or not found then it does nothing and returns 0
+    }
+    // procedure to shift blocks
+    lseek(fd,file_offset, SEEK_SET); //starting from the end of the file the user wants to delete
+    while(read(fd, &hd, BLOCKSIZE) > 0){ //to the end of the tar
+        lseek(fd, (-BLOCKSIZE*2), SEEK_CUR); //going back to the last block
+        write(fd, &hd, BLOCKSIZE); //writes what it has it the posix_header struct (and move the offset to next block)
+        lseek(fd, BLOCKSIZE, SEEK_CUR); //repositionning the offset to the one more block
+    }
+    return 1;
 }
 
 int occ_counter_path(int fd, char* full_path, off_t* file_offset){//returns the number of times the path appears in the tarball and returns to a pointer 'file_offset' the position of the rep
@@ -49,23 +69,4 @@ int occ_counter_path(int fd, char* full_path, off_t* file_offset){//returns the 
         for(int i = 0; i < nb_bloc_fichier; i++) read(fd, &hd, BLOCKSIZE);
     }
     return occurence;
-}
-
-int rmdir_in_tar(int fd, char* full_path){
-    struct posix_header hd;
-    //offset will allow to start reading the tarball from a certain offset and not necessarily the beginning of the tarball
-    off_t file_offset = 0;
-    if(occ_counter_path(fd, full_path, &file_offset) != 1){
-        char s[] = "repository is not empty\n";
-        write(1, s, strlen(s));
-        return 0;//the repository is not empty or not found then it does nothing and returns 0
-    }
-    // procedure to shift blocks
-    lseek(fd,file_offset, SEEK_SET); //starting from the end of the file the user wants to delete
-    while(read(fd, &hd, BLOCKSIZE) > 0){ //to the end of the tar
-        lseek(fd, (-BLOCKSIZE*2), SEEK_CUR); //going back to the last block
-        write(fd, &hd, BLOCKSIZE); //writes what it has it the posix_header struct (and move the offset to next block)
-        lseek(fd, BLOCKSIZE, SEEK_CUR); //repositionning the offset to the one more block
-    }
-    return 1;
 }
