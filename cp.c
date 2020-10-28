@@ -1,4 +1,6 @@
 #include <unistd.h>
+#include <string.h>
+#include "positionHeader.h"
 /*
     source = dossier1/          target = cheminDansTar/
     1) cherche -> FakePath/dossier1/
@@ -17,7 +19,11 @@ int cp_in_tar(char *source, char *target, char *path, int tar_fd){
 
     return 0;
 }
+content_bloc createContent(){
+    content_bloc teste;
+    strcpy(teste.name, "name");
+    return teste;
+}
 int main(void){
-
     return 0;
 }

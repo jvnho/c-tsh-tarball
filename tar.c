@@ -28,6 +28,7 @@ int check_checksum(struct posix_header *hd) {
   return (checksum == sum);
 }
 
+//check if the header corepond to an end of bloc
 int end_bloc(struct posix_header *header){
     //create a string that has all the bloc zero byte, in order to compare with header
     char end_bloc[512];
@@ -36,6 +37,7 @@ int end_bloc(struct posix_header *header){
     if(memcmp(header, end_bloc, 512) == 0)return 1;//identical
     return 0;
 }
+//like a huge lseek that move to the first zero bloc
 void put_at_the_first_null(int descriptor){
     lseek(descriptor, 0, SEEK_SET);
     struct posix_header *header = malloc(512);
