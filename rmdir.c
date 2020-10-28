@@ -13,8 +13,6 @@
 int rmdir_in_tar(int, char*);
 int occ_counter_path(int, char*, off_t*);
 
-char FILE_PATH[512];//will allow to save the path and ONLY the path of the file pointed by the posix_header
-
 int rmdir_func(tsh_memory *mem){
     if(in_a_tar(mem)){ //if the user is in a tar
         rmdir_in_tar(atoi(mem->tar_descriptor), concatString(mem->FAKE_PATH, "arg"));
@@ -55,8 +53,7 @@ int occ_counter_path(int fd, char* full_path, off_t* file_offset){//returns the 
     int occurence = 0;
     struct posix_header hd;
     while(read(fd, &hd, 512) > 0){//reading the entire tarball
-        strncpy(FILE_PATH, hd.name, strlen(full_path));
-        if(strcmp(FILE_PATH, full_path) == 0){
+        if(strncmp(hd.name, full_path, strlen(full_path)) == 0){
             if(hd.typeflag == '5'){
                 *file_offset = lseek(fd,0,SEEK_CUR);//position of the blocks RIGHT NEXT to the one the user wants to delete
             }
