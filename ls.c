@@ -20,7 +20,7 @@ char is_file_or_repository(char);
 char ARRAY[128][255]; //allow to keep the file or repository to display
 char FILE_INFO[128][255]; // allow to keep file info (i.e size, uname, gname,...) if -l is given as argument
 int NUM_FILE = 0; //keeps a track of the size of ARRAY
-char FILE_PATH[255], CUT_PATH[255];//FILE_PATH: path of the file , CUT_PATH = filename cut from the path
+char CUT_PATH[255];//FILE_PATH: path of the file , CUT_PATH = filename cut from the path
 
 int ls(tsh_memory *memory){
     //user is in tarball
@@ -45,9 +45,8 @@ void ls_in_tar(int fd, char* PATH, int arg_l){
     lseek(fd, 0, SEEK_SET);
     struct posix_header hd;
     while(read(fd, &hd, BLOCKSIZE) > 0){ //reading the entire tarball
-        strncpy(FILE_PATH, hd.name, strlen(PATH));//splitting the file path to make it matched with the given PATH
         //checking if the current file/repository belongs to the given PATH and if it's not itself (to not print in)
-        if(strcmp(FILE_PATH,PATH) == 0 && strcmp(FILE_PATH,hd.name) != 0){
+        if(strncmp(hd.name, PATH, strlen(PATH)) == 0 && strcmp(PATH,hd.name) != 0){
 
             int i = strlen(PATH), taille_nom = 0;
             while(hd.name[i] != '\0' && hd.name[i] != '/' ){
@@ -67,7 +66,7 @@ void ls_in_tar(int fd, char* PATH, int arg_l){
         int filesize = 0;
         sscanf(hd.size, "%o", &filesize);
         int nb_bloc_fichier = (filesize + 512 -1) / 512;
-        for(int i = 0; i < nb_bloc_fichier; i++) read(fd, &hd, BLOCKSIZE);
+        lseek(fd,512*nb_bloc_fichier, SEEK_CUR);
     }
     print_ls_to_STROUT(arg_l);
 }
