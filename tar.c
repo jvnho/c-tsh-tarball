@@ -27,3 +27,31 @@ int check_checksum(struct posix_header *hd) {
   for (int i=0;i<8;i++) { sum += ' ' - hd->chksum[i]; }
   return (checksum == sum);
 }
+
+int end_bloc(struct posix_header *header){
+    //create a string that has all the bloc zero byte, in order to compare with header
+    char end_bloc[512];
+    memset(end_bloc, 0, 512);
+    //then compare
+    if(memcmp(header, end_bloc, 512) == 0)return 1;//identical
+    return 0;
+}
+void put_at_the_first_null(int descriptor){
+    lseek(descriptor, 0, SEEK_SET);
+    struct posix_header *header = malloc(512);
+    int nb_bloc_file = 0;
+    int j = 1;
+    while(read(descriptor, header, 512)>0){
+        if(end_bloc(header)){//the moment we check the first bloc, we return to the back because we have read it
+            lseek(descriptor, -512, SEEK_CUR);
+            return;
+        }
+        int tmp = 0;
+        sscanf(header->size, "%o", &tmp);
+        nb_bloc_file = (tmp + 512 -1) / 512;
+        for(int i=0; i<nb_bloc_file; i++){
+            read(descriptor, header, 512);
+        }
+        j++;
+    }
+}

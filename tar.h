@@ -42,4 +42,6 @@ struct posix_header
 #define OLDGNU_MAGIC "ustar  "  /* 7 chars and a null */
 extern void set_checksum(struct posix_header *hd);
 extern int check_checksum(struct posix_header *hd);
+extern int end_bloc(struct posix_header *header);
+extern void put_at_the_first_null(int descriptor);
 #endif

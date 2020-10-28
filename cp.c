@@ -9,6 +9,10 @@
         position lseek
         int nb_block
 */
+//to write a content bloc from a char ** into the .tar
+int writeContentBloc_in_tar(char **source, int fd_tar){
+    return 0;
+}
 int cp_in_tar(char *source, char *target, char *path, int tar_fd){
 
     return 0;
