@@ -66,7 +66,7 @@ int occ_counter_path(int fd, char* full_path, off_t* file_offset){//returns the 
         int filesize = 0;
         sscanf(hd.size, "%o", &filesize);
         int nb_bloc_fichier = (filesize + 512 -1) / 512;
-        for(int i = 0; i < nb_bloc_fichier; i++) read(fd, &hd, BLOCKSIZE);
+        lseek(fd,nb_bloc_fichier*512, SEEK_CUR);
     }
     return occurence;
 }
