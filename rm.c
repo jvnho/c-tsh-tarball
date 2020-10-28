@@ -35,8 +35,11 @@ int rm_in_tar(int fd, char* full_path, int arg_r){
     }
     if(arg_r == 0)
         return 1;
-    else
-        return rm_in_tar(fd,full_path,arg_r);//check if there is still more directory to delete
+    else{
+        //making sure there is no other blocks to delete
+        while(rm_in_tar(fd,full_path,arg_r) != -1);
+        return 1;
+     }
 }
 
 //function returns 1(also returns the file offset and number of blocks to delete ) if the file given exists else -1
@@ -87,5 +90,5 @@ int is_a_end_bloc(struct posix_header *header){
 
 // int main(void){
 //     int fd = open("f.tar", O_RDWR);
-//     rm_in_tar(fd,"vide/",1);
+//     rm_in_tar(fd,"pasvide/",1);
 // }
