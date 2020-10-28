@@ -7,12 +7,19 @@
 #include "string_traitement.h"
 
 int rm_a_file(int, char*,int *,off_t *);
+int rm_a_directory(int, char*,int *,off_t *);
 int is_a_end_bloc(struct posix_header*);
 
 int rm_in_tar(int fd, char* full_path, int arg_r){
     int nb_content_bloc = 0;
     off_t file_offset = 0;
-    if(rm_a_file(fd, full_path, &nb_content_bloc, &file_offset) < 0 ) return -1;
+    if(arg_r == 0){
+        if(rm_a_file(fd, full_path, &nb_content_bloc, &file_offset) < 0 )
+            return -1;
+    } else if(arg_r == 1){
+        if(rm_a_directory(fd, full_path, &nb_content_bloc, &file_offset) < 0 )
+            return -1;
+    }
 
     struct posix_header hd;
     lseek(fd, file_offset + (nb_content_bloc * 512), SEEK_SET);//positionning next to the file user wants to delete
@@ -59,27 +66,29 @@ int rm_a_file(int fd, char* full_path, int *nb_content_bloc, off_t *file_offset)
 
 int rm_a_directory(int fd, char * full_path, int *nb_block_to_delete, off_t * debut){
     lseek(fd, 0, SEEK_SET);
-
-    char hd_path[512];
-    hd_path[0] = '\0';
-    int filesize = 0;
     struct posix_header hd;
 
     while(read(fd, &hd, BLOCKSIZE) > 0){
-        strncpy(hd_path,full_path,strlen(full_path));
-        sscanf(hd.size, "%o", &filesize);
-        int nb_bloc_fichier = (filesize + BLOCKSIZE -1) / BLOCKSIZE;
-        if(strcmp(hd_path, hd.name) == 0){
+        int filesize = 0;
+        int nb_bloc_fichier = 0;
+        if(strncmp(hd.name, full_path, strlen(full_path)) == 0){
             *debut = lseek(fd, 0, SEEK_CUR);
-            do{
+            while(strncmp(hd.name, full_path,strlen(full_path)) == 0){
+                sscanf(hd.size, "%o", &filesize);
+                nb_bloc_fichier = (filesize + BLOCKSIZE -1) / BLOCKSIZE;
+                printf("%s\n",hd.name);
+                printf("%d\n",nb_bloc_fichier);
                 *nb_block_to_delete += 1 + nb_bloc_fichier;
+
                 for(int i = 0; i < nb_bloc_fichier; i++) read(fd, &hd, BLOCKSIZE);//jump to the next header
                 read(fd,&hd, BLOCKSIZE);
-            } while(strcmp(hd_path, hd.name) == 0);
-            *nb_block_to_delete -= 1;// not counting the very first header block
+            }
+            //*nb_block_to_delete -= 1; //descriptor is positionned at the end of the first file found
             return 1;
         }
         //jumping to the next file header
+        sscanf(hd.size, "%o", &filesize);
+        nb_bloc_fichier = (filesize + BLOCKSIZE -1) / BLOCKSIZE;
         for(int i = 0; i < nb_bloc_fichier; i++) read(fd, &hd, BLOCKSIZE);
     }
     return -1;//no such file
@@ -93,7 +102,10 @@ int is_a_end_bloc(struct posix_header *header){
     return 0;
 }
 
-// int main(void){
-//     int fd = open("f.tar", O_RDWR);
-//     rm_in_tar(fd,"vide/");
-// }
+int main(void){
+    int fd = open("f.tar", O_RDWR);
+    rm_in_tar(fd,"plusvide/",1);
+    // int nb_content_bloc = 0;
+    // off_t file_offset = 0;
+    // rm_a_directory(fd,"plusvide/", &nb_content_bloc, &file_offset);
+}

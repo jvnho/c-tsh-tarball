@@ -44,7 +44,7 @@ int rmdir_in_tar(int fd, char* full_path){
     lseek(fd,file_offset, SEEK_SET); //starting from the end of the file the user wants to delete
     while(read(fd, &hd, BLOCKSIZE) > 0){ //to the end of the tar
         lseek(fd, (-BLOCKSIZE*2), SEEK_CUR); //going back to the last block
-        write(fd, &hd, BLOCKSIZE); //writes what it has it the posix_header struct (and move the offset to next block)
+        write(fd, &hd, BLOCKSIZE); //overwriting the block
         lseek(fd, BLOCKSIZE, SEEK_CUR); //repositionning the offset to the one more block
     }
     return 1;
