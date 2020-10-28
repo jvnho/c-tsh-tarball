@@ -11,11 +11,8 @@
 
 void ls_in_tar(int,char*,int);
 int is_in_array(char*);
-char* getArg(char*);
 void print_ls_to_STROUT(int);
 void fill_info_array(struct posix_header);
-char* octal_to_string(char*);
-char is_file_or_repository(char);
 
 char ARRAY[128][255]; //allow to keep the file or repository to display
 char FILE_INFO[128][255]; // allow to keep file info (i.e size, uname, gname,...) if -l is given as argument
@@ -78,27 +75,6 @@ int is_in_array(char *string){ //checking if string is in ARRAY
     return 0;
 }
 
-void fill_info_array(struct posix_header hd){
-    int filesize = 0;
-    sscanf(hd.size,"%o",&filesize);
-    char c[(strlen(hd.uname)+strlen(hd.gname)+strlen(hd.size)+12) * sizeof(char)];
-    sprintf(c, "%c%s %s %s %d", is_file_or_repository(hd.typeflag), octal_to_string(hd.mode), hd.uname, hd.gname, filesize);
-    strcpy(FILE_INFO[NUM_FILE], c);
-}
-
-void print_ls_to_STROUT(int arg_l){
-    if(arg_l == 0){
-        for(int i = 0; i < NUM_FILE; i++)
-            write(1, strcat(ARRAY[i]," "), strlen(ARRAY[i])+2);
-        write(1,"\n",1);
-    } else { //print with -l
-        for(int i = 0; i < NUM_FILE; i++){
-            write(1, strcat(FILE_INFO[i]," "), strlen(FILE_INFO[i])+1);
-            write(1, strcat(ARRAY[i]," \n"), strlen(ARRAY[i])+2);
-        }
-    }
-}
-
 char* octal_to_string(char *mode){
     char *ret = malloc(sizeof(char)*9);
     ret[0] = '\0';
@@ -120,6 +96,27 @@ char* octal_to_string(char *mode){
 char is_file_or_repository(char typeflag){
     if(typeflag == '0') return '-';
         return 'd';
+}
+
+void fill_info_array(struct posix_header hd){
+    int filesize = 0;
+    sscanf(hd.size,"%o",&filesize);
+    char c[(strlen(hd.uname)+strlen(hd.gname)+strlen(hd.size)+12) * sizeof(char)];
+    sprintf(c, "%c%s %s %s %d", is_file_or_repository(hd.typeflag), octal_to_string(hd.mode), hd.uname, hd.gname, filesize);
+    strcpy(FILE_INFO[NUM_FILE], c);
+}
+
+void print_ls_to_STROUT(int arg_l){
+    if(arg_l == 0){
+        for(int i = 0; i < NUM_FILE; i++)
+            write(1, strcat(ARRAY[i]," "), strlen(ARRAY[i])+2);
+        write(1,"\n",1);
+    } else { //print with -l
+        for(int i = 0; i < NUM_FILE; i++){
+            write(1, strcat(FILE_INFO[i]," "), strlen(FILE_INFO[i])+1);
+            write(1, strcat(ARRAY[i]," \n"), strlen(ARRAY[i])+2);
+        }
+    }
 }
 
 char *getArg(char* cmd){
