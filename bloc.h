@@ -1,6 +1,7 @@
 #ifndef BLOC_H
 #define BLOC_H
 #include <stdio.h>
+#include <stdlib.h>
 struct content_bloc{
     char name[512];
     char content[512][512];
