@@ -1,13 +1,15 @@
 #include <unistd.h>
-#include <sys/types.h> /* A SUPPR INCLUDE DE "OPEN"*/
-#include <sys/stat.h>
-#include <fcntl.h>
 
 #include "tar.h"
 #include "string_traitement.h"
+#include "tsh_memory.h"
 
 int rm_aux(int, char*,int *,off_t *,int);
 int is_a_end_bloc(struct posix_header*);
+
+int rm(tsh_memory *mem){
+    return 0;
+}
 
 int rm_in_tar(int fd, char* full_path, int arg_r){
     int nb_content_bloc = 0;
@@ -87,8 +89,3 @@ int is_a_end_bloc(struct posix_header *header){
     if(memcmp(header, end_bloc, 512) == 0) return 1; //identical
     return 0;
 }
-
-// int main(void){
-//     int fd = open("f.tar", O_RDWR);
-//     rm_in_tar(fd,"pasvide/",1);
-// }
