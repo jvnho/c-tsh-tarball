@@ -6,6 +6,7 @@
 typedef struct content_bloc{
     struct posix_header hd;//header
     char content[512][512];
+    int nb_bloc;
 }content_bloc;
     //creer un tableau de content_bloc
 extern int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, char *fake_path);

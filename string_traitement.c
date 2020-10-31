@@ -100,7 +100,7 @@ char *int_to_string(int chiffre){
     result[size] = '\0';
     return result;
 }
-//voir le cas ou dir se termine par un slach
+//add '/' at the end of dir if it doesn't have a slach
 char * concatString(char * path, char *dir){
     
     int length = strlen(path)+strlen(dir)+2;
@@ -114,6 +114,15 @@ char * concatString(char * path, char *dir){
         result[length-2] = '/';
         result[length-1] = '\0';
     }
+    return result;
+}
+char * simpleConcat(char *path, char *dir){
+    int length = strlen(path) + strlen(dir) + 1;
+    char *result = malloc(length);
+    strcpy(result, path);
+    result[strlen(path)] = '\0';
+    strcat(result, dir);
+    result[length - 1] = '\0';
     return result;
 }
 int get_index_first_slach(char *initial_string){

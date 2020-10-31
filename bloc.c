@@ -8,24 +8,32 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
     char *path_to_source = concatString(fake_path, source);
     lseek(descriptor, 0, SEEK_SET);
     struct posix_header header;
+    int tmp = 0;
     int nb_bloc_file = 0;
-    int index = 0;
+    int index_tab = 0;
+    int index_content = 0;
     char new_name[512];//name to write on the new header
     while(read(descriptor, &header, 512)>0){//parcour de tete en tete jusqu' a la fin
         strncpy(FILE_PATH, header.name, strlen(path_to_source));
         if(strcmp(FILE_PATH, path_to_source) == 0){//found a bloc to cp
-            tab[0].hd = copyHeader(header, concatString(target, strcpy(new_name, header.name + strlen(fake_path))));
-            /*
-                copie a l'indice index le header et les bloc
-            */
+            //fill the the header
+            tab[index_tab].hd = copyHeader(header, simpleConcat(target, strcpy(new_name, header.name + strlen(fake_path))));
+            //fill the bloc
+            sscanf(header.size, "%o", &tmp);
+            nb_bloc_file = (tmp + 512 -1) / 512;
+            for(int i=0; i<nb_bloc_file; i++){
+                read(descriptor, tab[index_tab].content[index_content], 512);
+                index_content++;
+            }
+            tab[index_tab].nb_bloc = index_content;
+            index_tab++; 
+            index_content = 0;  
         }else{//not a interesting bloc so we just skip it using lseek
-            int tmp = 0;
             sscanf(header.size, "%o", &tmp);
             nb_bloc_file = (tmp + 512 -1) / 512;
             lseek(descriptor, nb_bloc_file * 512, SEEK_CUR);
-        }
-        
+        } 
     }
-    return 0;
+    return index_tab;
 }
 
