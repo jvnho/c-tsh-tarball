@@ -1,6 +1,5 @@
 #include <unistd.h>
 #include "bloc.h"
-#include "tar.h"
 char FILE_PATH[512];
 //get all header_name and content bloc if the header name is (the source/ or source/X or source)
 int fill_fromTar(content_bloc *tab, char *source, int descriptor){
