@@ -1,7 +1,15 @@
 #include <unistd.h>
+#include <sys/errno.h>
 #include "bloc.h"
 #include "string_traitement.h"
 char FILE_PATH[512];
+int getIndexLastSlach(char *path){
+    int n = strlen(path) - 1;
+    for(int i = n; 0<=i; i--){
+        if(path[i] == '/')return i;
+    }
+    return -1;
+}
 //get all header_name and content bloc if the header name is (the source/ or source/X or source)
 int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, char *fake_path){
     //target should have a '/' at the end
@@ -14,15 +22,19 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
     int index_tab = 0;
     int index_content = 0;
     char new_name[512];//name to write on the new header
-    
-    while(read(descriptor, &header, 512)>0){//parcour de tete en tete jusqu' a la fin
+    int result_read = 0;
+    while((result_read = read(descriptor, &header, 512))>0){//parcour de tete en tete jusqu' a la fin
     
         strncpy(FILE_PATH, header.name, strlen(path_to_source));
         
-        printf("head = %s\n", header.name);
         if(strcmp(FILE_PATH, path_to_source) == 0){//found a bloc to cp
             //fill the the header
-            tab[index_tab].hd = copyHeader(header, simpleConcat(target, strcpy(new_name, header.name + strlen(fake_path))));
+            if(source[strlen(source)-1] == '/'){//directory-> so we copy that directory (target/directory/something)
+                tab[index_tab].hd = copyHeader(header, simpleConcat(target, strcpy(new_name, header.name + strlen(fake_path))));
+            }
+            else{//file we take just the name of file at the end
+                tab[index_tab].hd = copyHeader(header, simpleConcat(target, strcpy(new_name, header.name + getIndexLastSlach(header.name) + 1)));
+            }
             //fill the bloc
             sscanf(header.size, "%o", &tmp);
             nb_bloc_file = (tmp + 512 -1) / 512;
@@ -37,8 +49,11 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
             sscanf(header.size, "%o", &tmp);
             nb_bloc_file = (tmp + 512 -1) / 512;
             lseek(descriptor, nb_bloc_file * 512, SEEK_CUR);
-        } 
-        
+        }  
+    }
+    if(result_read == -1){
+        perror("");
+        return -1;
     }
     return index_tab;
 }
