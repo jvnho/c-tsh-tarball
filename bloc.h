@@ -2,11 +2,11 @@
 #define BLOC_H
 #include <stdio.h>
 #include <stdlib.h>
+#include "tar.h"
 typedef struct content_bloc{
     char name[512];
     char content[512][512];
 }content_bloc;
-extern void *my_malloc(size_t size);
     //creer un tableau de content_bloc
 //int fill_fromTar(content_bloc *tab, char *dossName, int ouverture)
 //int fill_fromFile(content_bloc *tab, char *dirName)//file from outside
