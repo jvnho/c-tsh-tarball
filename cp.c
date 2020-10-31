@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "bloc.h"
-//in tar
+#include "tar.h"
+content_bloc content[512];
 int cp_tar_tar(char *source, char *target, int fd_tar){
 
     return 0;
