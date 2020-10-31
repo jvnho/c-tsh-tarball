@@ -4,11 +4,11 @@
 #include <stdlib.h>
 #include "tar.h"
 typedef struct content_bloc{
-    struct posix_header hd[512];//header
+    struct posix_header hd;//header
     char content[512][512];
 }content_bloc;
     //creer un tableau de content_bloc
-extern int fill_fromTar(content_bloc *tab, char *source, int descriptor);
+extern int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, char *fake_path);
 //int fill_fromFile(content_bloc *tab, char *dirName)//file from outside
 //int fill_fromDir(content_bloc *tab, char *cheminRelatif_depuis dossier, char *dir)//recursif avec la recherche de fichier par les liste inoeud
     //convertir content_bloc en un header
