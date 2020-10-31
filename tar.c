@@ -71,7 +71,7 @@ struct posix_header copyHeader(struct posix_header initial, char *name){
     int size;
     sscanf(initial.size, "%o", &size);
     sprintf(result.size, "%011o", size);
-    sprintf(result.mtime, "%011lo", time(NULL));//comment recuperer le time
+    sprintf(result.mtime, "%011lo", time(NULL));
     
 
     result.typeflag = initial.typeflag;

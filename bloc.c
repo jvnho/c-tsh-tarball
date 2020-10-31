@@ -22,10 +22,9 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
         
         if(strcmp(FILE_PATH, path_to_source) == 0){//found a bloc to cp
             //fill the the header
-            printf("trouver = %s\n", header.name);
             tab[index_tab].hd = copyHeader(header, simpleConcat(target, strcpy(new_name, header.name + strlen(fake_path))));
             //fill the bloc
-            /*
+            
             sscanf(header.size, "%o", &tmp);
             nb_bloc_file = (tmp + 512 -1) / 512;
             for(int i=0; i<nb_bloc_file; i++){
@@ -34,10 +33,7 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
             }
             tab[index_tab].nb_bloc = index_content;
             index_tab++; 
-            index_content = 0;  */
-            sscanf(header.size, "%o", &tmp);
-            nb_bloc_file = (tmp + 512 -1) / 512;
-            lseek(descriptor, nb_bloc_file * 512, SEEK_CUR);
+            index_content = 0;  
         }else{//not a interesting bloc so we just skip it using lseek
             sscanf(header.size, "%o", &tmp);
             nb_bloc_file = (tmp + 512 -1) / 512;
@@ -45,7 +41,6 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
         } 
         
     }
-    //return index_tab;
-    return 0;
+    return index_tab;
 }
 
