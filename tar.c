@@ -92,3 +92,15 @@ struct posix_header copyHeader(struct posix_header initial, char *name){
     
     return result;
 }
+//write a zero bloc at the end
+int writeZero(int tar_descriptor){
+    lseek(tar_descriptor, 0, SEEK_END);
+    char end_bloc[512];
+    memset(end_bloc, 0, 512);
+    if(write(tar_descriptor, end_bloc, 512)==-1){
+        perror("");
+        return -1;
+    }
+    return 0;
+}
+

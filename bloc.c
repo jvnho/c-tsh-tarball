@@ -3,10 +3,10 @@
 #include "string_traitement.h"
 char FILE_PATH[512];
 //get all header_name and content bloc if the header name is (the source/ or source/X or source)
-int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, char *fake_path){//target should have a '/' at the end
-    
-    char *path_to_source = concatString(fake_path, source);
-    
+int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, char *fake_path){
+    //target should have a '/' at the end
+    //source should have a '/' at the end if it's a directory
+    char *path_to_source = simpleConcat(fake_path, source);//verification slach si dossier j'appel concat string, si fichier j'appel simple concat
     lseek(descriptor, 0, SEEK_SET);
     struct posix_header header;
     int tmp = 0;
@@ -19,12 +19,11 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
     
         strncpy(FILE_PATH, header.name, strlen(path_to_source));
         
-        
+        printf("head = %s\n", header.name);
         if(strcmp(FILE_PATH, path_to_source) == 0){//found a bloc to cp
             //fill the the header
             tab[index_tab].hd = copyHeader(header, simpleConcat(target, strcpy(new_name, header.name + strlen(fake_path))));
             //fill the bloc
-            
             sscanf(header.size, "%o", &tmp);
             nb_bloc_file = (tmp + 512 -1) / 512;
             for(int i=0; i<nb_bloc_file; i++){
