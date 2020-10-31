@@ -8,7 +8,10 @@ int cp_tar_tar(char *source, char *target, int fd_tar){
     return 0;
 }
 int main(void){
-    //teste de la fonction my_malloc
-    end_bloc(NULL);
+    char *teste = malloc(2);
+    teste[0]= 'O';
+    teste[1]= '1';
+    char t[2];
+    strcpy(t, teste);
     return 0;
 }

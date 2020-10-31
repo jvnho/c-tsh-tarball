@@ -44,4 +44,5 @@ extern void set_checksum(struct posix_header *hd);
 extern int check_checksum(struct posix_header *hd);
 extern int end_bloc(struct posix_header *header);
 extern void put_at_the_first_null(int descriptor);
+extern struct posix_header copyHeader(struct posix_header initial, char *name);
 #endif

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 typedef struct content_bloc{
-    char name[512];
+    char name[512];//header
     char content[512][512];
 }content_bloc;
     //creer un tableau de content_bloc

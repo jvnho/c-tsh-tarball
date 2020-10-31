@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 #include "tar.h"
 /* ... */
 
@@ -58,4 +59,35 @@ void put_at_the_first_null(int descriptor){
         }
         j++;
     }
+}
+//create the exact same header with a different name
+struct posix_header copyHeader(struct posix_header initial, char *name){
+
+    struct posix_header result;
+    strcpy(result.name, name);//add the name
+    strcpy(result.mode, initial.mode);
+    strcpy(result.uid, initial.uid);
+    strcpy(result.gid, initial.gid);
+    int size;
+    sscanf(initial.size, "%o", &size);
+    sprintf(result.size, "%011o", size);
+    strcpy(result.mtime, initial.mtime);
+
+
+    result.typeflag = initial.typeflag;
+    strcpy(result.linkname, initial.linkname);
+
+    strcpy(result.magic, initial.magic);
+    result.version[0] = initial.version[0];
+    result.version[1] = initial.version[1];
+
+    strcpy(result.uname, initial.uname);
+    strcpy(result.gname, initial.gname);
+
+    strcpy(result.devmajor, initial.devmajor);
+    strcpy(result.devminor, initial.devminor);
+    strcpy(result.prefix, initial.prefix);
+    strcpy(result.junk, initial.junk);
+    set_checksum(&result);
+    return result;
 }
