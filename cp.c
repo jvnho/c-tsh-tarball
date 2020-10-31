@@ -6,6 +6,7 @@
 #include "bloc.h"
 #include "tar.h"
 content_bloc content[512];//fill it befor the specifc call of cp (cp_tar_tar or cp_tar_dir)
+int i_content = 0;
 //cp somthing from tar, in a tar -> befor go to the tar collect all the bloc and the fd of the tar, the cd to target, if we are in tar getThe fd and, execut this function
 int cp_tar_tar(char *source, char *target, int fd_source, int fd_target, char *fake_path){
     int nb_header = fill_fromTar(content, source, target, fd_source, fake_path);

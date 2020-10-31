@@ -10,7 +10,7 @@ typedef struct content_bloc{
 }content_bloc;
     //creer un tableau de content_bloc
 extern int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, char *fake_path);
-//int fill_fromFile(content_bloc *tab, char *dirName)//file from outside
+extern int fill_fromFile(content_bloc *tab, char *source, int starting_index);//file from outside
 //int fill_fromDir(content_bloc *tab, char *cheminRelatif_depuis dossier, char *dir)//recursif avec la recherche de fichier par les liste inoeud
     //convertir content_bloc en un header
 //header getHeader_from_content(content_bloc content)

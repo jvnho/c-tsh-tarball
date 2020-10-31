@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <sys/errno.h>
+#include <fcntl.h>
 #include "bloc.h"
 #include "string_traitement.h"
 char FILE_PATH[512];
@@ -10,7 +11,7 @@ int getIndexLastSlach(char *path){
     }
     return -1;
 }
-//get all header_name and content bloc if the header name is (the source/ or source/X or source)
+//get all header_name and content bloc if the header name is fake/source (file)  or fake/source/X  (dierctory)
 int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, char *fake_path){
     //target should have a '/' at the end
     //source should have a '/' at the end if it's a directory
@@ -56,5 +57,14 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
         return -1;
     }
     return index_tab;
+}
+int fill_fromFile(content_bloc *tab, char *source, int starting_index){
+    int fd_file;
+    if((fd_file = open(source, O_RDONLY)) == -1){
+        perror("");
+        return -1;
+    }
+    
+    return 0;
 }
 
