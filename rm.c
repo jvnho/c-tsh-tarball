@@ -11,18 +11,20 @@ int rm(tsh_memory *mem){
     return 0;
 }
 
+
+//full_path is the concatenation of PATH and the "target" user wants to delete (rm)
 int rm_in_tar(int fd, char* full_path, int arg_r){
     int nb_content_bloc = 0;
     off_t file_offset = 0;
     if(rm_aux(fd, full_path, &nb_content_bloc, &file_offset, arg_r) < 0 ) return -1;
 
     struct posix_header hd;
-    lseek(fd, file_offset + (nb_content_bloc * 512), SEEK_SET);//positionning next to the file user wants to delete
+    lseek(fd, file_offset + (nb_content_bloc * 512), SEEK_SET);//positionning fd after all the content blocks of "target"
     while(read(fd, &hd, 512) > 0 ){
-        lseek(fd, -nb_content_bloc*512 - 512*2, SEEK_CUR); //repositionning back to the block we want to replace
-        if(is_a_end_bloc(&hd) != 1){ //if it's not a zero byte block
-            write(fd, &hd, 512); //overwriting the block
-            lseek(fd, nb_content_bloc*512 + 512, SEEK_CUR); //repositionning the offset to the replacing block
+        lseek(fd, -nb_content_bloc*512 - 512*2, SEEK_CUR); //repositionning fd back to the block we want to replace
+        if(is_a_end_bloc(&hd) != 1){ //if what we read is not a zero byte block
+            write(fd, &hd, 512); //overwriting the block by what we read previously
+            lseek(fd, nb_content_bloc*512 + 512, SEEK_CUR); //repositionning the offset to the next replacing block
         } else
             //reaching a zero byte block meaning the un-replaced blocks
             //will be replaced by zero byte blocks
@@ -44,7 +46,8 @@ int rm_in_tar(int fd, char* full_path, int arg_r){
      }
 }
 
-//function returns 1(also returns the file offset and number of blocks to delete ) if the file given exists else -1
+//function that counts the number of content block to delete
+//returns -1 if such file/directory is not found
 int rm_aux(int fd, char* full_path, int *nb_block_to_delete, off_t *debut, int arg_r){
     lseek(fd, 0, SEEK_SET);
 
