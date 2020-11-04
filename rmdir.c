@@ -3,49 +3,67 @@
 #include <string.h>
 #include <tar.h>
 #include <unistd.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include <sys/wait.h>
 
 #include "tar.h"
+#include "tsh_memory.h"
+#include "rmdir.h"
+#include "string_traitement.h"
 
-char FILE_PATH[512];//will allow to save the path and ONLY the path of the file pointed by the posix_header
+int rmdir_in_tar(int, char*);
+int occ_counter_path(int, char*, off_t*);
 
-int occ_counter_path(int fd, char* PATH, int* file_offset){//returns the number of times the path appears in the tarball and returns to a pointer 'file_offset' the position of the rep
+int rmdir_func(tsh_memory *mem){
+    if(in_a_tar(mem)){ //if the user is in a tar
+        rmdir_in_tar(atoi(mem->tar_descriptor), concatString(mem->FAKE_PATH, "arg"));
+    } else { //otherwise, we exec the normal rmdir on the current path
+        int pid = fork();
+        if(pid == 0){ //child processus
+            execlp("rmdir", "rmdir", "arg", NULL);
+        } else { //parent processus
+            int status;
+            waitpid(pid, &status, WUNTRACED);
+            if(WEXITSTATUS(status) == -1 )
+                return -1;
+        }
+    }
+}
+
+int rmdir_in_tar(int fd, char* full_path){
+    struct posix_header hd;
+    //offset will allow to start reading the tarball from a certain offset and not necessarily the beginning of the tarball
+    off_t file_offset = 0;
+    if(occ_counter_path(fd, full_path, &file_offset) != 1){
+        char s[] = "repository is not empty\n";
+        write(1, s, strlen(s));
+        return 0;//the repository is not empty or not found then it does nothing and returns 0
+    }
+    // procedure to shift blocks
+    lseek(fd,file_offset, SEEK_SET); //starting from the end of the file the user wants to delete
+    while(read(fd, &hd, BLOCKSIZE) > 0){ //to the end of the tar
+        lseek(fd, (-BLOCKSIZE*2), SEEK_CUR); //going back to the last block
+        write(fd, &hd, BLOCKSIZE); //overwriting the block
+        lseek(fd, BLOCKSIZE, SEEK_CUR); //repositionning the offset to the one more block
+    }
+    return 1;
+}
+
+int occ_counter_path(int fd, char* full_path, off_t* file_offset){//returns the number of times the path appears in the tarball and returns to a pointer 'file_offset' the position of the rep
     lseek(fd, 0, SEEK_SET);
     int occurence = 0;
-    int read_length = 0;
     struct posix_header hd;
-    while(read_length = read(fd, &hd, 512) > 0){//reading the entire tarball
-        strncpy(FILE_PATH, hd.name, strlen(PATH));
-        if(strcmp(FILE_PATH, PATH) == 0){
-            *file_offset = read_length;
+    while(read(fd, &hd, 512) > 0){//reading the entire tarball
+        if(strncmp(hd.name, full_path, strlen(full_path)) == 0){
+            if(hd.typeflag == '5'){
+                *file_offset = lseek(fd,0,SEEK_CUR);//position of the blocks RIGHT NEXT to the one the user wants to delete
+            }
             occurence++;
         }
         //allow to jump to the next header block
         int filesize = 0;
         sscanf(hd.size, "%o", &filesize);
         int nb_bloc_fichier = (filesize + 512 -1) / 512;
-        for(int i = 0; i < nb_bloc_fichier; i++) read(fd, &hd, BLOCKSIZE);
+        lseek(fd,nb_bloc_fichier*512, SEEK_CUR);
     }
     return occurence;
-}
-
-int rmdir_func(int fd, char* PATH, char *rep){
-    //if(rep[strlen(rep)-2] != '/') return 0; //rep given is not written as a repository
-    int file_offset = 0;//will allow to start reading the tarball from the file and not the beginning of the tarball
-    // if(occ_counter_path(fd,PATH,&file_offset) != 1) return 0; //if the repository is not empty or not found then returns 0
-    // char zero[512];
-    // memset(zero,0,512);
-    // write(fd,zero,512);
-    printf("%d\n", occ_counter_path(fd,PATH,&file_offset));
-    /* PROCEDURE TO DELETE THE HEADER AND FILE BLOCKS */
-
-    return 1;
-}
-
-int main(int argc, char **argv){
-    int fd = open(argv[1], O_RDWR);
-    rmdir_func(fd,"",argv[2]);
 }
