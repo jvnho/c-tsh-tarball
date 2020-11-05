@@ -3,7 +3,7 @@ CFLAGS= -Wall -g
 LDLIBS= -lm
 
 
-tsh : tsh.o tar.o cd.o tsh_memory.o string_traitement.o pwd.o mkdir.o ls.o
+tsh : tsh.o tar.o cd.o tsh_memory.o string_traitement.o pwd.o mkdir.o ls.o simpleCommande.o
 
 tsh.o : tsh.c cd.h tsh_memory.h pwd.h mkdir.h tar.h
 tar.o : tar.c tar.h
@@ -13,7 +13,7 @@ string_traitement.o : string_traitement.c string_traitement.h
 pwd.o : pwd.c pwd.h
 mkdir.o : mkdir.c tar.h tsh_memory.h string_traitement.h
 ls.o : ls.c tar.h tsh_memory.h
-
+simpleCommande.o : simpleCommande.c tsh_memory.h cd.h pwd.h mkdir.h ls.h
 
 cleanall:
 	rm -rf *.o main *~

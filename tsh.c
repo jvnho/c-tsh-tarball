@@ -12,6 +12,7 @@
 #include "pwd.h"
 #include "mkdir.h"
 #include "ls.h"
+#include "simpleCommande.h"
 char * PATH;
 tsh_memory * memory;
 int main(void){
