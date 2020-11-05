@@ -6,6 +6,7 @@
 #include "mkdir.h"
 #include "ls.h"
 #include "tsh_memory.h"
+#include "string_traitement.h"
 char *listCommande[] = {"cd", "pwd", "mkdir"};
 #define NB_FUN 3
 int getFuncitonIndex(char *name){
@@ -26,6 +27,7 @@ int adapter_mkdir(tsh_memory *memory, char **args){
 typedef int (*pt_adapter) (tsh_memory *memory, char **args);
 pt_adapter listFun [NB_FUN] = { adapter_cd, adapter_pwd, adapter_mkdir};
 int execSimpleCommande(char *commande, tsh_memory *memory){
-    printf("indice = %d\n", getFuncitonIndex("ls"));
+    char space[2] = " ";
+    
     return 0;
 }
