@@ -14,7 +14,7 @@ pwd.o : pwd.c pwd.h
 mkdir.o : mkdir.c tar.h tsh_memory.h string_traitement.h
 ls.o : ls.c tar.h tsh_memory.h
 rmdir.o: rmdir.c tar.h tsh_memory.h string_traitement.h
-simpleCommande.o : simpleCommande.c tsh_memory.h cd.h pwd.h mkdir.h ls.h
+simpleCommande.o : simpleCommande.c tsh_memory.h cd.h pwd.h mkdir.h ls.h tsh_memory.h
 
 cleanall:
 	rm -rf *.o main *~
