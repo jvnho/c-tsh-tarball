@@ -5,7 +5,6 @@
 #include "pwd.h"
 #include "mkdir.h"
 #include "ls.h"
-#include "simpleCommande.h"
 char *listCommande[] = {"cd", "pwd", "mkdir", "ls"};
 #define NB_FUN 4
 int getFuncitonIndex(char *name){
