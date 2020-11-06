@@ -60,6 +60,9 @@ void free_tsh_memory(tsh_memory *state){//at the end
     //close(string_to_int(state->tar_descriptor)); 
     free(state);
 }
+void exit2(tsh_memory *state){
+    state->exit = 1;
+}
 int in_a_tar(tsh_memory *state){
     if(strlen(state->tar_descriptor))return 1;
     return 0;

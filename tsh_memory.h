@@ -18,4 +18,5 @@ extern char * getPath(tsh_memory *state);
 extern void free_tsh_memory(tsh_memory *state);
 extern int in_a_tar(tsh_memory *state);
 extern void resetBuffer(tsh_memory *memory);
+extern void exit2(tsh_memory *state);
 #endif

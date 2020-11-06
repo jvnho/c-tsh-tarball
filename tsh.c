@@ -19,7 +19,6 @@ tsh_memory * memory;
 int main(void){
     //we create a memory about the current state so all processu can relate on it
     if((memory = create_memory())==NULL)return -1;
-    int i = 1;
     while(1){
         PATH = getPath(memory);
         write(1, PATH, strlen(PATH));
