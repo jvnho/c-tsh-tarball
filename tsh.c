@@ -19,16 +19,16 @@ tsh_memory * memory;
 int main(void){
     //we create a memory about the current state so all processu can relate on it
     if((memory = create_memory())==NULL)return -1;
-    /*while(1){
+    int i = 1;
+    while(1){
         PATH = getPath(memory);
         write(1, PATH, strlen(PATH));
         read(0, memory->comand, MAX_COMMAND);//user write his command on the input
         memory->comand[strlen(memory->comand)-1] = '\0';
+        printf("#buff %d = %s #\n", i,memory->comand);
+        //vider le buff
         if(memmem(memory->comand, strlen(memory->comand), "exit", 4))break;
-    }*/
-    execSimpleCommande("mkdir doss15", memory);
-    PATH = getPath(memory);
-    write(1, PATH, strlen(PATH));
+    }
     free_tsh_memory(memory);
     return 0;
 }

@@ -49,6 +49,5 @@ int getFuncitonIndex(char *name){
 }
 int execSimpleCommande(char *commande, tsh_memory *memory){
     fillArgs(commande);
-    (*(listFun[getFuncitonIndex(args[0])]))(memory);
-    return 0;
+    return (*(listFun[getFuncitonIndex(args[0])]))(memory);
 }
