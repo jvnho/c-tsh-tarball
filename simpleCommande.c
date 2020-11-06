@@ -8,6 +8,7 @@
 #include "pwd.h"
 #include "mkdir.h"
 #include "ls.h"
+#include "rmdir.h"
 #include "tsh_memory.h"
 #include "string_traitement.h"
 char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir"};
@@ -68,7 +69,7 @@ int adapter_ls(tsh_memory *memory){
     return ls(memory);
 }
 int adapter_rmdir(tsh_memory *memory){
-    return rmdir_func(memory);
+    return rmdir_func(memory, args[1]);
 }
 typedef int (*pt_adapter) (tsh_memory *memory);
 pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls, adapter_rmdir};
