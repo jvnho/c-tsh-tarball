@@ -12,6 +12,7 @@ char *listCommande[] = {"exit", "cd", "pwd", "mkdir"};
 char args[50][50];
 int i_args = 0;
 const char space[2] = " ";
+int returnValue;
 void fillArgs(char *commande){
     //fill by token
     char com[512];
@@ -29,6 +30,12 @@ void fillArgs(char *commande){
         i_args++;
         read = strtok(NULL, space);
     }
+}
+void resetArgs(){
+    for(int i = 0; i<i_args; i++){
+        memset(args[i], 0, 50);
+    }
+    i_args = 0;
 }
 int adapter_exit(tsh_memory *memory){
     return exit2(memory);
@@ -50,7 +57,10 @@ int getFuncitonIndex(char *name){
     }
     return -1;
 }
-int execSimpleCommande(char *commande, tsh_memory *memory){
-    fillArgs(commande);
-    return (*(listFun[getFuncitonIndex(args[0])]))(memory);
+int execSimpleCommande(tsh_memory *memory){
+    fillArgs(memory->comand);
+    int fun_index = getFuncitonIndex(args[0]);
+    int result = (*(listFun[fun_index]))(memory);
+    resetArgs();
+    return result;
 }
