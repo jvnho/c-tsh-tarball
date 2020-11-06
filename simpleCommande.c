@@ -82,7 +82,8 @@ int getFuncitonIndex(char *name){
 int execSimpleCommande(tsh_memory *memory){
     fillArgs(memory->comand);
     int fun_index = getFuncitonIndex(args[0]);
-    if(fun_index<0){//not listed in our function so exec
+    //check if in our command list
+    if(fun_index<0){
         int pid_fils = fork();
         if(pid_fils==0){
             char **args2 = argsPlusNULL();
@@ -91,7 +92,8 @@ int execSimpleCommande(tsh_memory *memory){
             int status;
             waitpid(pid_fils, &status, WUNTRACED);
         }
-    }else {
+    }else {//all the command in our list
+        //C'est la il y a pas de if (*_*)
         returnval = (*(listFun[fun_index]))(memory);//invok the appropriate function
     }
     resetArgs();
