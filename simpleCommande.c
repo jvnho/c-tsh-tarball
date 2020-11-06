@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "tsh_memory.h"
 #include "cd.h"
 #include "pwd.h"
@@ -12,7 +13,7 @@ char *listCommande[] = {"exit", "cd", "pwd", "mkdir"};
 char args[50][50];
 int i_args = 0;
 const char space[2] = " ";
-int returnValue;
+int returnval;
 void fillArgs(char *commande){
     //fill by token
     char com[512];
@@ -37,6 +38,7 @@ void resetArgs(){
     }
     i_args = 0;
 }
+//Facade Pattern
 int adapter_exit(tsh_memory *memory){
     return exit2(memory);
 }
@@ -60,7 +62,13 @@ int getFuncitonIndex(char *name){
 int execSimpleCommande(tsh_memory *memory){
     fillArgs(memory->comand);
     int fun_index = getFuncitonIndex(args[0]);
-    int result = (*(listFun[fun_index]))(memory);
+    printf("index = %d \n", fun_index);
+    if(fun_index<0){//not listed in our function
+        printf("Pas dans la liste des commande\n");
+        /*if(fork()==0){
+            //exec
+        }*/
+    }else returnval = (*(listFun[fun_index]))(memory);//execut the appropriate function
     resetArgs();
-    return result;
+    return returnval;
 }
