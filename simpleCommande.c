@@ -71,7 +71,7 @@ int adapter_ls(tsh_memory *memory){
 int adapter_rmdir(tsh_memory *memory){
     return rmdir_func(memory, args[1]);
 }
-typedef int (*pt_adapter) (tsh_memory *memory);
+typedef int (*pt_adapter) (tsh_memory *memory);//declaration pointer of function
 pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls, adapter_rmdir};
 int getFuncitonIndex(char *name){
     for(int i=0; i<NB_FUN; i++){
@@ -82,7 +82,7 @@ int getFuncitonIndex(char *name){
 int execSimpleCommande(tsh_memory *memory){
     fillArgs(memory->comand);
     int fun_index = getFuncitonIndex(args[0]);
-    if(fun_index<0){//not listed in our function
+    if(fun_index<0){//not listed in our function so exec
         int pid_fils = fork();
         if(pid_fils==0){
             char **args2 = argsPlusNULL();
@@ -92,7 +92,7 @@ int execSimpleCommande(tsh_memory *memory){
             waitpid(pid_fils, &status, WUNTRACED);
         }
     }else {
-        returnval = (*(listFun[fun_index]))(memory);//execut the appropriate function
+        returnval = (*(listFun[fun_index]))(memory);//invok the appropriate function
     }
     resetArgs();
     return returnval;
