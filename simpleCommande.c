@@ -1,6 +1,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <assert.h>
+#include <stdlib.h>
 #include "tsh_memory.h"
 #include "cd.h"
 #include "pwd.h"
@@ -8,8 +10,8 @@
 #include "ls.h"
 #include "tsh_memory.h"
 #include "string_traitement.h"
-char *listCommande[] = {"exit", "cd", "pwd", "mkdir"};
-#define NB_FUN 4
+char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls"};
+#define NB_FUN 5
 char args[50][50];
 int i_args = 0;
 const char space[2] = " ";
@@ -38,8 +40,16 @@ void resetArgs(){
     }
     i_args = 0;
 }
+//we can't pass just args throug exec because there is not null at the end, and we can't write arg[i]= NULL, because arg is unmodifiable, so no choice Malloc :/
 char ** argsPlusNULL(){
-    return NULL;
+    char **result;
+    assert(result = malloc((i_args + 1) * sizeof(char *)));//we can't pass just args
+    for(int i = 0; i<i_args; i++){
+        assert(result[i] = malloc(strlen(args[i])*sizeof(char)));
+        strcpy(result[i], args[i]);
+    }
+    result[i_args] = NULL;
+    return result;
 }
 //Adapter Pattern
 int adapter_exit(tsh_memory *memory){
@@ -54,8 +64,11 @@ int adapter_pwd(tsh_memory *memory){
 int adapter_mkdir(tsh_memory *memory){
     return mkdir(args[1], memory);
 }
+int adapter_ls(tsh_memory *memory){
+    return ls(memory);
+}
 typedef int (*pt_adapter) (tsh_memory *memory);
-pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir};
+pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls};
 int getFuncitonIndex(char *name){
     for(int i=0; i<NB_FUN; i++){
         if(strcmp(name, listCommande[i])==0)return i;
@@ -65,14 +78,18 @@ int getFuncitonIndex(char *name){
 int execSimpleCommande(tsh_memory *memory){
     fillArgs(memory->comand);
     int fun_index = getFuncitonIndex(args[0]);
-    printf("index = %d \n", fun_index);
     if(fun_index<0){//not listed in our function
-        printf("Pas dans la liste des commande\n");
-        addNULL(args);
-        /*if(fork()==0){
-            //exec
-        }*/
-    }else returnval = (*(listFun[fun_index]))(memory);//execut the appropriate function
+        int pid_fils = fork();
+        if(pid_fils==0){
+            char **args2 = argsPlusNULL();
+            execvp(args2[0], args2);
+        }else{
+            int status;
+            waitpid(pid_fils, &status, WUNTRACED);
+        }
+    }else {
+        returnval = (*(listFun[fun_index]))(memory);//execut the appropriate function
+    }
     resetArgs();
     return returnval;
 }
