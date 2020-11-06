@@ -9,6 +9,8 @@
 #include "string_traitement.h"
 char *listCommande[] = {"cd", "pwd", "mkdir"};
 #define NB_FUN 3
+char args[50][50];
+int i_args = 0;
 int getFuncitonIndex(char *name){
     for(int i=0; i<NB_FUN; i++){
         if(strcmp(name, listCommande[i])==0)return i;
@@ -27,7 +29,25 @@ int adapter_mkdir(tsh_memory *memory, char **args){
 typedef int (*pt_adapter) (tsh_memory *memory, char **args);
 pt_adapter listFun [NB_FUN] = { adapter_cd, adapter_pwd, adapter_mkdir};
 int execSimpleCommande(char *commande, tsh_memory *memory){
-    char space[2] = " ";
-    
+    char com[80];
+    strcpy(com, commande);
+    com[strlen(commande)] = '\0';
+    const char space[2] = " ";
+    char *read;
+    read = strtok(com, space);
+    if(read!=NULL){
+        strcpy(args[i_args], read);
+        args[i_args][strlen(read)] = '\0';
+    }
+   /* walk through other tokens */
+    while( read != NULL ) {
+        strcpy(args[i_args], read);
+        args[i_args][strlen(read)] = '\0';
+        i_args++;
+        read = strtok(NULL, space);
+    }
+    for(int i = 0; i<i_args; i++){
+        printf("%s\n", args[i]);
+    }
     return 0;
 }
