@@ -7,8 +7,8 @@
 #include "ls.h"
 #include "tsh_memory.h"
 #include "string_traitement.h"
-char *listCommande[] = {"cd", "pwd", "mkdir"};
-#define NB_FUN 3
+char *listCommande[] = {"exit", "cd", "pwd", "mkdir"};
+#define NB_FUN 4
 char args[50][50];
 int i_args = 0;
 const char space[2] = " ";
@@ -30,6 +30,9 @@ void fillArgs(char *commande){
         read = strtok(NULL, space);
     }
 }
+int adapter_exit(tsh_memory *memory){
+    return exit2(memory);
+}
 int adapter_cd(tsh_memory *memory){
     return cd(args[1], memory);
 }
@@ -40,7 +43,7 @@ int adapter_mkdir(tsh_memory *memory){
     return mkdir(args[1], memory);
 }
 typedef int (*pt_adapter) (tsh_memory *memory);
-pt_adapter listFun [NB_FUN] = { adapter_cd, adapter_pwd, adapter_mkdir};
+pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir};
 int getFuncitonIndex(char *name){
     for(int i=0; i<NB_FUN; i++){
         if(strcmp(name, listCommande[i])==0)return i;
