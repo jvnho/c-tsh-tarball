@@ -38,7 +38,10 @@ void resetArgs(){
     }
     i_args = 0;
 }
-//Facade Pattern
+char ** argsPlusNULL(){
+    return NULL;
+}
+//Adapter Pattern
 int adapter_exit(tsh_memory *memory){
     return exit2(memory);
 }
@@ -65,6 +68,7 @@ int execSimpleCommande(tsh_memory *memory){
     printf("index = %d \n", fun_index);
     if(fun_index<0){//not listed in our function
         printf("Pas dans la liste des commande\n");
+        addNULL(args);
         /*if(fork()==0){
             //exec
         }*/
