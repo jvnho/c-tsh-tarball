@@ -32,6 +32,7 @@ tsh_memory * create_memory(){
     (result->FAKE_PATH)[0] = '\0';//so it doesn't create a random characteres
     result->tar_name[0] = '\0';
     result->tar_descriptor[0] = '\0';
+    result->exit = 0;
     return result;
 }
 char * getPath(tsh_memory *state){
