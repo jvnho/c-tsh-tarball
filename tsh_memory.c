@@ -9,6 +9,7 @@
 #include <string.h>
 #include "tsh_memory.h"
 #include "string_traitement.h"
+#define MAX_COMMAND 512
 int instanciate_tsh_memory(char *tar_file_name, tsh_memory *result){
     //instanciate the name of tar 
     strcpy(result->tar_name, tar_file_name);
@@ -63,5 +64,5 @@ int in_a_tar(tsh_memory *state){
     return 0;
 }
 void resetBuffer(tsh_memory *memory){
-    
+    memset(memory->comand, 0, MAX_COMMAND);
 }

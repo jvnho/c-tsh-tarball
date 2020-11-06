@@ -25,9 +25,8 @@ int main(void){
         write(1, PATH, strlen(PATH));
         read(0, memory->comand, MAX_COMMAND);//user write his command on the input
         memory->comand[strlen(memory->comand)-1] = '\0';
-        printf("#buff %d = %s #\n", i,memory->comand);
-        //vider le buff
         if(memmem(memory->comand, strlen(memory->comand), "exit", 4))break;
+        resetBuffer(memory);
     }
     free_tsh_memory(memory);
     return 0;
