@@ -62,3 +62,6 @@ int in_a_tar(tsh_memory *state){
     if(strlen(state->tar_descriptor))return 1;
     return 0;
 }
+void resetBuffer(tsh_memory *memory){
+    
+}

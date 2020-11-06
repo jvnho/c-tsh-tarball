@@ -27,6 +27,7 @@ int rmdir_func(tsh_memory *mem){
                 return -1;
         }
     }
+    return 0;
 }
 
 int rmdir_in_tar(int fd, char* full_path){
