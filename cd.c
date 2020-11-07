@@ -30,30 +30,20 @@ int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     return 0;
 }
 
-int get_prev_directory(char *PATH){
-    int index = strlen(PATH)-2; //PATH[strlen(PATH)-2] already equals to a slash
-    while(index >= 0){
-        if(PATH[index] == '/')
-            return index;
-        index--;
-    }
-    return -1; //
-}
-
 //path and path descriptor
 int cd_in_tar(char * directory, char *PATH, char *tar_fd, char *tar_name){//modify the current path in the memory
 
     if(strcmp(".",directory)==0) return 0;
 
     if(strcmp("..", directory) == 0){
-        int length = get_prev_directory(PATH);
-        if(length == -1){ //exiting the tar -> erasing tsh_memory
+        int index_last_slash = get_prev_directory(PATH);
+        if(index_last_slash == -1){ //exiting the tar -> erasing tsh_memory's data
             PATH[0] = '\0';
             tar_fd[0] = '\0';
             tar_name[0] = '\0';
             return 0;
         }
-        PATH[get_prev_directory(PATH)-1] = '\0';
+        PATH[index_last_slash-1] = '\0';
         return 0;
     }
 
@@ -72,24 +62,24 @@ int cd_in_tar(char * directory, char *PATH, char *tar_fd, char *tar_name){//modi
 }
 
 int cd(char *directory, tsh_memory *memory){
-    if(in_a_tar(memory)){//in a anormal circonstances
+    if(in_a_tar(memory)){//in a anormal circumstances
         return cd_in_tar(directory, memory->FAKE_PATH, memory->tar_descriptor, memory->tar_name);
     }
 
     // beforeTar/ directory.tar / afterTar
-    char beforTar[512]; char tarName[512]; char afterTar[512];
+    char beforeTar[512]; char tarName[512]; char afterTar[512];
     //instanciate the format befor/ inside/ after (tar)
-    getPreTar(directory, beforTar);
+    getPreTar(directory, beforeTar);
     getTarName(directory, tarName);
     getPostTar(directory, afterTar);
     //if we have a pre Tar we apply chdir on that part
-    if(strlen(beforTar)){
-        if(chdir(beforTar)==-1){
+    if(strlen(beforeTar)){
+        if(chdir(beforeTar)==-1){
             perror("");
             return -1;
         }
     }
-    //if the is a directory.tar we instanciate the memory, and continue with the afterTar if it'exist
+    //if the is a directory.tar we instanciate the memory, and continue with the afterTar if it exists
     if(strlen(tarName)){
         if(instanciate_tsh_memory(tarName, memory)==-1) return -1;
         if(strlen(afterTar)) return cd_in_tar(afterTar, memory->FAKE_PATH, memory->tar_descriptor, memory->tar_name);

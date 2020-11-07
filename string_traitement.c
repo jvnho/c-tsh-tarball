@@ -67,7 +67,7 @@ int string_to_int(char *chiffre){
     }
     return resultat;
 }
-int getDigitLength(int chiffre){//the numbre of digit 
+int getDigitLength(int chiffre){//the numbre of digit
     int counter = 0;
     while(chiffre%10!=0){
         counter++;
@@ -102,7 +102,7 @@ char *int_to_string(int chiffre){
 }
 //voir le cas ou dir se termine par un slach
 char * concatString(char * path, char *dir){
-    
+
     int length = strlen(path)+strlen(dir)+2;
     char * result = malloc(length);
     strcpy(result, path);
@@ -165,4 +165,15 @@ void getPostTar(char *initial_string, char *result){
     if(begin_index > len_initial) return;//the .tar is at the end -> also don't have a postTar
     memcpy(result, initial_string + begin_index, len_initial - begin_index + 1);
     result[len_initial - begin_index + 1] = '\0';
+}
+
+//returns the position of the (second) slash from the end, if not found it returns -1
+int get_prev_directory(char *path){
+    int index = strlen(path)-2; //PATH[strlen(PATH)-2] already equals to a slash
+    while(index >= 0){
+        if(path[index] == '/')
+            return index;
+        index--;
+    }
+    return -1; //
 }
