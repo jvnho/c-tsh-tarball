@@ -1,5 +1,6 @@
 #ifndef STRING_TRAITEMENT_H
 #define STRING_TRAITEMENT_H
+extern int count_args(char *args);
 extern int string_to_int(char *chiffre);
 extern int get_prev_directory(char *path);
 extern char *int_to_string(int chiffre);

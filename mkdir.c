@@ -20,8 +20,6 @@ struct posix_header *create_header(char * name){
     sprintf(result->size, "%011o", 0);
     sprintf(result->mtime, "%011lo", time(NULL));
 
-    result->mtime[0] = '\0';//how to get the time of the arrchivement
-
     result->typeflag = '5';
     result->linkname[0] = '\0';
 
