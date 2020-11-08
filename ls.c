@@ -13,7 +13,8 @@
 void ls_in_tar(int,char*,int);
 int is_in_array(char*, struct ls_memory);
 void print_ls_to_STROUT(int, struct ls_memory);
-void fill_info_array(struct posix_header, struct ls_memory *mem);
+void fill_info_array(struct posix_header, struct ls_memory*);
+void clear_struct(struct ls_memory*);
 
 int ls(tsh_memory *memory){
     //user is in tarball
@@ -65,6 +66,7 @@ void ls_in_tar(int fd, char* PATH, int arg_l){
         lseek(fd,512*nb_bloc_fichier, SEEK_CUR);
     }
     print_ls_to_STROUT(arg_l, mem);
+    clear_struct(&mem);
 }
 
 int is_in_array(char *string, struct ls_memory mem){ //checking if string is in ls_memory's NAME array
@@ -105,4 +107,10 @@ void print_ls_to_STROUT(int arg_l, struct ls_memory mem){
         if(arg_l == 0) print_ls(mem);
         else print_ls_l(mem);
     }
+}
+
+void clear_struct(struct ls_memory *mem){
+    mem-> NUMBER = 0;
+    memset(mem->NAME, 0, sizeof(mem->NAME));
+    memset(mem->INFO, 0, sizeof(mem->INFO));
 }
