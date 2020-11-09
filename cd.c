@@ -32,26 +32,23 @@ int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     return 0;
 }
 
-//path and path descriptor
+//directory is the argument given, PATH is the path from tsh_memory
 int cd_in_tar(char * directory, char *PATH, char *tar_fd, char *tar_name){//modify the current path in the memory
 
     if(strcmp(".",directory)==0) return 0;
 
     if(strcmp("..", directory) == 0){
-        char *tar_name_plus_path = concate_string(tar_name, PATH);
-        int index_last_slash = get_prev_directory(tar_name_plus_path);
+        char *tar_name_plus_path = concate_string(tar_name, PATH); //concatenation : tar_name.tar/dir1/dir2/
+        int index_last_slash = get_prev_directory(tar_name_plus_path); // gives index of first slash starting from the end ( check string_traitement.c for more info)
         if(index_last_slash == -1){ //exiting the tar -> erasing tsh_memory's data
             PATH[0] = '\0';
             tar_fd[0] = '\0';
             tar_name[0] = '\0';
-            return 0;
         } else {
-            char tmp[strlen(tar_name_plus_path)-index_last_slash];
-            strncpy(tmp, tar_name_plus_path, strlen(tar_name));
-            if(strcmp(tmp,tar_name) == 0)
-                PATH[0] = '\0';
+            if(strncmp(tar_name_plus_path,tar_name, index_last_slash) == 0) //notice it's strNcmp not strcmp
+                PATH[0] = '\0'; //user is now located in the root of the tar
             else
-                PATH[index_last_slash-1] = '\0';
+                PATH[index_last_slash-strlen(tar_name)+1] = '\0'; //reducing the PATH of one directory
         }
         return 0;
     }
