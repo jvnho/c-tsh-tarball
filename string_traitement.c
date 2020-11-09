@@ -175,5 +175,23 @@ int get_prev_directory(char *path){
             return index;
         index--;
     }
-    return -1; //
+    return -1;
+}
+
+char* octal_to_string(char *mode){
+    char *ret = malloc(sizeof(char)*9);
+    ret[0] = '\0';
+        for(int i = 0; i < strlen(mode); i++){
+        switch(mode[i]){
+            case '1': strcat(ret,"r--"); break;
+            case '2': strcat(ret,"-w-"); break;
+            case '4': strcat(ret,"--x"); break;
+            case '3': strcat(ret,"rw-"); break;
+            case '5': strcat(ret,"r-x"); break;
+            case '6': strcat(ret,"-wx"); break;
+            case '7': strcat(ret,"rwx"); break;
+            default: break;//if char == 'zero' it does nothing (i.e mode is 00666, 00111,...)
+        }
+    }
+    return ret;
 }

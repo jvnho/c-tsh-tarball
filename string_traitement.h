@@ -8,4 +8,5 @@ extern char * concatString(char * path, char *dir);
 extern void getPreTar(char *initial_string, char *result);
 extern void getTarName(char *initial_string, char *result);
 extern void getPostTar(char *initial_string, char *result);
+extern char* octal_to_string(char *mode);
 #endif
