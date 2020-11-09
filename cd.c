@@ -11,6 +11,8 @@
 #include "tsh_memory.h"
 #include "string_traitement.h"
 
+char *concate_string(char *s1, char *s2);
+
 int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     lseek(descriptor, 0, SEEK_SET);
 
@@ -36,14 +38,21 @@ int cd_in_tar(char * directory, char *PATH, char *tar_fd, char *tar_name){//modi
     if(strcmp(".",directory)==0) return 0;
 
     if(strcmp("..", directory) == 0){
-        int index_last_slash = get_prev_directory(PATH);
+        char *tar_name_plus_path = concate_string(tar_name, PATH);
+        int index_last_slash = get_prev_directory(tar_name_plus_path);
         if(index_last_slash == -1){ //exiting the tar -> erasing tsh_memory's data
             PATH[0] = '\0';
             tar_fd[0] = '\0';
             tar_name[0] = '\0';
             return 0;
+        } else {
+            char tmp[strlen(tar_name_plus_path)-index_last_slash];
+            strncpy(tmp, tar_name_plus_path, strlen(tar_name));
+            if(strcmp(tmp,tar_name) == 0)
+                PATH[0] = '\0';
+            else
+                PATH[index_last_slash-1] = '\0';
         }
-        PATH[index_last_slash-1] = '\0';
         return 0;
     }
 
@@ -85,4 +94,11 @@ int cd(char *directory, tsh_memory *memory){
         if(strlen(afterTar)) return cd_in_tar(afterTar, memory->FAKE_PATH, memory->tar_descriptor, memory->tar_name);
     }
     return 0;
+}
+
+
+char *concate_string(char *s1, char *s2){
+    char *ret = malloc((strlen(s1)+strlen(s2)+1)*sizeof(char));
+    sprintf(ret,"%s%s%c", s1, s2, '\0');
+    return ret;
 }
