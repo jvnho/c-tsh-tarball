@@ -14,6 +14,7 @@
 #include "ls.h"
 #include "rmdir.h"
 #include "simpleCommande.h"
+int execSimpleCommande(tsh_memory *memory);//temp
 char * PATH;
 tsh_memory * memory;
 int main(void){
