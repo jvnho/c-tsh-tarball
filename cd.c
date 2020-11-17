@@ -10,7 +10,7 @@
 #include "tar.h"
 #include "tsh_memory.h"
 #include "string_traitement.h"
-
+#define BUFSIZE 512
 char *concate_string(char *s1, char *s2);
 
 int if_cd_is_valid(int descriptor, char * PATH, char * directory){
@@ -36,7 +36,7 @@ int if_cd_is_valid(int descriptor, char * PATH, char * directory){
 int cd_in_tar(char * directory, char *PATH, char *tar_fd, char *tar_name){//modify the current path in the memory
 
     if(strcmp(".",directory)==0) return 0;
-
+    //remove . in the directory
     if(strstr(directory, "..") == NULL) {//doesn't contains substring ".."
 
         int tar_descriptor = atoi(tar_fd);
@@ -55,12 +55,12 @@ int cd_in_tar(char * directory, char *PATH, char *tar_fd, char *tar_name){//modi
         char *tar_name_plus_path = concate_string(tar_name, PATH); //concatenation : tar_name.tar/dir1/dir2/
         int index_last_slash = get_prev_directory(tar_name_plus_path); // gives index of first slash starting from the end ( check string_traitement.c for more info)
         if(index_last_slash == -1){ //exiting the tar -> erasing tsh_memory's data
-            PATH[0] = '\0';
-            tar_fd[0] = '\0';
-            tar_name[0] = '\0';
+            memset(PATH, 0, BUFSIZE);
+            memset(tar_fd, 0, BUFSIZE);
+            memset(tar_name, 0, BUFSIZE);
         } else {
             if(strncmp(tar_name_plus_path,tar_name, index_last_slash) == 0) //notice it's strNcmp not strcmp
-                PATH[0] = '\0'; //user is now located in the root of the tar
+                memset(PATH, 0, BUFSIZE); //user is now located in the root of the tar
             else
                 PATH[index_last_slash-strlen(tar_name)+1] = '\0'; //reducing the PATH of one directory
         }
