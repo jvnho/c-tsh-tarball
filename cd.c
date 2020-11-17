@@ -37,7 +37,21 @@ int cd_in_tar(char * directory, char *PATH, char *tar_fd, char *tar_name){//modi
 
     if(strcmp(".",directory)==0) return 0;
 
-    if(strcmp("..", directory) == 0){
+    if(strstr(directory, "..") == NULL) {//doesn't contains substring ".."
+
+        int tar_descriptor = atoi(tar_fd);
+        if(if_cd_is_valid(tar_descriptor, PATH, directory)){
+            if(directory[strlen(directory)-1] == '/')//to check if we should add / at the end
+                strcat(PATH, directory);//simple concat
+            else
+                strcat(PATH, concatString(directory, ""));//concat that add  / at the end
+            return 0;
+        }else{
+            write(1, "no such directory\n", strlen("no such directory\n"));
+            return -1;
+        }
+    }
+    else{
         char *tar_name_plus_path = concate_string(tar_name, PATH); //concatenation : tar_name.tar/dir1/dir2/
         int index_last_slash = get_prev_directory(tar_name_plus_path); // gives index of first slash starting from the end ( check string_traitement.c for more info)
         if(index_last_slash == -1){ //exiting the tar -> erasing tsh_memory's data
@@ -51,18 +65,6 @@ int cd_in_tar(char * directory, char *PATH, char *tar_fd, char *tar_name){//modi
                 PATH[index_last_slash-strlen(tar_name)+1] = '\0'; //reducing the PATH of one directory
         }
         return 0;
-    }
-
-    int tar_descriptor = atoi(tar_fd);
-    if(if_cd_is_valid(tar_descriptor, PATH, directory)){
-        if(directory[strlen(directory)-1] == '/')
-            strcat(PATH, directory);
-        else
-            strcat(PATH, concatString(directory, ""));//?? if we give directory/
-        return 0;
-    }else{
-        write(1, "no such directory\n", strlen("no such directory\n"));
-        return -1;
     }
     return 0;
 }
