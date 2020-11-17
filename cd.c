@@ -31,7 +31,21 @@ int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     }
     return 0;
 }
-
+void reduceFakePath(char * directory, char *PATH, char *tar_fd, char *tar_name){
+    char *tar_name_plus_path = concate_string(tar_name, PATH); //concatenation : tar_name.tar/dir1/dir2/
+        int index_last_slash = get_prev_directory(tar_name_plus_path); // gives index of first slash starting from the end ( check string_traitement.c for more info)
+        if(index_last_slash == -1){ //exiting the tar -> erasing tsh_memory's data
+            memset(PATH, 0, BUFSIZE);
+            memset(tar_fd, 0, BUFSIZE);
+            memset(tar_name, 0, BUFSIZE);
+        } else {
+            if(strncmp(tar_name_plus_path,tar_name, index_last_slash) == 0) //notice it's strNcmp not strcmp
+                memset(PATH, 0, BUFSIZE); //user is now located in the root of the tar
+                //switch
+            else
+                PATH[index_last_slash-strlen(tar_name)+1] = '\0'; //reducing the PATH of one directory
+        }
+}
 //directory is the argument given, PATH is the path from tsh_memory
 int cd_in_tar(char * directory, char *PATH, char *tar_fd, char *tar_name){//modify the current path in the memory
 
@@ -52,18 +66,10 @@ int cd_in_tar(char * directory, char *PATH, char *tar_fd, char *tar_name){//modi
         }
     }
     else{
-        char *tar_name_plus_path = concate_string(tar_name, PATH); //concatenation : tar_name.tar/dir1/dir2/
-        int index_last_slash = get_prev_directory(tar_name_plus_path); // gives index of first slash starting from the end ( check string_traitement.c for more info)
-        if(index_last_slash == -1){ //exiting the tar -> erasing tsh_memory's data
-            memset(PATH, 0, BUFSIZE);
-            memset(tar_fd, 0, BUFSIZE);
-            memset(tar_name, 0, BUFSIZE);
-        } else {
-            if(strncmp(tar_name_plus_path,tar_name, index_last_slash) == 0) //notice it's strNcmp not strcmp
-                memset(PATH, 0, BUFSIZE); //user is now located in the root of the tar
-            else
-                PATH[index_last_slash-strlen(tar_name)+1] = '\0'; //reducing the PATH of one directory
+        if(directory[0] == '.'){//assuming there is not . because we remove it, find a . at first means ../ so we remove it recursivly
+
         }
+        reduceFakePath(directory, PATH, tar_fd, tar_name);
         return 0;
     }
     return 0;
