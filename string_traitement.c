@@ -196,10 +196,17 @@ char* octal_to_string(char *mode){
     }
     return ret;
 }
+int firstSlach(char *dir){
+    int len = strlen(dir);
+    for(int i = 0; i<len; i++){
+        if(dir[i]=='/')return i;
+    }
+    return -1;
+}
 //fill the first dir/ in source into the result
 int getFirstDir(char *source, char *result){
     memset(result, 0, sizeof(char)*512);
-    int index_first_slach = get_index_first_slach(source);
+    int index_first_slach = firstSlach(source);
     memcpy(result, source, index_first_slach + 1);
     return index_first_slach;
 }

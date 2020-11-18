@@ -79,10 +79,11 @@ int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in
                 return cd_in_tar(directory+3, memory);
             }
         }else{
-            //  doss/../doss2
-            //getFirstDir(directory, firstDir);
-            //cd_in_tar(firstDir, memory);
-            //cd_in_tar(reste)
+            //  doss/  ..  /doss2
+            int index_first_slach = getFirstDir(directory, firstDir);
+            int success = cd_in_tar(firstDir, memory);
+            if(success == - 1)return -1;//first step
+            return cd_in_tar(directory + index_first_slach + 1, memory);
         }
     }
     return 0;
