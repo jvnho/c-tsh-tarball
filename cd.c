@@ -46,19 +46,20 @@ void reduceFakePath(char * directory, char *PATH, char *tar_fd, char *tar_name){
                 PATH[index_last_slash-strlen(tar_name)+1] = '\0'; //reducing the PATH of one directory
         }
 }
+int cd(char *directory, tsh_memory *memory);
 //directory is the argument given, PATH is the path from tsh_memory
-int cd_in_tar(char * directory, char *PATH, char *tar_fd, char *tar_name){//modify the current path in the memory
-
+int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in the memory
+    //char *PATH, char *tar_fd, char *tar_name
     if(strcmp(".",directory)==0) return 0;
     //remove . in the directory
     if(strstr(directory, "..") == NULL) {//doesn't contains substring ".."
 
-        int tar_descriptor = atoi(tar_fd);
-        if(if_cd_is_valid(tar_descriptor, PATH, directory)){
+        int tar_descriptor = atoi(memory->tar_descriptor);
+        if(if_cd_is_valid(tar_descriptor, memory->FAKE_PATH, directory)){
             if(directory[strlen(directory)-1] == '/')//to check if we should add / at the end
-                strcat(PATH, directory);//simple concat
+                strcat(memory->FAKE_PATH, directory);//simple concat
             else
-                strcat(PATH, concatString(directory, ""));//concat that add  / at the end
+                strcat(memory->FAKE_PATH, concatString(directory, ""));//concat that add  / at the end
             return 0;
         }else{
             write(1, "no such directory\n", strlen("no such directory\n"));
@@ -66,18 +67,24 @@ int cd_in_tar(char * directory, char *PATH, char *tar_fd, char *tar_name){//modi
         }
     }
     else{
-        if(directory[0] == '.'){//assuming there is not . because we remove it, find a . at first means ../ so we remove it recursivly
-
+        if(directory[0] == '.'){//we are starting by ../
+            reduceFakePath(directory, memory->FAKE_PATH, memory->tar_descriptor, memory->tar_name);//we have done the first ../
+            if(strlen(directory)>3){// ../somethig
+                if(strlen(memory->tar_descriptor) == 0){//check if the fist .. doesn't get us out of the tar
+                    return cd(directory + 3, memory);
+                }
+                return cp_in_tar(directory+3, memory);
+            }
+        }else{
+            //traiter les .. du milieu
         }
-        reduceFakePath(directory, PATH, tar_fd, tar_name);
-        return 0;
     }
     return 0;
 }
 
 int cd(char *directory, tsh_memory *memory){
     if(in_a_tar(memory)){//in a anormal circumstances
-        return cd_in_tar(directory, memory->FAKE_PATH, memory->tar_descriptor, memory->tar_name);
+        return cd_in_tar(directory, memory);
     }
 
     // beforeTar/ directory.tar / afterTar
