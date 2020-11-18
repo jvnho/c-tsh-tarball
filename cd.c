@@ -11,8 +11,11 @@
 #include "tsh_memory.h"
 #include "string_traitement.h"
 #define BUFSIZE 512
+char removedPointPoin[BUFSIZE];
 char *concate_string(char *s1, char *s2);
-
+void removePointPoint(char * directory){
+    
+}
 int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     lseek(descriptor, 0, SEEK_SET);
 
@@ -47,6 +50,7 @@ void reduceFakePath(char * directory, char *PATH, char *tar_fd, char *tar_name){
         }
 }
 int cd(char *directory, tsh_memory *memory);
+
 //directory is the argument given, PATH is the path from tsh_memory
 int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in the memory
     //char *PATH, char *tar_fd, char *tar_name
@@ -102,7 +106,7 @@ int cd(char *directory, tsh_memory *memory){
     //if the is a directory.tar we instanciate the memory, and continue with the afterTar if it exists
     if(strlen(tarName)){
         if(instanciate_tsh_memory(tarName, memory)==-1) return -1;
-        if(strlen(afterTar)) return cd_in_tar(afterTar, memory);
+        if(strlen(afterTar)) return cd_in_tar(afterTar, memory);//if error we should't have done the first part
     }
     return 0;
 }
