@@ -91,6 +91,7 @@ int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in
 }
 
 int cd(char *directory, tsh_memory *memory){
+    saveMemory(memory, &save);
     if(in_a_tar(memory)){//in a anormal circumstances
         return cd_in_tar(directory, memory);
     }
