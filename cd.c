@@ -93,7 +93,10 @@ int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in
 int cd(char *directory, tsh_memory *memory){
     saveMemory(memory, &save);
     if(in_a_tar(memory)){//in a anormal circumstances
-        return cd_in_tar(directory, memory);
+        if(cd_in_tar(directory, memory)==-1){
+            saveMemory(&save, memory);
+            return -1;
+        }
     }
     // beforeTar/ directory.tar / afterTar
     char beforeTar[512]; char tarName[512]; char afterTar[512];
@@ -113,7 +116,8 @@ int cd(char *directory, tsh_memory *memory){
         if(instanciate_tsh_memory(tarName, memory)==-1) return -1;//should avoid the normal cd done before
         if(strlen(afterTar)){
             if(cd_in_tar(afterTar, memory) == -1){//if error we should't have done the first part
-                //restore the memory
+                saveMemory(&save, memory);
+                return -1;
             }
             return 0;
         } 
