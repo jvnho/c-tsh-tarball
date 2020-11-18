@@ -13,8 +13,9 @@
 
 #define BUFSIZE 512
 char firstDir[BUFSIZE];
-char *concate_string(char *s1, char *s2);
+tsh_memory save;//save so we can retore in case of error
 
+char *concate_string(char *s1, char *s2);
 int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     lseek(descriptor, 0, SEEK_SET);
 
@@ -108,8 +109,13 @@ int cd(char *directory, tsh_memory *memory){
     }
     //if the is a directory.tar we instanciate the memory, and continue with the afterTar if it exists
     if(strlen(tarName)){
-        if(instanciate_tsh_memory(tarName, memory)==-1) return -1;
-        if(strlen(afterTar)) return cd_in_tar(afterTar, memory);//if error we should't have done the first part
+        if(instanciate_tsh_memory(tarName, memory)==-1) return -1;//should avoid the normal cd done before
+        if(strlen(afterTar)){
+            if(cd_in_tar(afterTar, memory) == -1){//if error we should't have done the first part
+                //restore the memory
+            }
+            return 0;
+        } 
     }
     return 0;
 }
