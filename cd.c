@@ -73,7 +73,7 @@ int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in
                 if(strlen(memory->tar_descriptor) == 0){//check if the fist .. doesn't get us out of the tar
                     return cd(directory + 3, memory);
                 }
-                return cp_in_tar(directory+3, memory);
+                return cd_in_tar(directory+3, memory);
             }
         }else{
             //traiter les .. du milieu
@@ -86,7 +86,6 @@ int cd(char *directory, tsh_memory *memory){
     if(in_a_tar(memory)){//in a anormal circumstances
         return cd_in_tar(directory, memory);
     }
-
     // beforeTar/ directory.tar / afterTar
     char beforeTar[512]; char tarName[512]; char afterTar[512];
     //instanciate the format befor/ inside/ after (tar)
@@ -103,7 +102,7 @@ int cd(char *directory, tsh_memory *memory){
     //if the is a directory.tar we instanciate the memory, and continue with the afterTar if it exists
     if(strlen(tarName)){
         if(instanciate_tsh_memory(tarName, memory)==-1) return -1;
-        if(strlen(afterTar)) return cd_in_tar(afterTar, memory->FAKE_PATH, memory->tar_descriptor, memory->tar_name);
+        if(strlen(afterTar)) return cd_in_tar(afterTar, memory);
     }
     return 0;
 }
