@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#define BUFSIZE 512
 typedef struct position_mots{
     int debut;
     int fin;
@@ -194,4 +195,11 @@ char* octal_to_string(char *mode){
         }
     }
     return ret;
+}
+//fill the first dir/ in source into the result
+int getFirstDir(char *source, char *result){
+    memset(result, 0, sizeof(char)*512);
+    int index_first_slach = get_index_first_slach(source);
+    memcpy(result, source, index_first_slach + 1);
+    return index_first_slach;
 }

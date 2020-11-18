@@ -10,12 +10,11 @@
 #include "tar.h"
 #include "tsh_memory.h"
 #include "string_traitement.h"
+
 #define BUFSIZE 512
-char removedPointPoin[BUFSIZE];
+char firstDir[BUFSIZE];
 char *concate_string(char *s1, char *s2);
-void removePointPoint(char * directory){
-    
-}
+
 int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     lseek(descriptor, 0, SEEK_SET);
 
@@ -80,7 +79,10 @@ int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in
                 return cd_in_tar(directory+3, memory);
             }
         }else{
-            //traiter les .. du milieu
+            //  doss/../doss2
+            //getFirstDir(directory, firstDir);
+            //cd_in_tar(firstDir, memory);
+            //cd_in_tar(reste)
         }
     }
     return 0;
