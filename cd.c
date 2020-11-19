@@ -14,7 +14,7 @@
 #define BUFSIZE 512
 char firstDir[BUFSIZE];
 tsh_memory save;//save so we can retore in case of error
-
+int shouldSave = 1;
 char *concate_string(char *s1, char *s2);
 int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     lseek(descriptor, 0, SEEK_SET);
@@ -75,7 +75,7 @@ int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in
             reduceFakePath(directory, memory->FAKE_PATH, memory->tar_descriptor, memory->tar_name);//we have done the first ../
             if(strlen(directory)>3){// ../somethig
                 if(strlen(memory->tar_descriptor) == 0){//check if the fist .. doesn't get us out of the tar
-                    printf("Sortiiiii\n");
+                    shouldSave = 0;
                     return cd(directory + 3, memory);//save valeur corrompu
                 }
                 return cd_in_tar(directory+3, memory);
@@ -92,13 +92,19 @@ int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in
 }
 
 int cd(char *directory, tsh_memory *memory){
-    saveMemory(memory, &save);
+    if(shouldSave){
+        saveMemory(memory, &save);
+    }
     if(in_a_tar(memory)){//in a anormal circumstances
         if(cd_in_tar(directory, memory)==-1){
-            saveMemory(&save, memory);
+            saveMemory(&save, memory);//restore
+            shouldSave = 1;
+            chdir(memory->REAL_PATH);
             return -1;
         }
-        //if we did well we should check if we get out the tar so we need to close the descriptor
+        else if(in_a_tar(memory)==0){
+            close(string_to_int(save.tar_descriptor));
+        }
         return 0;
     }
     // beforeTar/ directory.tar / afterTar
@@ -111,9 +117,9 @@ int cd(char *directory, tsh_memory *memory){
     if(strlen(beforeTar)){
         if(chdir(beforeTar)==-1){
             perror("");
-            printf("befor tar = %s\n", beforeTar);
-            printf("tar_name = %s\n", save.tar_name);
             saveMemory(&save, memory);//error
+            shouldSave = 1;
+            chdir(memory->REAL_PATH);
             return -1;
         }
     }
@@ -123,6 +129,8 @@ int cd(char *directory, tsh_memory *memory){
         if(strlen(afterTar)){
             if(cd_in_tar(afterTar, memory) == -1){//if error we should't have done the first part
                 saveMemory(&save, memory);
+                shouldSave = 1;
+                chdir(memory->REAL_PATH);
                 return -1;
             }
             return 0;

@@ -75,6 +75,7 @@ void saveMemory(tsh_memory *initial, tsh_memory *save){
     memset(save, 0, sizeof(struct tsh_memory));
     strcpy(save->FAKE_PATH, initial->FAKE_PATH);
     strcpy(save->tar_name, initial->tar_name);
+    strcpy(save->REAL_PATH, initial->REAL_PATH);
     strcpy(save->tar_descriptor, initial->tar_descriptor);
 }
 
