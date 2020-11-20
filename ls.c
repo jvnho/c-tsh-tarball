@@ -4,20 +4,19 @@
 #include <stdio.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
+#include "ls.h"
 #include "tar.h"
 #include "tsh_memory.h"
-#include "ls.h"
+#include "string_traitement.h"
 
 void ls_in_tar(int,char*,int);
-int is_in_array(char*);
-void print_ls_to_STROUT(int);
-void fill_info_array(struct posix_header);
-
-char ARRAY[128][255]; //allow to keep the file or repository to display
-char FILE_INFO[128][255]; // allow to keep file info (i.e size, uname, gname,...) if -l is given as argument
-int NUM_FILE = 0; //keeps a track of the size of ARRAY
-char CUT_PATH[255];//FILE_PATH: path of the file , CUT_PATH = filename cut from the path
+int is_in_array(char*, struct ls_memory);
+void print_ls_to_STROUT(int, struct ls_memory);
+void fill_info_array(struct posix_header, struct ls_memory*);
+void clear_struct(struct ls_memory*);
 
 int ls(tsh_memory *memory){
     //user is in tarball
@@ -38,9 +37,11 @@ int ls(tsh_memory *memory){
     return 1;
 }
 
+//PATH is either the PATH given by the tsh_memory or its concatenation with a directory/file
 void ls_in_tar(int fd, char* PATH, int arg_l){
     lseek(fd, 0, SEEK_SET);
     struct posix_header hd;
+    struct ls_memory mem;
     while(read(fd, &hd, BLOCKSIZE) > 0){ //reading the entire tarball
         //checking if the current file/repository belongs to the given PATH and if it's not itself (to not print in)
         if(strncmp(hd.name, PATH, strlen(PATH)) == 0 && strcmp(PATH,hd.name) != 0){
@@ -49,14 +50,15 @@ void ls_in_tar(int fd, char* PATH, int arg_l){
             while(hd.name[i] != '\0' && hd.name[i] != '/' ){
                 i++; taille_nom++;
             }
-            strncpy(CUT_PATH, hd.name+strlen(PATH), taille_nom); //"cutting" the filepath
+            char CUT_PATH[255];//CUT_PATH = file or directory name cut from its path
+            strncpy(CUT_PATH, hd.name+strlen(PATH), taille_nom); //"cutting" the name from its path
             CUT_PATH[taille_nom++] = '\0';
 
-            if( is_in_array(CUT_PATH) == 0){ //checking if the file is not is the array (to not print in more than once)
+            if( is_in_array(CUT_PATH, mem) == 0){ //checking if the file is not is the array (to not print in more than once)
                 if(arg_l == 1){
-                    fill_info_array(hd);//making FILE_INFO's array if -l argument is given
+                    fill_info_array(hd, &mem);//making FILE_INFO's array if -l argument is given
                 }
-                strcpy(ARRAY[NUM_FILE++], CUT_PATH);//copying CUT_PATH(i.e file/rep name to ARRAY)
+                strcpy(mem.NAME[ (mem.NUMBER)++ ], CUT_PATH);//copying CUT_PATH(i.e file/rep name to ARRAY)
             }
         }
         //allow to jump to the next hd block
@@ -65,32 +67,15 @@ void ls_in_tar(int fd, char* PATH, int arg_l){
         int nb_bloc_fichier = (filesize + 512 -1) / 512;
         lseek(fd,512*nb_bloc_fichier, SEEK_CUR);
     }
-    print_ls_to_STROUT(arg_l);
+    print_ls_to_STROUT(arg_l, mem);
+    clear_struct(&mem);
 }
 
-int is_in_array(char *string){ //checking if string is in ARRAY
-    for(int i = 0; i < NUM_FILE; i++){
-        if(strcmp(string, ARRAY[i]) == 0) return 1;
+int is_in_array(char *string, struct ls_memory mem){ //checking if string is in ls_memory's NAME array
+    for(int i = 0; i < mem.NUMBER; i++){
+        if(strcmp(string, mem.NAME[i]) == 0) return 1;
     }
     return 0;
-}
-
-char* octal_to_string(char *mode){
-    char *ret = malloc(sizeof(char)*9);
-    ret[0] = '\0';
-        for(int i = 0; i < strlen(mode); i++){
-        switch(mode[i]){
-            case '1': strcat(ret,"r--"); break;
-            case '2': strcat(ret,"-w-"); break;
-            case '4': strcat(ret,"--x"); break;
-            case '3': strcat(ret,"rw-"); break;
-            case '5': strcat(ret,"r-x"); break;
-            case '6': strcat(ret,"-wx"); break;
-            case '7': strcat(ret,"rwx"); break;
-            default: break;//if char == 'zero' it does nothing (i.e mode is 00666, 00111,...)
-        }
-    }
-    return ret;
 }
 
 char is_file_or_repository(char typeflag){
@@ -98,27 +83,36 @@ char is_file_or_repository(char typeflag){
         return 'd';
 }
 
-void fill_info_array(struct posix_header hd){
+void fill_info_array(struct posix_header hd, struct ls_memory *mem){ //filling ls_memory's INFO array
     int filesize = 0;
     sscanf(hd.size,"%o",&filesize);
     char c[(strlen(hd.uname)+strlen(hd.gname)+strlen(hd.size)+12) * sizeof(char)];
     sprintf(c, "%c%s %s %s %d", is_file_or_repository(hd.typeflag), octal_to_string(hd.mode), hd.uname, hd.gname, filesize);
-    strcpy(FILE_INFO[NUM_FILE], c);
+    strcpy(mem->INFO[mem->NUMBER], c);
 }
 
-void print_ls_to_STROUT(int arg_l){
-    if(arg_l == 0){
-        for(int i = 0; i < NUM_FILE; i++)
-            write(1, strcat(ARRAY[i]," "), strlen(ARRAY[i])+2);
-        write(1,"\n",1);
-    } else { //print with -l
-        for(int i = 0; i < NUM_FILE; i++){
-            write(1, strcat(FILE_INFO[i]," "), strlen(FILE_INFO[i])+1);
-            write(1, strcat(ARRAY[i]," \n"), strlen(ARRAY[i])+2);
-        }
+void print_ls_l(struct ls_memory mem){ //if option -l was given by user
+    for(int i = 0; i < mem.NUMBER; i++){
+        write(1, strcat(mem.INFO[i]," "), strlen(mem.INFO[i])+1);
+        write(1, strcat(mem.NAME[i]," \n"), strlen(mem.NAME[i])+2);
     }
 }
 
-char *getArg(char* cmd){
-    return strstr(cmd,"-");
+void print_ls(struct ls_memory mem){//if no option was given
+    for(int i = 0; i < mem.NUMBER; i++)
+        write(1, strcat(mem.NAME[i]," "), strlen(mem.NAME[i])+2);
+    write(1,"\n",1);
+}
+
+void print_ls_to_STROUT(int arg_l, struct ls_memory mem){
+    if(mem.NUMBER > 0){ //if there is at least one file/directory to display
+        if(arg_l == 0) print_ls(mem);
+        else print_ls_l(mem);
+    }
+}
+
+void clear_struct(struct ls_memory *mem){
+    mem-> NUMBER = 0;
+    memset(mem->NAME, 0, sizeof(mem->NAME));
+    memset(mem->INFO, 0, sizeof(mem->INFO));
 }

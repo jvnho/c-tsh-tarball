@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#define BUFSIZE 512
 typedef struct position_mots{
     int debut;
     int fin;
@@ -67,7 +68,7 @@ int string_to_int(char *chiffre){
     }
     return resultat;
 }
-int getDigitLength(int chiffre){//the numbre of digit 
+int getDigitLength(int chiffre){//the numbre of digit
     int counter = 0;
     while(chiffre%10!=0){
         counter++;
@@ -102,7 +103,7 @@ char *int_to_string(int chiffre){
 }
 //voir le cas ou dir se termine par un slach
 char * concatString(char * path, char *dir){
-    
+
     int length = strlen(path)+strlen(dir)+2;
     char * result = malloc(length);
     strcpy(result, path);
@@ -165,4 +166,47 @@ void getPostTar(char *initial_string, char *result){
     if(begin_index > len_initial) return;//the .tar is at the end -> also don't have a postTar
     memcpy(result, initial_string + begin_index, len_initial - begin_index + 1);
     result[len_initial - begin_index + 1] = '\0';
+}
+
+//returns the position of the (second) slash from the end, if not found it returns -1
+int get_prev_directory(char *path){
+    int index = strlen(path)-2; //PATH[strlen(PATH)-2] already equals to a slash
+    while(index >= 0){
+        if(path[index] == '/')
+            return index;
+        index--;
+    }
+    return -1;
+}
+
+char* octal_to_string(char *mode){
+    char *ret = malloc(sizeof(char)*9);
+    ret[0] = '\0';
+        for(int i = 0; i < strlen(mode); i++){
+        switch(mode[i]){
+            case '1': strcat(ret,"r--"); break;
+            case '2': strcat(ret,"-w-"); break;
+            case '4': strcat(ret,"--x"); break;
+            case '3': strcat(ret,"rw-"); break;
+            case '5': strcat(ret,"r-x"); break;
+            case '6': strcat(ret,"-wx"); break;
+            case '7': strcat(ret,"rwx"); break;
+            default: break;//if char == 'zero' it does nothing (i.e mode is 00666, 00111,...)
+        }
+    }
+    return ret;
+}
+int firstSlach(char *dir){
+    int len = strlen(dir);
+    for(int i = 0; i<len; i++){
+        if(dir[i]=='/')return i;
+    }
+    return -1;
+}
+//fill the first dir/ in source into the result
+int getFirstDir(char *source, char *result){
+    memset(result, 0, sizeof(char)*512);
+    int index_first_slach = firstSlach(source);
+    memcpy(result, source, index_first_slach + 1);
+    return index_first_slach;
 }
