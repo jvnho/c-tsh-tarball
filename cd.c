@@ -15,7 +15,9 @@
 char firstDir[BUFSIZE];
 tsh_memory save;//save so we can retore in case of error
 int shouldSave = 1;
+
 char *concate_string(char *s1, char *s2);
+
 int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     lseek(descriptor, 0, SEEK_SET);
 
@@ -54,8 +56,17 @@ int cd(char *directory, tsh_memory *memory);
 //directory is the argument given, PATH is the path from tsh_memory
 int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in the memory
     //char *PATH, char *tar_fd, char *tar_name
-    if(strcmp(".",directory)==0) return 0;
-    //remove . in the directory
+    if(strstr(".",directory) == 0){ //remove . from "directory"
+        char *tmp;
+        while( (tmp = strstr(directory,".")) != NULL){
+            int length = tmp - directory ; //nombre de caractère avant .
+            char *buf = malloc(sizeof(char)* (strlen(directory)-2));
+            strncpy(buf,directory, length);
+            strcat(buf,tmp+2);
+            directory = buf;
+        }
+    }
+    
     if(strstr(directory, "..") == NULL) {//doesn't contains substring ".."
 
         int tar_descriptor = atoi(memory->tar_descriptor);
@@ -134,7 +145,7 @@ int cd(char *directory, tsh_memory *memory){
                 return -1;
             }
             return 0;
-        } 
+        }
     }
     return 0;
 }
