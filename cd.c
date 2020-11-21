@@ -57,6 +57,9 @@ void remove_dot_from_dir(char * directory);
 //directory is the argument given, PATH is the path from tsh_memory
 int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in the memory
     //char *PATH, char *tar_fd, char *tar_name
+    if(strcmp(directory,"."1) == 0){ //ne marche pas encore, ça ne détecte pas le point sur l'entrée  standard
+        return 0;
+    }
     if(strstr(directory, "..") == NULL) {//doesn't contains substring ".."
 
         int tar_descriptor = atoi(memory->tar_descriptor);
@@ -149,7 +152,6 @@ void remove_dot_from_dir(char *directory){
 
     //end of the string
     while(1){
-        printf("%s\n",directory);
         int dir_length = strlen(directory);
         if(directory[dir_length-1] == '/' && directory[dir_length-2] == '.' && directory[dir_length-3] != '.'){ // cd doss1/./
             strncpy(directory, directory, dir_length-2);
