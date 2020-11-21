@@ -143,19 +143,25 @@ int cd(char *directory, tsh_memory *memory){
 
 void remove_dot_from_dir(char *directory){
     //beginning of the string
-    if(directory[0] == '.' && (directory[1] != '.' && directory[1] == '/') ){
+    while(directory[0] == '.' && (directory[1] != '.' && directory[1] == '/')){ // if "././././dos1" entered
         strcpy(directory,directory+2);
     }
+
     //end of the string
-    int dir_length = strlen(directory);
-    if(directory[dir_length-1] == '/' && directory[dir_length-2] == '.' && directory[dir_length-3] != '.'){ // cd doss1/./
-        strncpy(directory, directory, dir_length-2);
-    } else if(directory[dir_length-1] == '.' && directory[dir_length-2] != '.'){ // cd doss1/.
-        strncpy(directory, directory, dir_length-1);
+    while(1){
+        printf("%s\n",directory);
+        int dir_length = strlen(directory);
+        if(directory[dir_length-1] == '/' && directory[dir_length-2] == '.' && directory[dir_length-3] != '.'){ // cd doss1/./
+            strncpy(directory, directory, dir_length-2);
+            directory[dir_length-2] = '\0';
+        } else if(directory[dir_length-1] == '.' && directory[dir_length-2] != '.'){ // cd doss1/.
+            //strncpy(directory, directory, dir_length-1);
+            directory[dir_length-1] = '\0';
+        } else break;
     }
     //anywhere in middle of the string
     char *tmp;
-    while( (tmp = strstr(directory,"/./")) != NULL){
+    while( (tmp = strstr(directory,"/./")) != NULL){ //while there are /./ found in the string
         int length = tmp - directory ; //number of char before the "/."
         char *buf = malloc(sizeof(char)* (strlen(directory)-2));
         strncpy(buf,directory, length);
