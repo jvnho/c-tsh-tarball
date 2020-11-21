@@ -142,11 +142,20 @@ int cd(char *directory, tsh_memory *memory){
 }
 
 void remove_dot_from_dir(char *directory){
-    if(directory[0] == '.' && (directory[1] != '.' && directory[1] == '/') ){ //if it's not a ".."
+    //beginning of the string
+    if(directory[0] == '.' && (directory[1] != '.' && directory[1] == '/') ){
         strcpy(directory,directory+2);
     }
+    //end of the string
+    int dir_length = strlen(directory);
+    if(directory[dir_length-1] == '/' && directory[dir_length-2] == '.' && directory[dir_length-3] != '.'){ // cd doss1/./
+        strncpy(directory, directory, dir_length-2);
+    } else if(directory[dir_length-1] == '.' && directory[dir_length-2] != '.'){ // cd doss1/.
+        strncpy(directory, directory, dir_length-1);
+    }
+    //anywhere in middle of the string
     char *tmp;
-    while( (tmp = strstr(directory,"/.")) != NULL){
+    while( (tmp = strstr(directory,"/./")) != NULL){
         int length = tmp - directory ; //number of char before the "/."
         char *buf = malloc(sizeof(char)* (strlen(directory)-2));
         strncpy(buf,directory, length);
