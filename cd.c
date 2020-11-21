@@ -52,21 +52,11 @@ void reduceFakePath(char * directory, char *PATH, char *tar_fd, char *tar_name){
         }
 }
 int cd(char *directory, tsh_memory *memory);
+void remove_dot_from_dir(char * directory);
 
 //directory is the argument given, PATH is the path from tsh_memory
 int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in the memory
     //char *PATH, char *tar_fd, char *tar_name
-    if(strstr(".",directory) == 0){ //remove . from "directory"
-        char *tmp;
-        while( (tmp = strstr(directory,".")) != NULL){
-            int length = tmp - directory ; //nombre de caractère avant .
-            char *buf = malloc(sizeof(char)* (strlen(directory)-2));
-            strncpy(buf,directory, length);
-            strcat(buf,tmp+2);
-            directory = buf;
-        }
-    }
-    
     if(strstr(directory, "..") == NULL) {//doesn't contains substring ".."
 
         int tar_descriptor = atoi(memory->tar_descriptor);
@@ -85,9 +75,9 @@ int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in
         if(directory[0] == '.'){//we are starting by ../
             reduceFakePath(directory, memory->FAKE_PATH, memory->tar_descriptor, memory->tar_name);//we have done the first ../
             if(strlen(directory)>3){// ../somethig
-                if(strlen(memory->tar_descriptor) == 0){//check if the fist .. doesn't get us out of the tar
+                if(strlen(memory->tar_descriptor) == 0){//check if the first .. doesn't get us out of the tar
                     shouldSave = 0;
-                    return cd(directory + 3, memory);//save valeur corrompu
+                    return cd(directory + 3, memory);
                 }
                 return cd_in_tar(directory+3, memory);
             }
@@ -107,6 +97,7 @@ int cd(char *directory, tsh_memory *memory){
         saveMemory(memory, &save);
     }
     if(in_a_tar(memory)){//in a anormal circumstances
+        remove_dot_from_dir(directory);
         if(cd_in_tar(directory, memory)==-1){
             saveMemory(&save, memory);//restore
             shouldSave = 1;
@@ -148,6 +139,20 @@ int cd(char *directory, tsh_memory *memory){
         }
     }
     return 0;
+}
+
+void remove_dot_from_dir(char *directory){
+    if(directory[0] == '.' && (directory[1] != '.' && directory[1] == '/') ){ //if it's not a ".."
+        strcpy(directory,directory+2);
+    }
+    char *tmp;
+    while( (tmp = strstr(directory,"/.")) != NULL){
+        int length = tmp - directory ; //number of char before the "/."
+        char *buf = malloc(sizeof(char)* (strlen(directory)-2));
+        strncpy(buf,directory, length);
+        strcat(buf,tmp+2);
+        strcpy(directory,buf);
+    }
 }
 
 
