@@ -13,19 +13,20 @@
 #include "tsh_memory.h"
 #include "string_traitement.h"
 
-tsh_memory old_memory; //so we can restore the old memory
+tsh_memory old_memory; //will be use to save/restore a memory
 
 void ls_in_tar(int,char*,int);
 
 int ls(tsh_memory *memory, char args[][50], int nb_arg){
-    if(nb_arg == 1){
-        ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, 0);
+    int option = (nb_arg > 1 && (strcmp(args[1],"-l") == 0))? 1:0;
+    if(nb_arg == 1 || (nb_arg == 2 && strcmp(args[1],"-l") == 0)){
+        ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option);
     } else {
-        for(int i = 1; i < nb_arg; i++){
+        for(int i = (option == 1) ? 2:1; i < nb_arg; i++){
             saveMemory(memory, &old_memory); //stores memory inside old_memory
             if(cd(args[i], memory) > -1){
                 if(in_a_tar(memory) == 1){ //user is in tarball
-                    ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, 0);
+                    ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option);
                 }
                 saveMemory(&old_memory, memory); //restore memmory from old_memory to memory
             }
