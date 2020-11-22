@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <wait.h>
+
 #include "tsh_memory.h"
 #include "cd.h"
 #include "pwd.h"
@@ -11,12 +13,14 @@
 #include "rmdir.h"
 #include "tsh_memory.h"
 #include "string_traitement.h"
+
 char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir"};
 #define NB_FUN 6
 char args[50][50];
 int i_args = 0;
 const char space[2] = " ";
 int returnval;
+
 void fillArgs(char *commande){
     //fill by token
     char com[512];
@@ -66,19 +70,22 @@ int adapter_mkdir(tsh_memory *memory){
     return mkdir(args[1], memory);
 }
 int adapter_ls(tsh_memory *memory){
-    return ls(memory);
+    return ls(memory,args,i_args);
 }
 int adapter_rmdir(tsh_memory *memory){
     return rmdir_func(memory, args[1]);
 }
+
 typedef int (*pt_adapter) (tsh_memory *memory);//declaration pointer of function
 pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls, adapter_rmdir};
+
 int getFuncitonIndex(char *name){
     for(int i=0; i<NB_FUN; i++){
         if(strcmp(name, listCommande[i])==0)return i;
     }
     return -1;
 }
+
 int execSimpleCommande(tsh_memory *memory){
     fillArgs(memory->comand);
     int fun_index = getFuncitonIndex(args[0]);
