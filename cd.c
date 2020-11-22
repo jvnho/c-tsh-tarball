@@ -52,7 +52,6 @@ void reduceFakePath(char * directory, char *PATH, char *tar_fd, char *tar_name){
         }
 }
 int cd(char *directory, tsh_memory *memory);
-void remove_dot_from_dir(char * directory);
 
 //directory is the argument given, PATH is the path from tsh_memory
 int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in the memory
@@ -100,7 +99,7 @@ int cd(char *directory, tsh_memory *memory){
         saveMemory(memory, &save);
     }
     if(in_a_tar(memory)){//in a anormal circumstances
-        remove_dot_from_dir(directory);
+        remove_simple_dot_from_dir(directory); // remove eventual ./, /./, /. from the directory (details: string_traitement.c)
         if(cd_in_tar(directory, memory)==-1){
             saveMemory(&save, memory);//restore
             shouldSave = 1;
@@ -144,38 +143,8 @@ int cd(char *directory, tsh_memory *memory){
     return 0;
 }
 
-void remove_dot_from_dir(char *directory){
-    //beginning of the string
-    while(directory[0] == '.' && (directory[1] != '.' && directory[1] == '/')){ // if "././././dos1" entered
-        strcpy(directory,directory+2);
-    }
-
-    //end of the string
-    while(1){
-        int dir_length = strlen(directory);
-        if(directory[dir_length-1] == '/' && directory[dir_length-2] == '.' && directory[dir_length-3] != '.'){ // cd doss1/./
-            strncpy(directory, directory, dir_length-2);
-            directory[dir_length-2] = '\0';
-        } else if(directory[dir_length-1] == '.' && directory[dir_length-2] != '.'){ // cd doss1/.
-            //strncpy(directory, directory, dir_length-1);
-            directory[dir_length-1] = '\0';
-        } else break;
-    }
-    //anywhere in middle of the string
-    char *tmp;
-    while( (tmp = strstr(directory,"/./")) != NULL){ //while there are /./ found in the string
-        int length = tmp - directory ; //number of char before the "/."
-        char *buf = malloc(sizeof(char)* (strlen(directory)-2));
-        strncpy(buf,directory, length);
-        strcat(buf,tmp+2);
-        strcpy(directory,buf);
-    }
-}
-
-
 char *concate_string(char *s1, char *s2){
     char *ret = malloc((strlen(s1)+strlen(s2)+1)*sizeof(char));
     sprintf(ret,"%s%s%c", s1, s2, '\0');
     return ret;
 }
-//create fun comback chdir
