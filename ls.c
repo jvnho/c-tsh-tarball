@@ -16,23 +16,40 @@
 tsh_memory old_memory; //will be use to save/restore a memory
 
 void ls_in_tar(int,char*,int);
+void exec_ls(char*);
 
 int ls(tsh_memory *memory, char args[][50], int nb_arg){
     int option = (nb_arg > 1 && (strcmp(args[1],"-l") == 0))? 1:0;
-    if(nb_arg == 1 || (nb_arg == 2 && strcmp(args[1],"-l") == 0)){
-        ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option);
+
+    if(nb_arg == 1 || (nb_arg == 2 && strcmp(args[1],"-l") == 0)){ //no path given
+        if(in_a_tar(memory) == 1) ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option);
+        else exec_ls(NULL);
     } else {
         for(int i = (option == 1) ? 2:1; i < nb_arg; i++){
             saveMemory(memory, &old_memory); //stores memory inside old_memory
-            if(cd(args[i], memory) > -1){
-                if(in_a_tar(memory) == 1){ //user is in tarball
+            if(cd(args[i], memory) > -1){ //cd-ing to the directory location
+                if(in_a_tar(memory) == 1)
                     ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option);
-                }
-                saveMemory(&old_memory, memory); //restore memmory from old_memory to memory
+                else
+                    exec_ls(NULL);
+                saveMemory(&old_memory, memory); //restoring memory (i.e restoring old path)
+                if(chdir(memory->REAL_PATH) == -1) printf("marche po\n"); //TODO:
             }
         }
     }
     return 1;
+}
+
+void exec_ls(char *option){
+    int r = fork();
+    if(r == 0){ //child processus
+        if(option != NULL)
+            execlp("ls", "ls", option, NULL);
+        else
+            execlp("ls", "ls", NULL);
+    } else {
+        wait(NULL); //parent processus
+    }
 }
 
 int is_in_array(char*, struct ls_memory);
