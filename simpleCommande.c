@@ -143,9 +143,10 @@ int getFuncitonIndex(char *name){
 int execSimpleCommande(tsh_memory *memory){
     resetCommand();
     fillCo(memory->comand);
-    /*
-    int fun_index = getFuncitonIndex(args[0]);
+    
+    //int fun_index = getFuncitonIndex(co);
     //check if in our command list
+    /*
     if(fun_index<0){
         int pid_fils = fork();
         if(pid_fils==0){
