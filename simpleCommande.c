@@ -40,7 +40,38 @@ void fillArgs(char *commande){
     }
 }
 void fillOptions(char *commande){
-    if(strstr(commande, "-")==NULL)fillArgs(commande);
+    if(strstr(commande, "-")==NULL){
+        fillArgs(commande);
+    }else{
+        
+        char com[512];
+        strcpy(com, commande);
+        com[strlen(commande)] = '\0';
+        char *read;
+        read = strtok(com, space);
+        int size_options = 0;
+        while(read != NULL){
+
+            if(read[0] == '-'){//an option
+                strcpy(option[i_option], read);
+                option[i_option][strlen(read)] = '\0';
+                i_option++;
+                size_options = size_options + strlen(read) + 1;
+                if(read[1]=='m'){//mode
+                    read = strtok(NULL, space);
+                    strcpy(option[i_option], read);
+                    option[i_option][strlen(read)] = '\0';
+                    i_option++;
+                    size_options = size_options + strlen(read) + 1;
+                }
+            }else{
+                fillArgs(commande + size_options);
+            }
+            read = strtok(NULL, space);
+
+        }
+    }
+    
 }
 void fillCo(char *commande){
     char com[512];
@@ -112,7 +143,6 @@ int getFuncitonIndex(char *name){
 int execSimpleCommande(tsh_memory *memory){
     resetCommand();
     fillCo(memory->comand);
-    fillArgs(memory->comand);
     /*
     int fun_index = getFuncitonIndex(args[0]);
     //check if in our command list
