@@ -13,6 +13,9 @@
 #include "string_traitement.h"
 char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir"};
 #define NB_FUN 6
+char co[50];
+char option[50][50];
+int i_option = 0;
 char args[50][50];
 int i_args = 0;
 const char space[2] = " ";
@@ -40,6 +43,12 @@ void resetArgs(){
         memset(args[i], 0, 50);
     }
     i_args = 0;
+}
+void restOptions(){
+    for(int i= 0; i<i_option; i++){
+        memset(option[i], 0, 50);
+    }
+    i_option = 0;
 }
 //we can't pass just args throug exec because there is not null at the end, and we can't write arg[i]= NULL, because arg is unmodifiable, so no choice Malloc :/
 char ** argsPlusNULL(){
@@ -93,7 +102,6 @@ int execSimpleCommande(tsh_memory *memory){
             waitpid(pid_fils, &status, WUNTRACED);
         }
     }else {//all the command in our list
-        //C'est la il y a pas de if (*_*)
         returnval = (*(listFun[fun_index]))(memory);//invok the appropriate function
     }
     resetArgs();
