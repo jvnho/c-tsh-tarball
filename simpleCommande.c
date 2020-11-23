@@ -20,6 +20,7 @@ char args[50][50];
 int i_args = 0;
 const char space[2] = " ";
 int returnval;
+
 void fillArgs(char *commande){
     //fill by token
     char com[512];
@@ -37,6 +38,18 @@ void fillArgs(char *commande){
         i_args++;
         read = strtok(NULL, space);
     }
+}
+void fillCo(char *commande){
+    char com[512];
+    strcpy(com, commande);
+    com[strlen(commande)] = '\0';
+    char *read;
+    read = strtok(com, space);
+    if(read!=NULL){
+        strcpy(co, read);
+        co[strlen(read)] = '\0';
+    }
+    printf("command = %s\n", co);
 }
 void resetArgs(){
     for(int i = 0; i<i_args; i++){
@@ -95,6 +108,7 @@ int getFuncitonIndex(char *name){
 }
 int execSimpleCommande(tsh_memory *memory){
     resetCommand();
+    fillCo(memory->comand);
     fillArgs(memory->comand);
     int fun_index = getFuncitonIndex(args[0]);
     //check if in our command list
