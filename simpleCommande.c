@@ -44,11 +44,16 @@ void resetArgs(){
     }
     i_args = 0;
 }
-void restOptions(){
+void resetOptions(){
     for(int i= 0; i<i_option; i++){
         memset(option[i], 0, 50);
     }
     i_option = 0;
+}
+void resetCommand(){//reste every things
+    memset(co, 0, 50);
+    resetOptions();
+    resetArgs();
 }
 //we can't pass just args throug exec because there is not null at the end, and we can't write arg[i]= NULL, because arg is unmodifiable, so no choice Malloc :/
 char ** argsPlusNULL(){
@@ -89,6 +94,7 @@ int getFuncitonIndex(char *name){
     return -1;
 }
 int execSimpleCommande(tsh_memory *memory){
+    resetCommand();
     fillArgs(memory->comand);
     int fun_index = getFuncitonIndex(args[0]);
     //check if in our command list
@@ -104,6 +110,5 @@ int execSimpleCommande(tsh_memory *memory){
     }else {//all the command in our list
         returnval = (*(listFun[fun_index]))(memory);//invok the appropriate function
     }
-    resetArgs();
     return returnval;
 }
