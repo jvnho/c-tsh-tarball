@@ -13,7 +13,7 @@
 #include "tsh_memory.h"
 #include "ls.h"
 
-void displat(char *str);
+void display(char *str);
 void cat_all();
 int cat(tsh_memory *memory);
 void cat_in_tar(int desc, char* path);
@@ -76,47 +76,33 @@ int cat(int desc, char **args, int arg){
 void cat_in_tar(int desc, char* path){ 
     lseek(desc, 0, SEEK_SET);
 
-    struct posix_header *header = malloc(512); //
+    struct posix_header header; //
 
-    if(header == NULL){
+    if(&header == NULL){
         return 0;
 
     }
 
-   if(path != NULL){ 
-
-    while(read(desc, header, BLOCKSIZE) > 0){ // blocksize = 512
-        if(header-> typeflag == '0'){//if file pointed by header is a ordinary file
-            strncpy(myPath, header->name, strlen(path));
-            if(strcmp(myPath,path) == 0 && strcmp(myPath,header->name) != 0){
-                int myFile = 0;
-                sscanf(header->size, "%o", &myFile);
-                char buffer[*header->size];
-                read(desc, buffer, &myFile);
+    while(read(desc, &header, BLOCKSIZE) > 0){ // blocksize = 512
+            int filesize = 0;
+            sscanf(header.size, "%o", &filesize);
+            int nb_fichier = (filesize + 512-1) /512;
+        
+            
+            if(strcmp(header.name, path)==0){
+                char buffer[nb_fichier*512];
+                read(desc, buffer,nb_fichier);
                 write(1, buffer, strlen(buffer));
                 //display(header);
                 //condition
                 //display(header); //display
-            } else {
-                //jump to the next header block
-                int file_s = 0;
-                sscanf(header->size, "%o", &file_s);
-                int nb_bloc_fichier = (file_s + 512 -1) / 512;
-                for(int i = 0; i < nb_bloc_fichier; i++){
-                    read(desc, header, BLOCKSIZE);
-                //sans afficher car out of condition
-                }
+            } 
+            lseek(desc,nb_fichier*512, SEEK_CUR);
             }
-        }
+            cat_all();
+        
     }
 
-    //display all without conditions
-    cat_all();
-
-        return 0;
-
-   }
-    }
 
 /*
 // write like printf("")
