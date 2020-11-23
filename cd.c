@@ -66,7 +66,7 @@ int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in
                 strcat(memory->FAKE_PATH, concatString(directory, ""));//concat that add  / at the end
             return 0;
         }else{
-            write(1, "no such directory\n", strlen("no such directory\n"));
+            write(1, "Noo such directory\n", strlen("Noo such directory\n"));
             return -1;
         }
     }
@@ -129,8 +129,9 @@ int cd(char *directory, tsh_memory *memory){
         if(strlen(afterTar)){
             if(cd_in_tar(afterTar, memory) == -1){//if error we should't have done the first part
                 saveMemory(&save, memory);
-                shouldSave = 1;
+                memory->REAL_PATH[strlen(memory->REAL_PATH)-2] = '\0';
                 chdir(memory->REAL_PATH);
+                shouldSave = 1;
                 return -1;
             }
             return 0;
