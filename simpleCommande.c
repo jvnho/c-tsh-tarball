@@ -39,6 +39,9 @@ void fillArgs(char *commande){
         read = strtok(NULL, space);
     }
 }
+void fillOptions(char *commande){
+    if(strstr(commande, "-")==NULL)fillArgs(commande);
+}
 void fillCo(char *commande){
     char com[512];
     strcpy(com, commande);
@@ -49,7 +52,7 @@ void fillCo(char *commande){
         strcpy(co, read);
         co[strlen(read)] = '\0';
     }
-    printf("command = %s\n", co);
+    fillOptions(commande + (strlen(co) + 1));
 }
 void resetArgs(){
     for(int i = 0; i<i_args; i++){
@@ -110,6 +113,7 @@ int execSimpleCommande(tsh_memory *memory){
     resetCommand();
     fillCo(memory->comand);
     fillArgs(memory->comand);
+    /*
     int fun_index = getFuncitonIndex(args[0]);
     //check if in our command list
     if(fun_index<0){
@@ -123,6 +127,6 @@ int execSimpleCommande(tsh_memory *memory){
         }
     }else {//all the command in our list
         returnval = (*(listFun[fun_index]))(memory);//invok the appropriate function
-    }
+    }*/
     return returnval;
 }
