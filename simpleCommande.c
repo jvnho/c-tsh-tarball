@@ -20,7 +20,7 @@ char args[50][50];
 int i_args = 0;
 const char space[2] = " ";
 int returnval;
-
+int teste = 0;
 void fillArgs(char *commande){
     //fill by token
     char com[512];
@@ -105,12 +105,23 @@ void resetCommand(){//reste every things
 //we can't pass just args throug exec because there is not null at the end, and we can't write arg[i]= NULL, because arg is unmodifiable, so no choice Malloc :/
 char ** argsPlusNULL(){
     char **result;
-    assert(result = malloc((i_args + 1) * sizeof(char *)));//we can't pass just args
-    for(int i = 0; i<i_args; i++){
-        assert(result[i] = malloc(strlen(args[i])*sizeof(char)));
-        strcpy(result[i], args[i]);
+    //command
+    assert(result = malloc((i_option + i_args + 2) * sizeof(char *)));
+    assert(result[0] = malloc(strlen(co)*sizeof(char)));
+    strcpy(result[0], co);
+    int index_result = 1;
+    for(int i = 0; i< i_option; i++){
+        assert(result[index_result] = malloc(strlen(option[i])*sizeof(char)));
+        strcpy(result[index_result], option[i]);
+        index_result++;
     }
-    result[i_args] = NULL;
+    for(int i = 0; i<i_args; i++){
+        assert(result[index_result] = malloc(strlen(args[i])*sizeof(char)));
+        strcpy(result[index_result], args[i]);
+        index_result++;
+    }
+    teste = index_result + 1;
+    result[index_result] = NULL;
     return result;
 }
 //Adapter Pattern
@@ -144,20 +155,29 @@ int execSimpleCommande(tsh_memory *memory){
     resetCommand();
     fillCo(memory->comand);
     
-    //int fun_index = getFuncitonIndex(co);
-    //check if in our command list
-    /*
+    int fun_index = getFuncitonIndex(co);
+    
     if(fun_index<0){
         int pid_fils = fork();
         if(pid_fils==0){
             char **args2 = argsPlusNULL();
-            execvp(args2[0], args2);
+            for(int i = 0; i<teste; i++){
+                printf("%s\n", args2[i]);
+            }
+            free(args2);
+            //execvp(args2[0], args2);
         }else{
+            /*
             int status;
-            waitpid(pid_fils, &status, WUNTRACED);
+            waitpid(pid_fils, &status, WUNTRACED);*/
         }
     }else {//all the command in our list
-        returnval = (*(listFun[fun_index]))(memory);//invok the appropriate function
-    }*/
+        char **args2 = argsPlusNULL();
+        for(int i = 0; i<teste; i++){
+            printf("%s\n", args2[i]);
+        }
+        free(args2);
+        //returnval = (*(listFun[fun_index]))(memory);//invok the appropriate function
+    }
     return returnval;
 }
