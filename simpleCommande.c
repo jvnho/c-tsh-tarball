@@ -129,7 +129,7 @@ int adapter_exit(tsh_memory *memory){
     return exit2(memory);
 }
 int adapter_cd(tsh_memory *memory){
-    return cd(args[1], memory);
+    return cd(args[0], memory);
 }
 int adapter_pwd(tsh_memory *memory){
     return pwd(memory);
@@ -164,15 +164,10 @@ int execSimpleCommande(tsh_memory *memory){
             execvp(args2[0], args2);
         }else{
             int status;
-            waitpid(pid_fils, &status, WUNTRACED);
+            waitpid(pid_fils, &status, WUNTRACED); 
         }
     }else {//all the command in our list
-        char **args2 = argsPlusNULL();
-        for(int i = 0; i<teste; i++){
-            printf("%s\n", args2[i]);
-        }
-        free(args2);
-        //returnval = (*(listFun[fun_index]))(memory);//invok the appropriate function
+        returnval = (*(listFun[fun_index]))(memory);//invok the appropriate function
     }
     return returnval;
 }
