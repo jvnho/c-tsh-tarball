@@ -104,6 +104,7 @@ void resetCommand(){//reste every things
 }
 //we can't pass just args throug exec because there is not null at the end, and we can't write arg[i]= NULL, because arg is unmodifiable, so no choice Malloc :/
 char ** argsPlusNULL(){
+
     char **result;
     //command
     assert(result = malloc((i_option + i_args + 2) * sizeof(char *)));
