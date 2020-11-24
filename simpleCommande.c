@@ -161,15 +161,10 @@ int execSimpleCommande(tsh_memory *memory){
         int pid_fils = fork();
         if(pid_fils==0){
             char **args2 = argsPlusNULL();
-            for(int i = 0; i<teste; i++){
-                printf("%s\n", args2[i]);
-            }
-            free(args2);
-            //execvp(args2[0], args2);
+            execvp(args2[0], args2);
         }else{
-            /*
             int status;
-            waitpid(pid_fils, &status, WUNTRACED);*/
+            waitpid(pid_fils, &status, WUNTRACED);
         }
     }else {//all the command in our list
         char **args2 = argsPlusNULL();
