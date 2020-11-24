@@ -136,8 +136,8 @@ int adapter_pwd(tsh_memory *memory){
     return pwd(memory);
 }
 int adapter_mkdir(tsh_memory *memory){
-    if(i_option)return mkdir(option ,args[1], i_option, memory);
-    return mkdir(NULL ,args[1], i_option, memory);
+    if(i_option)return mkdir(option ,args[0], i_option, memory);
+    return mkdir(NULL ,args[0], i_option, memory);
 }
 int adapter_ls(tsh_memory *memory){
     return ls(memory);

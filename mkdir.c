@@ -65,7 +65,10 @@ void put_at_the_first_null(int descriptor){
     }
 }
 void exec_mkdir(char option[50][50], int size_option, char *dir){
-    if(size_option == 0)execlp("mkdir", "mkdir", dir, NULL);
+    if(size_option == 0){
+        printf("dir name = %s\n", dir);
+        execlp("mkdir", "mkdir", dir, NULL);
+    }
     else if(size_option == 1)execlp("mkdir", "mkdir", option[0], dir, NULL);
     else if(size_option == 2)execlp("mkdir", "mkdir", option[0], option[1], dir, NULL);
     else if(size_option == 3)execlp("mkdir", "mkdir", option[0], option[1], option[2], dir, NULL);
@@ -90,13 +93,13 @@ int mkdir_in_tar(char *dir_name, int tar_descriptor){
 }
 //to do with more than one argument
 int mkdir(char listOption[50][50], char *dir_name, int size_option, tsh_memory *memory){
-    
+    printf("---dir name = -%s-\n", dir_name);
     if(in_a_tar(memory)){//in tar -> so use our implementation of mkdir
         return mkdir_in_tar(concatString(memory->FAKE_PATH, dir_name), string_to_int(memory->tar_descriptor));
     }else{//normal circonstances so we exec the normal mkdir
         int pid = fork();
         if(pid==0){//child
-            execlp("mkdir", "mkdir", dir_name, NULL);
+            exec_mkdir(listOption, size_option, dir_name);
         }else{//parent
             int status;
             waitpid(pid, &status, WUNTRACED);
