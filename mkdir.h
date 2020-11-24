@@ -1,4 +1,4 @@
 #ifndef MKDIR_H
 #define MKDIR_H
-extern int mkdir(char *dir_name, tsh_memory *memory);
+extern int mkdir(char **listOption, char *dir_name, int size_option, tsh_memory *memory);
 #endif

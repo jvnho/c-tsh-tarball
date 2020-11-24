@@ -135,7 +135,8 @@ int adapter_pwd(tsh_memory *memory){
     return pwd(memory);
 }
 int adapter_mkdir(tsh_memory *memory){
-    return mkdir(args[1], memory);
+    if(i_option)return mkdir(NULL ,args[1], i_option, memory);
+    return mkdir((char **)option ,args[1], i_option, memory);
 }
 int adapter_ls(tsh_memory *memory){
     return ls(memory);
@@ -160,7 +161,7 @@ int execSimpleCommande(tsh_memory *memory){
     if(fun_index<0){
         int pid_fils = fork();
         if(pid_fils==0){
-            char **args2 = argsPlusNULL();
+            char **args2 = argsPlusNULL();//ou mettre free?
             execvp(args2[0], args2);
         }else{
             int status;
