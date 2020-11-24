@@ -17,22 +17,8 @@ tsh_memory save;//save so we can retore in case of error
 int shouldSave = 1;
 char *concate_string(char *s1, char *s2);
 int if_cd_is_valid(int descriptor, char * PATH, char * directory){
-    lseek(descriptor, 0, SEEK_SET);
-
-    struct posix_header *header = malloc(512);
-    int nb_bloc_file = 0;
     char * recherched_path = concatString(PATH, directory);
-
-    while(read(descriptor, header, 512)>0){//parcour de tete en tete jusqu' a la fin
-        if(strcmp(header->name, recherched_path)==0)return 1;
-        int tmp = 0;
-        sscanf(header->size, "%o", &tmp);
-        nb_bloc_file = (tmp + 512 -1) / 512;
-        for(int i=0; i<nb_bloc_file; i++){
-            read(descriptor, header, 512);
-        }
-    }
-    return 0;
+    return dir_exist(descriptor, recherched_path);
 }
 void reduceFakePath(char * directory, char *PATH, char *tar_fd, char *tar_name){
     char *tar_name_plus_path = concate_string(tar_name, PATH); //concatenation : tar_name.tar/dir1/dir2/
