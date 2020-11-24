@@ -82,7 +82,11 @@ int mkdir_in_tar(char *dir_name, int tar_descriptor){
     return 0;
 }
 //to do with more than one argument
-int mkdir(char **listOption, char *dir_name, int size_option, tsh_memory *memory){
+int mkdir(char listOption[50][50], char *dir_name, int size_option, tsh_memory *memory){
+    for(int i = 0; i< size_option; i++){
+        printf("%s\n", listOption[i]);
+    }
+    /*
     if(in_a_tar(memory)){//in tar -> so use our implementation of mkdir
         return mkdir_in_tar(concatString(memory->FAKE_PATH, dir_name), string_to_int(memory->tar_descriptor));
     }else{//normal circonstances so we exec the normal mkdir
@@ -94,6 +98,6 @@ int mkdir(char **listOption, char *dir_name, int size_option, tsh_memory *memory
             waitpid(pid, &status, WUNTRACED);
             if(WEXITSTATUS(status)==-1)return -1;
         }
-    }
+    }*/
     return 0;
 }
