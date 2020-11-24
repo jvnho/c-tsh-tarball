@@ -98,7 +98,7 @@ int cd(char *directory, tsh_memory *memory){
     if(shouldSave){
         saveMemory(memory, &save);
     }
-    if(in_a_tar(memory)){//in a anormal circumstances
+    if(in_a_tar(memory) && directory[0] != '/'){//in a anormal circumstances and when it's not an absolute path
         remove_simple_dot_from_dir(directory); // remove eventual ./, /./, /. from the directory (details: string_traitement.c)
         if(cd_in_tar(directory, memory)==-1){
             saveMemory(&save, memory);//restore
@@ -111,6 +111,8 @@ int cd(char *directory, tsh_memory *memory){
         }
         return 0;
     }
+    if(directory[0] == '/') clearMemory(memory);
+
     // beforeTar/ directory.tar / afterTar
     char beforeTar[512]; char tarName[512]; char afterTar[512];
     //instanciate the format befor/ inside/ after (tar)
