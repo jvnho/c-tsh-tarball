@@ -15,7 +15,9 @@
 char firstDir[BUFSIZE];
 tsh_memory save;//save so we can retore in case of error
 int shouldSave = 1;
+
 char *concate_string(char *s1, char *s2);
+
 int if_cd_is_valid(int descriptor, char * PATH, char * directory){
     lseek(descriptor, 0, SEEK_SET);
 
@@ -54,8 +56,9 @@ int cd(char *directory, tsh_memory *memory);
 //directory is the argument given, PATH is the path from tsh_memory
 int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in the memory
     //char *PATH, char *tar_fd, char *tar_name
-    if(strcmp(".",directory)==0) return 0;
-    //remove . in the directory
+    if(strcmp(directory,".") == 0){ //ne marche pas encore, ça ne détecte pas le point sur l'entrée  standard
+        return 0;
+    }
     if(strstr(directory, "..") == NULL) {//doesn't contains substring ".."
 
         int tar_descriptor = atoi(memory->tar_descriptor);
@@ -74,9 +77,9 @@ int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in
         if(directory[0] == '.'){//we are starting by ../
             reduceFakePath(directory, memory->FAKE_PATH, memory->tar_descriptor, memory->tar_name);//we have done the first ../
             if(strlen(directory)>3){// ../somethig
-                if(strlen(memory->tar_descriptor) == 0){//check if the fist .. doesn't get us out of the tar
+                if(strlen(memory->tar_descriptor) == 0){//check if the first .. doesn't get us out of the tar
                     shouldSave = 0;
-                    return cd(directory + 3, memory);//save valeur corrompu
+                    return cd(directory + 3, memory);
                 }
                 return cd_in_tar(directory+3, memory);
             }
@@ -96,6 +99,7 @@ int cd(char *directory, tsh_memory *memory){
         saveMemory(memory, &save);
     }
     if(in_a_tar(memory)){//in a anormal circumstances
+        remove_simple_dot_from_dir(directory); // remove eventual ./, /./, /. from the directory (details: string_traitement.c)
         if(cd_in_tar(directory, memory)==-1){
             saveMemory(&save, memory);//restore
             shouldSave = 1;
@@ -135,15 +139,13 @@ int cd(char *directory, tsh_memory *memory){
                 return -1;
             }
             return 0;
-        } 
+        }
     }
     return 0;
 }
-
 
 char *concate_string(char *s1, char *s2){
     char *ret = malloc((strlen(s1)+strlen(s2)+1)*sizeof(char));
     sprintf(ret,"%s%s%c", s1, s2, '\0');
     return ret;
 }
-//create fun comback chdir
