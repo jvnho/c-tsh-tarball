@@ -96,7 +96,7 @@ int mkdir_in_tar(char *dir_name, int tar_descriptor){
     return 0;
 }
 //to do with more than one argument
-int mkdir(char listOption[50][50], char *dir_name, int size_option, tsh_memory *memory){
+int makeDirectory(char listOption[50][50], char *dir_name, int size_option, tsh_memory *memory){
     saveMemory(memory, &old_memory);
     getLocation(dir_name, location);
     int lenLocation = strlen(location);
@@ -130,5 +130,8 @@ int mkdir(char listOption[50][50], char *dir_name, int size_option, tsh_memory *
             if(WEXITSTATUS(status)==-1)return -1;
         }
     }
+    return 0;
+}
+int mkdir(char listOption[50][50], char listArgs[50][50], int size_option, int size_args, tsh_memory *memory){
     return 0;
 }
