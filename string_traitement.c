@@ -221,3 +221,30 @@ char **addNullEnd(char **initial, int size){
     result[size] = NULL;
     return result;
 }
+//remove "./", "./" ,"/./" from str
+void remove_simple_dot_from_dir(char *str){
+    //beginning of the string
+    while(str[0] == '.' && (str[1] != '.' && str[1] == '/')){ // if "././././dos1" entered
+        strcpy(str,str+2);
+    }
+
+    //end of the string
+    while(1){
+        int str_length = strlen(str);
+        if(str[str_length-1] == '/' && str[str_length-2] == '.' && str[str_length-3] != '.'){ // cd doss1/./
+            strncpy(str, str, str_length-2);
+            str[str_length-2] = '\0';
+        } else if(str[str_length-1] == '.' && str[str_length-2] != '.'){ // cd doss1/.
+            str[str_length-1] = '\0';
+        } else break;
+    }
+    //anywhere in middle of the string
+    char *tmp;
+    while( (tmp = strstr(str,"/./")) != NULL){ //while there are /./ found in the string
+        int length = tmp - str ; //number of char before the "/."
+        char *buf = malloc(sizeof(char)* (strlen(str)-2));
+        strncpy(buf, str, length);
+        strcat(buf,tmp+2);
+        strcpy(str,buf);
+    }
+}

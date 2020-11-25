@@ -8,34 +8,56 @@
 #include <fcntl.h>
 
 #include "ls.h"
+#include "cd.h"
 #include "tar.h"
 #include "tsh_memory.h"
 #include "string_traitement.h"
 
-void ls_in_tar(int,char*,int);
-int is_in_array(char*, struct ls_memory);
-void print_ls_to_STROUT(int, struct ls_memory);
-void fill_info_array(struct posix_header, struct ls_memory*);
-void clear_struct(struct ls_memory*);
+tsh_memory old_memory; //will be use to save/restore a memory
 
-int ls(tsh_memory *memory){
-    //user is in tarball
-    if(in_a_tar(memory) == 1){
-        ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, 0);
+void ls_in_tar(int,char*,int);
+void exec_ls(char*);
+
+int ls(tsh_memory *memory, char args[][50], int nb_arg){
+    int option = (nb_arg > 1 && (strcmp(args[1],"-l") == 0))? 1:0;
+
+    if(nb_arg == 1 || (nb_arg == 2 && strcmp(args[1],"-l") == 0)){ //no path given
+        if(in_a_tar(memory) == 1) ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option);
+        else exec_ls(NULL);
     } else {
-        //circumstances where we exec the normal ls
-        int pid = fork();
-        if(pid == 0){//child
-            execlp("ls", "ls", NULL);
-        } else {//parent
-            int status;
-            waitpid(pid, &status, WUNTRACED);
-            if(WEXITSTATUS(status) == -1)
-                return -1;
+        for(int i = (option == 1) ? 2:1; i < nb_arg; i++){
+            saveMemory(memory,&old_memory);
+            if(cd(args[i], memory) > -1){ //cd-ing to the directory location
+                if(in_a_tar(memory) == 1)
+                    ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option);
+                else
+                    exec_ls(NULL);
+                saveMemory(&old_memory, memory);
+                char *destination = malloc(strlen(memory->REAL_PATH));
+                strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);
+                cd(destination,memory);
+            }
         }
     }
     return 1;
 }
+
+void exec_ls(char *option){
+    int r = fork();
+    if(r == 0){ //child processus
+        if(option != NULL)
+            execlp("ls", "ls", option, NULL);
+        else
+            execlp("ls", "ls", NULL);
+    } else {
+        wait(NULL); //parent processus
+    }
+}
+
+int is_in_array(char*, struct ls_memory);
+void fill_info_array(struct posix_header, struct ls_memory*);
+void print_ls_to_STROUT(int, struct ls_memory);
+void clear_struct(struct ls_memory*);
 
 //PATH is either the PATH given by the tsh_memory or its concatenation with a directory/file
 void ls_in_tar(int fd, char* PATH, int arg_l){
@@ -44,7 +66,7 @@ void ls_in_tar(int fd, char* PATH, int arg_l){
     struct ls_memory mem;
     while(read(fd, &hd, BLOCKSIZE) > 0){ //reading the entire tarball
         //checking if the current file/repository belongs to the given PATH and if it's not itself (to not print in)
-        if(strncmp(hd.name, PATH, strlen(PATH)) == 0 && strcmp(PATH,hd.name) != 0){
+        if(strncmp(hd.name, PATH, strlen(PATH)) == 0 && strcmp(PATH,hd.name) != 0){ //notice it's strncmp and not strcmp
 
             int i = strlen(PATH), taille_nom = 0;
             while(hd.name[i] != '\0' && hd.name[i] != '/' ){
@@ -56,7 +78,7 @@ void ls_in_tar(int fd, char* PATH, int arg_l){
 
             if( is_in_array(CUT_PATH, mem) == 0){ //checking if the file is not is the array (to not print in more than once)
                 if(arg_l == 1){
-                    fill_info_array(hd, &mem);//making FILE_INFO's array if -l argument is given
+                    fill_info_array(hd, &mem);//filling FILE_INFO's array if -l argument is given
                 }
                 strcpy(mem.NAME[ (mem.NUMBER)++ ], CUT_PATH);//copying CUT_PATH(i.e file/rep name to ARRAY)
             }

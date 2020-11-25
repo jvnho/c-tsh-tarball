@@ -12,6 +12,6 @@ typedef struct ls_memory{
     int NUMBER; //keeps a track of the size of ARRAY
 } ls_memory;
 
-extern int ls(tsh_memory *memory);
+extern int ls(tsh_memory *memory, char args[][50], int nb_arg);
 
 #endif
