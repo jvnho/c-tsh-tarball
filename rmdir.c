@@ -11,7 +11,7 @@
 #include "string_traitement.h"
 
 int rmdir_in_tar(int, char*);
-int occ_counter_path(int, char*, off_t*);
+int occ_counter_path(int, char*, off_t*, off_t*);
 
 int rmdir_func(tsh_memory *mem, char *dir){
     if(in_a_tar(mem)){ //if the user is in a tar
@@ -32,39 +32,47 @@ int rmdir_func(tsh_memory *mem, char *dir){
 
 int rmdir_in_tar(int fd, char* full_path){
     struct posix_header hd;
-    //offset will allow to start reading the tarball from a certain offset and not necessarily the beginning of the tarball
-    off_t file_offset = 0;
-    if(occ_counter_path(fd, full_path, &file_offset) != 1){
-        char s[] = "repository is not empty\n";
-        write(1, s, strlen(s));
-        return 0;//the repository is not empty or not found then it does nothing and returns 0
+    off_t file_offset = 0; //offset will allow to start reading from a certain position
+    off_t final_size = 0; //will help us now how much we truncate
+    int occurrence = occ_counter_path(fd, full_path, &file_offset, &final_size);
+    if(occurrence != 1){
+        char s[] = "Directory is not empty or does not exist.\n";
+        write(2, s, strlen(s));
+        return -1;
     }
-    // procedure to shift blocks
-    lseek(fd,file_offset, SEEK_SET); //starting from the end of the file the user wants to delete
-    while(read(fd, &hd, BLOCKSIZE) > 0){ //to the end of the tar
+    // we found one AND only ONE block so we proced to shift blocks
+    lseek(fd,file_offset, SEEK_SET); //starting from the end of the block we want to delete
+    while(read(fd, &hd, BLOCKSIZE) > 0){
         lseek(fd, (-BLOCKSIZE*2), SEEK_CUR); //going back to the last block
         write(fd, &hd, BLOCKSIZE); //overwriting the block
-        lseek(fd, BLOCKSIZE, SEEK_CUR); //repositionning the offset to the one more block
+        lseek(fd, BLOCKSIZE, SEEK_CUR); //repositionning the offset to the next replacing block
     }
+    //procedure to truncate the tar
+    final_size = (final_size-1) * 512;
+    lseek(fd,0,SEEK_SET);
+    ftruncate(fd, final_size);
     return 1;
 }
 
-int occ_counter_path(int fd, char* full_path, off_t* file_offset){//returns the number of times the path appears in the tarball and returns to a pointer 'file_offset' the position of the rep
+//returns the number of times the path appears in the tarball
+//returns to a pointer 'file_offset' the position of the rep and the number of blocks found
+int occ_counter_path(int fd, char* full_path, off_t* file_offset, off_t *nb_bloc){
     lseek(fd, 0, SEEK_SET);
     int occurence = 0;
     struct posix_header hd;
     while(read(fd, &hd, 512) > 0){//reading the entire tarball
-        if(strncmp(hd.name, full_path, strlen(full_path)) == 0){
-            if(hd.typeflag == '5'){
-                *file_offset = lseek(fd,0,SEEK_CUR);//position of the blocks RIGHT NEXT to the one the user wants to delete
-            }
-            occurence++;
-        }
-        //allow to jump to the next header block
         int filesize = 0;
         sscanf(hd.size, "%o", &filesize);
         int nb_bloc_fichier = (filesize + 512 -1) / 512;
-        lseek(fd,nb_bloc_fichier*512, SEEK_CUR);
+        (*nb_bloc) += 1+nb_bloc_fichier;
+        if(strncmp(hd.name, full_path, strlen(full_path)) == 0){
+            occurence++;
+            if(hd.typeflag == '5'){
+                *file_offset = lseek(fd,0,SEEK_CUR);//position of the blocks RIGHT NEXT to the one the user wants to delete
+            }
+        }
+
+        lseek(fd,nb_bloc_fichier*512, SEEK_CUR); //allow to jump to the next header block
     }
     return occurence;
 }
