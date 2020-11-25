@@ -96,6 +96,7 @@ int mkdir_in_tar(char *dir_name, int tar_descriptor){
 }
 //to do with more than one argument
 int mkdir(char listOption[50][50], char *dir_name, int size_option, tsh_memory *memory){
+    saveMemory(memory, &old_memory);
     if(in_a_tar(memory)){//in tar -> so use our implementation of mkdir
         return mkdir_in_tar(concatString(memory->FAKE_PATH, dir_name), string_to_int(memory->tar_descriptor));
     }else{//normal circonstances so we exec the normal mkdir

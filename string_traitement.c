@@ -204,7 +204,7 @@ int firstSlach(char *dir){
     }
     return -1;
 }
-//fill the first dir/ in source into the result
+//fill result of the first dir/ in source into the result
 int getFirstDir(char *source, char *result){
     memset(result, 0, sizeof(char)*512);
     int index_first_slach = firstSlach(source);
@@ -247,4 +247,16 @@ void remove_simple_dot_from_dir(char *str){
         strcat(buf,tmp+2);
         strcpy(str,buf);
     }
+}
+int getIndexFirstSlachBehind(char *source){
+    int len = strlen(source);
+    for(int i = len -2; 0<=i; i--){
+        if(source[i]=='/')return i;
+    }
+    return -1;
+}
+//if source = aa/bb/cc/dossier => result = aa/bb/cc
+void getLocation(char *source, char *result){
+    memset(result, 0, 512);
+
 }
