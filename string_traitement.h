@@ -10,5 +10,7 @@ extern void getTarName(char *initial_string, char *result);
 extern void getPostTar(char *initial_string, char *result);
 extern char* octal_to_string(char *mode);
 extern int getFirstDir(char *source, char *result);
+extern char **addNullEnd(char **initial, int size);
 extern void remove_simple_dot_from_dir(char *str);
+extern void getLocation(char *source, char *result);
 #endif

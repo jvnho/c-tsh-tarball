@@ -42,4 +42,5 @@ struct posix_header
 #define OLDGNU_MAGIC "ustar  "  /* 7 chars and a null */
 extern void set_checksum(struct posix_header *hd);
 extern int check_checksum(struct posix_header *hd);
+extern int dir_exist(int descriptor, char * directory);
 #endif
