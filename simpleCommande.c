@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdlib.h>
-#include <wait.h>
+#include <sys/wait.h>
 
 #include "tsh_memory.h"
 #include "cd.h"
