@@ -12,7 +12,6 @@ int rm(tsh_memory *mem){
     return 0;
 }
 
-
 //full_path is the concatenation of PATH and the "target" user wants to delete (rm)
 int rm_in_tar(int fd, char* full_path, int arg_r, int first_call){
     int nb_content_bloc = 0;
@@ -33,23 +32,21 @@ int rm_in_tar(int fd, char* full_path, int arg_r, int first_call){
         if(is_a_end_bloc(&hd) != 1){ //if what we read is not a zero byte block
             write(fd, &hd, 512); //overwriting the block by what we read previously
             lseek(fd, nb_content_bloc*512 + 512, SEEK_CUR); //repositionning the offset to the next replacing block
-        } else
-            //reaching a zero byte block meaning the un-replaced blocks
-            //will be replaced by zero byte blocks
-            break;
+        } else break;
+            //reaching a zero byte block meaning the un-replaced blocks will be replaced by zero byte blocks
     }
-
+    //overwriting remaining blocks with zero byte block
+    //but if we've already reached the end of the tar earlier nothing will be done
     char zero[512];
     memset(zero,0,512);
-    while(read(fd, &hd, BLOCKSIZE) > 0) { //overwriting remaining blocks with zero byte block
+    while(read(fd, &hd, BLOCKSIZE) > 0) {
         lseek(fd,(-512), SEEK_CUR);
         write(fd, zero, BLOCKSIZE);
     }
     //procedure to truncate the tar
     off_t final_size = (number_of_block(fd) - nb_content_bloc+1)*512;
     ftruncate(fd, final_size);
-    if(arg_r == 0)
-        return 1;
+    if(arg_r == 0) return 1;
     else{
         //making sure there is no other blocks to delete
         while(rm_in_tar(fd,full_path,arg_r,0) != -1);
