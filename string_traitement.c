@@ -258,5 +258,8 @@ int getIndexFirstSlachBehind(char *source){
 //if source = aa/bb/cc/dossier => result = aa/bb/cc
 void getLocation(char *source, char *result){
     memset(result, 0, 512);
-
+    int indexSlach = getIndexFirstSlachBehind(source);
+    if(indexSlach == -1)return;
+    //copy destionation source(from where) size(how many char)
+    memcpy(result, source, indexSlach + 1);// +1 because index start from 0
 }
