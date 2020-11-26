@@ -46,7 +46,7 @@ void fillOptions(char *commande){
     if(strstr(commande, "-")==NULL){
         fillArgs(commande);
     }else{
-        
+
         char com[512];
         strcpy(com, commande);
         com[strlen(commande)] = '\0';
@@ -74,7 +74,7 @@ void fillOptions(char *commande){
 
         }
     }
-    
+
 }
 void fillCo(char *commande){
     char com[512];
@@ -142,7 +142,7 @@ int adapter_mkdir(tsh_memory *memory){
     return mkdir(NULL ,args, i_option, i_args, memory);
 }
 int adapter_ls(tsh_memory *memory){
-    return ls(memory,args,i_args);
+    return ls(memory,args,i_args,option,i_option);
 }
 int adapter_rmdir(tsh_memory *memory){
     return rmdir_func(memory, args[1]);
@@ -161,9 +161,9 @@ int getFuncitonIndex(char *name){
 int execSimpleCommande(tsh_memory *memory){
     resetCommand();
     fillCo(memory->comand);
-    
+
     int fun_index = getFuncitonIndex(co);
-    
+
     if(fun_index<0){
         int pid_fils = fork();
         if(pid_fils==0){
@@ -171,7 +171,7 @@ int execSimpleCommande(tsh_memory *memory){
             execvp(args2[0], args2);
         }else{
             int status;
-            waitpid(pid_fils, &status, WUNTRACED); 
+            waitpid(pid_fils, &status, WUNTRACED);
         }
     }else {//all the command in our list
         returnval = (*(listFun[fun_index]))(memory);//invok the appropriate function

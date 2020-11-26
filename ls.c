@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <assert.h>
 
 #include "ls.h"
 #include "cd.h"
@@ -16,22 +17,47 @@
 tsh_memory old_memory; //will be use to save/restore a memory
 
 void ls_in_tar(int,char*,int);
-void exec_ls(char*);
 
-int ls(tsh_memory *memory, char args[][50], int nb_arg){
-    int option = (nb_arg > 1 && (strcmp(args[1],"-l") == 0))? 1:0;
+//making an array for execvp
+char** execvp_array(char option[50][50], int nb_option){
+    char **ret = malloc(sizeof(char*) * (nb_option+2));
+    assert(ret != NULL);
+    ret[0] = malloc(sizeof(char)*2);
+    assert(ret[0] != NULL);
+    strcpy(ret[0], "ls");
+    for(int i = 1; i < nb_option+1; i++){
+        ret[i] = malloc(sizeof(char)*strlen(option[i-1]));
+        assert(ret[i] != NULL);
+        strcpy(ret[i], option[i-1]);
+        i++;
+    }
+    ret[nb_option+1] = NULL;
+    return ret;
+}
 
-    if(nb_arg == 1 || (nb_arg == 2 && strcmp(args[1],"-l") == 0)){ //no path given
-        if(in_a_tar(memory) == 1) ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option);
-        else exec_ls(NULL);
+void exec_ls(char **option){
+    int r = fork();
+    if(r == 0) execvp("ls", option);
+    else wait(NULL); //parent processus
+}
+
+int ls(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],int nb_option){
+    int option_l = 0;
+
+    if(nb_arg == 0){ //no path given
+        if(in_a_tar(memory) == 1)
+            ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option_l);
+        else
+            exec_ls(execvp_array(option,nb_option));
     } else {
-        for(int i = (option == 1) ? 2:1; i < nb_arg; i++){
+        for(int i = 0; i < nb_arg; i++){
             saveMemory(memory,&old_memory);
             if(cd(args[i], memory) > -1){ //cd-ing to the directory location
                 if(in_a_tar(memory) == 1)
-                    ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option);
+                    ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option_l);
                 else
-                    exec_ls(NULL);
+                    exec_ls(execvp_array(option,nb_option));
+
                 saveMemory(&old_memory, memory);
                 char *destination = malloc(strlen(memory->REAL_PATH));
                 strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);
@@ -40,18 +66,6 @@ int ls(tsh_memory *memory, char args[][50], int nb_arg){
         }
     }
     return 1;
-}
-
-void exec_ls(char *option){
-    int r = fork();
-    if(r == 0){ //child processus
-        if(option != NULL)
-            execlp("ls", "ls", option, NULL);
-        else
-            execlp("ls", "ls", NULL);
-    } else {
-        wait(NULL); //parent processus
-    }
 }
 
 int is_in_array(char*, struct ls_memory);
