@@ -110,17 +110,17 @@ char ** argsPlusNULL(){
 
     char **result;
     //command
-    assert(result = malloc((i_option + i_args + 2) * sizeof(char *)));
-    assert(result[0] = malloc(strlen(co)*sizeof(char)));
+    assert((result = malloc((i_option + i_args + 2) * sizeof(char *))) != NULL);
+    assert((result[0] = malloc(strlen(co)*sizeof(char))) != NULL);
     strcpy(result[0], co);
     int index_result = 1;
     for(int i = 0; i< i_option; i++){
-        assert(result[index_result] = malloc(strlen(option[i])*sizeof(char)));
+        assert((result[index_result] = malloc(strlen(option[i])*sizeof(char))) != NULL);
         strcpy(result[index_result], option[i]);
         index_result++;
     }
     for(int i = 0; i<i_args; i++){
-        assert(result[index_result] = malloc(strlen(args[i])*sizeof(char)));
+        assert((result[index_result] = malloc(strlen(args[i])*sizeof(char))) != NULL);
         strcpy(result[index_result], args[i]);
         index_result++;
     }

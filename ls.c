@@ -20,14 +20,12 @@ void ls_in_tar(int,char*,int);
 
 //making an array for execvp
 char** execvp_array(char option[50][50], int nb_option){
-    char **ret = malloc(sizeof(char*) * (nb_option+2));
-    assert(ret != NULL);
-    ret[0] = malloc(sizeof(char)*2);
-    assert(ret[0] != NULL);
+    char **ret;
+    assert((ret = malloc(sizeof(char*) * (nb_option+2))) != NULL );
+    assert((ret[0] = malloc(sizeof(char)*2)) != NULL);
     strcpy(ret[0], "ls");
     for(int i = 1; i < nb_option+1; i++){
-        ret[i] = malloc(sizeof(char)*strlen(option[i-1]));
-        assert(ret[i] != NULL);
+        assert((ret[i] = malloc(sizeof(char)*strlen(option[i-1]))) != NULL);
         strcpy(ret[i], option[i-1]);
         i++;
     }
