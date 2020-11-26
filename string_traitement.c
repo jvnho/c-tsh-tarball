@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #define BUFSIZE 512
 typedef struct position_mots{
     int debut;
@@ -203,14 +204,23 @@ int firstSlach(char *dir){
     }
     return -1;
 }
-//fill the first dir/ in source into the result
+//fill result of the first dir/ in source into the result
 int getFirstDir(char *source, char *result){
     memset(result, 0, sizeof(char)*512);
     int index_first_slach = firstSlach(source);
     memcpy(result, source, index_first_slach + 1);
     return index_first_slach;
 }
-
+char **addNullEnd(char **initial, int size){
+    char **result;
+    assert(result = malloc((size + 1)*sizeof(char *)));
+    for(int i = 0; i< size; i++){
+        assert(result[i] = malloc(strlen(initial[i])*sizeof(char)));
+        strcpy(result[i], initial[i]);
+    }
+    result[size] = NULL;
+    return result;
+}
 //remove "./", "./" ,"/./" from str
 void remove_simple_dot_from_dir(char *str){
     //beginning of the string
@@ -237,4 +247,19 @@ void remove_simple_dot_from_dir(char *str){
         strcat(buf,tmp+2);
         strcpy(str,buf);
     }
+}
+int getIndexFirstSlachBehind(char *source){
+    int len = strlen(source);
+    for(int i = len -2; 0<=i; i--){
+        if(source[i]=='/')return i;
+    }
+    return -1;
+}
+//if source = aa/bb/cc/dossier => result = aa/bb/cc
+void getLocation(char *source, char *result){
+    memset(result, 0, 512);
+    int indexSlach = getIndexFirstSlachBehind(source);
+    if(indexSlach == -1)return;
+    //copy destionation source(from where) size(how many char)
+    memcpy(result, source, indexSlach + 1);// +1 because index start from 0
 }
