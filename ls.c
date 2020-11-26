@@ -33,6 +33,13 @@ char** execvp_array(char option[50][50], int nb_option){
     return ret;
 }
 
+int option_l_present(char option[50][50], int nb_option){
+    for(int i = 0; i < nb_option; i++)
+        if(strcmp(option[i], "-l") == 0)
+            return 1;
+    return 0;
+}
+
 void exec_ls(char **option){
     int r = fork();
     if(r == 0) execvp("ls", option);
@@ -40,8 +47,7 @@ void exec_ls(char **option){
 }
 
 int ls(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],int nb_option){
-    int option_l = 0;
-
+    int option_l = option_l_present(option, nb_option);
     if(nb_arg == 0){ //no path given
         if(in_a_tar(memory) == 1)
             ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option_l);
