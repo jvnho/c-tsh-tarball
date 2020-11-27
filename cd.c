@@ -129,9 +129,3 @@ int cd(char *directory, tsh_memory *memory){
     }
     return 0;
 }
-
-char *concate_string(char *s1, char *s2){
-    char *ret = malloc((strlen(s1)+strlen(s2)+1)*sizeof(char));
-    sprintf(ret,"%s%s%c", s1, s2, '\0');
-    return ret;
-}

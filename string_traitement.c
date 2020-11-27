@@ -118,6 +118,13 @@ char * concatDirToPath(char * path, char *dir){
     }
     return result;
 }
+
+char *concate_string(char *s1, char *s2){
+    char *ret = malloc((strlen(s1)+strlen(s2)+1)*sizeof(char));
+    sprintf(ret,"%s%s%c", s1, s2, '\0');
+    return ret;
+}
+
 int get_index_first_slach(char *initial_string){
     char * substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
     if(substring == NULL)return -1;//there is not a .tar -> so there is not first slach befor .tar
