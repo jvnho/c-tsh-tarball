@@ -110,7 +110,7 @@ int makeDirectory(char listOption[50][50], char *dir_name, int size_option, tsh_
     int result= 0;
     char *destination;
     if(in_a_tar(memory)){//in tar -> so use our implementation of mkdir
-        result = mkdir_in_tar(concatString(memory->FAKE_PATH, dirToCreate), string_to_int(memory->tar_descriptor));
+        result = mkdir_in_tar(concatDirToPath(memory->FAKE_PATH, dirToCreate), string_to_int(memory->tar_descriptor));
         copyMemory(&old_memory, memory);
         destination = malloc(strlen(memory->REAL_PATH));
         strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);

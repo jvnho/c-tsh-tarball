@@ -15,7 +15,7 @@ int occ_counter_path(int, char*, off_t*);
 
 int rmdir_func(tsh_memory *mem, char *dir){
     if(in_a_tar(mem)){ //if the user is in a tar
-        rmdir_in_tar(atoi(mem->tar_descriptor), concatString(mem->FAKE_PATH, "arg"));
+        rmdir_in_tar(atoi(mem->tar_descriptor), concatDirToPath(mem->FAKE_PATH, "arg"));
     } else { //otherwise, we exec the normal rmdir on the current path
         int pid = fork();
         if(pid == 0){ //child processus

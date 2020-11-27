@@ -19,7 +19,7 @@ int shouldSave = 1;
 char *concate_string(char *s1, char *s2);
 
 int if_cd_is_valid(int descriptor, char * PATH, char * directory){
-    char * recherched_path = concatString(PATH, directory);
+    char * recherched_path = concatDirToPath(PATH, directory);
     return dir_exist(descriptor, recherched_path);
 }
 void reduceFakePath(char * directory, tsh_memory *mem){
@@ -50,7 +50,7 @@ int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in
             if(directory[strlen(directory)-1] == '/')//to check if we should add / at the end
                 strcat(memory->FAKE_PATH, directory);//simple concat
             else
-                strcat(memory->FAKE_PATH, concatString(directory, ""));//concat that add  / at the end
+                strcat(memory->FAKE_PATH, concatDirToPath(directory, ""));//concat that add  / at the end
             return 0;
         }else{
             write(1, "Noo such directory\n", strlen("Noo such directory\n"));
