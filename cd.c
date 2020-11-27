@@ -80,12 +80,12 @@ int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in
 
 int cd(char *directory, tsh_memory *memory){
     if(shouldSave){
-        saveMemory(memory, &save);
+        copyMemory(memory, &save);
     }
     if(in_a_tar(memory) && directory[0] != '/'){//in a anormal circumstances and when it's not an absolute path
         remove_simple_dot_from_dir(directory); // remove eventual ./, /./, /. from the directory (details: string_traitement.c)
         if(cd_in_tar(directory, memory)==-1){
-            saveMemory(&save, memory);//restore
+            copyMemory(&save, memory);//restore
             shouldSave = 1;
             chdir(memory->REAL_PATH);
             return -1;
@@ -107,7 +107,7 @@ int cd(char *directory, tsh_memory *memory){
     if(strlen(beforeTar)){
         if(chdir(beforeTar)==-1){
             perror("");
-            saveMemory(&save, memory);//error
+            copyMemory(&save, memory);//error
             shouldSave = 1;
             chdir(memory->REAL_PATH);
             return -1;
@@ -118,7 +118,7 @@ int cd(char *directory, tsh_memory *memory){
         if(instanciate_tsh_memory(tarName, memory)==-1) return -1;//should avoid the normal cd done before
         if(strlen(afterTar)){
             if(cd_in_tar(afterTar, memory) == -1){//if error we should't have done the first part
-                saveMemory(&save, memory);
+                copyMemory(&save, memory);
                 memory->REAL_PATH[strlen(memory->REAL_PATH)-2] = '\0';
                 chdir(memory->REAL_PATH);
                 shouldSave = 1;

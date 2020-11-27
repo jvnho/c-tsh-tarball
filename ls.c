@@ -133,14 +133,14 @@ int ls(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],in
             exec_ls(execvp_array(option,nb_option));
     } else {
         for(int i = 0; i < nb_arg; i++){
-            saveMemory(memory,&old_memory); //saving current state of the tsh_memory
+            copyMemory(memory,&old_memory); //saving current state of the tsh_memory
             if(cd(args[i], memory) > -1){ //cd-ing to the directory location (if it exists)
                 if(in_a_tar(memory) == 1)
                     ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option_l);
                 else
                     exec_ls(execvp_array(option,nb_option));
 
-                saveMemory(&old_memory, memory); //restoring the last state of the memory
+                copyMemory(&old_memory, memory); //restoring the last state of the memory
                 char *destination = malloc(strlen(memory->REAL_PATH));
                 strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);
                 cd(destination,memory); //cd-ing back to where we were
