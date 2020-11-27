@@ -8,8 +8,35 @@ int rm_aux(int, char*,int*,off_t*,int);
 int is_a_end_bloc(struct posix_header*);
 int number_of_block(int fd);
 
-int rm(tsh_memory *mem){
-    return 0;
+void exec_rm(char *dir, char option[50][50]){
+    int r = fork();
+    if(r == 0)
+    execlp("rm", "rm", dir, NULL);
+    else wait(NULL);
+}
+
+int rm(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],int nb_option){
+    char location[512];
+    for(int i = 0; i < nb_arg; i++){
+        saveMemory(memory, &old_memory);
+        getLocation(args[i], location); //check string_traitement for details
+        int lenLocation = strlen(location);
+        if(lenLocation > 0){//if there is an extra path cd to that path
+            if(cd(location, memory) == -1) return -1;
+        }
+        char *dirToDelete = args[i] + lenLocation;
+        if(in_a_tar(memory) == 1){
+            char *path_to_dir = concatDirToPath(memory->FAKE_PATH, dirToDelete);
+            rmdir_in_tar(atoi(memory->tar_descriptor),path_to_dir,1);
+        } else exec_rmdir(dirToDelete, option);
+
+        //restoring the last state of the memory
+        saveMemory(&old_memory, memory);
+        char *destination = malloc(strlen(memory->REAL_PATH));
+        strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);
+        cd(destination,memory); //cd-ing back to where we were
+    }
+    return 1;
 }
 
 //full_path is the concatenation of PATH and the "target" user wants to delete (rm)
