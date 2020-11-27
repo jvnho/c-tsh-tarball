@@ -23,7 +23,7 @@ int is_in_array(char *string, struct ls_memory mem){ //checking if string is in 
     return 0;
 }
 
-char is_file_or_repository(char typeflag){
+char file_type(char typeflag){
     if(typeflag == '0') return '-';
         return 'd';
 }
@@ -32,8 +32,12 @@ void fill_info_array(struct posix_header hd, struct ls_memory *mem){ //filling l
     int filesize = 0;
     sscanf(hd.size,"%o",&filesize);
     char c[(strlen(hd.uname)+strlen(hd.gname)+strlen(hd.size)+12) * sizeof(char)];
-    sprintf(c, "%c%s %s %s %d", is_file_or_repository(hd.typeflag), octal_to_string(hd.mode), hd.uname, hd.gname, filesize);
+    sprintf(c, "%c%s %s %s %d", file_type(hd.typeflag), octal_to_string(hd.mode), hd.uname, hd.gname, filesize);
     strcpy(mem->INFO[mem->NUMBER], c);
+}
+
+int is_array_empty(struct ls_memory mem){
+    return mem.NUMBER == 0;
 }
 
 void print_ls_l(struct ls_memory mem){ //if option -l was given by user
@@ -50,10 +54,8 @@ void print_ls(struct ls_memory mem){//if no option was given
 }
 
 void print_ls_to_STROUT(int arg_l, struct ls_memory mem){
-    if(mem.NUMBER > 0){ //if there is at least one file/directory to display
-        if(arg_l == 0) print_ls(mem);
-        else print_ls_l(mem);
-    }
+    if(arg_l == 0) print_ls(mem);
+    else print_ls_l(mem);
 }
 
 void clear_struct(struct ls_memory *mem){
@@ -62,27 +64,28 @@ void clear_struct(struct ls_memory *mem){
     memset(mem->INFO, 0, sizeof(mem->INFO));
 }
 
-//PATH is either the PATH given by the tsh_memory or its concatenation with a directory/file
-void ls_in_tar(int fd, char* PATH, int arg_l){
+//full_path is the concatenation of tsh_memory's FAKE_PATH + a directory or a file
+void ls_in_tar(int fd, char* full_path, int arg_l){
     lseek(fd, 0, SEEK_SET);
     struct posix_header hd;
     struct ls_memory mem;
-    while(read(fd, &hd, BLOCKSIZE) > 0){ //reading the entire tarball
-        //checking if the current file/repository belongs to the given PATH and if it's not itself (to not print in)
-        if(strncmp(hd.name, PATH, strlen(PATH)) == 0 && strcmp(PATH,hd.name) != 0){ //notice it's strncmp and not strcmp
+    int len_path = strlen(full_path);
 
-            int i = strlen(PATH), taille_nom = 0;
+    while(read(fd, &hd, BLOCKSIZE) > 0){ //reading the entire tarball
+        //checking if the current file/repository belongs to the given full_path and if it's not itself (to not print in)
+        if( (strncmp(hd.name, full_path, len_path) == 0 && strcmp(hd.name, full_path) != 0) //notice "strncmp" and "strcmp"
+        || (strcmp(hd.name, full_path) == 0 && hd.typeflag != '5')){
+
+            int i = len_path, taille_nom = 0;
             while(hd.name[i] != '\0' && hd.name[i] != '/' ){
                 i++; taille_nom++;
             }
             char CUT_PATH[255];//CUT_PATH = file or directory name cut from its path
-            strncpy(CUT_PATH, hd.name+strlen(PATH), taille_nom); //"cutting" the name from its path
+            strncpy(CUT_PATH, hd.name+len_path, taille_nom); //"cutting" the name from its path
             CUT_PATH[taille_nom++] = '\0';
 
             if( is_in_array(CUT_PATH, mem) == 0){ //checking if the file is not is the array (to not print in more than once)
-                if(arg_l == 1){
-                    fill_info_array(hd, &mem);//filling FILE_INFO's array if -l argument is given
-                }
+                if(arg_l == 1) fill_info_array(hd, &mem);//filling FILE_INFO's array if -l argument is given
                 strcpy(mem.NAME[ (mem.NUMBER)++ ], CUT_PATH);//copying CUT_PATH(i.e file/rep name to ARRAY)
             }
         }
@@ -92,7 +95,7 @@ void ls_in_tar(int fd, char* PATH, int arg_l){
         int nb_bloc_fichier = (filesize + 512 -1) / 512;
         lseek(fd,512*nb_bloc_fichier, SEEK_CUR);
     }
-    print_ls_to_STROUT(arg_l, mem);
+    if(is_array_empty(mem) == 0) print_ls_to_STROUT(arg_l, mem); //there is at least one thing to display
     clear_struct(&mem);
 }
 
