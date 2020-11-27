@@ -145,7 +145,7 @@ int adapter_ls(tsh_memory *memory){
     return ls(memory,args,i_args,option,i_option);
 }
 int adapter_rmdir(tsh_memory *memory){
-    return rmdir_func(memory, args[1]);
+    return rmdir_func(memory, args, i_args, option, i_option);
 }
 
 typedef int (*pt_adapter) (tsh_memory *memory);//declaration pointer of function

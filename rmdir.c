@@ -8,26 +8,32 @@
 #include "tar.h"
 #include "tsh_memory.h"
 #include "rmdir.h"
+#include "cd.h"
 #include "string_traitement.h"
 
-int rmdir_in_tar(int, char*);
-int occ_counter_path(int, char*, off_t*, off_t*);
+tsh_memory old_memory;
 
-int rmdir_func(tsh_memory *mem, char *dir){
-    if(in_a_tar(mem)){ //if the user is in a tar
-        rmdir_in_tar(atoi(mem->tar_descriptor), concatString(mem->FAKE_PATH, "arg"));
-    } else { //otherwise, we exec the normal rmdir on the current path
-        int pid = fork();
-        if(pid == 0){ //child processus
-            execlp("rmdir", "rmdir", "arg", NULL);
-        } else { //parent processus
-            int status;
-            waitpid(pid, &status, WUNTRACED);
-            if(WEXITSTATUS(status) == -1 )
-                return -1;
+//returns the number of times the path appears in the tarball
+//returns to a pointer 'file_offset' the position of the rep and the number of blocks found
+int occ_counter_path(int fd, char* full_path, off_t* file_offset, off_t *tar_size){
+    lseek(fd, 0, SEEK_SET);
+    int occurence = 0;
+    struct posix_header hd;
+    while(read(fd, &hd, 512) > 0){//reading the entire tarball
+        if(strncmp(hd.name, full_path, strlen(full_path)) == 0){
+            occurence++;
+            if(hd.typeflag == '5'){
+                *file_offset = lseek(fd,0,SEEK_CUR);//position of the blocks RIGHT NEXT to the one the user wants to delete
+            }
         }
+        int filesize = 0;
+        sscanf(hd.size, "%o", &filesize);
+        int nb_content_block = (filesize + 512 -1) / 512;
+
+        (*tar_size) += (1+nb_content_block)*512;
+        lseek(fd,nb_content_block*512, SEEK_CUR); //allow to jump to the next header block
     }
-    return 0;
+    return occurence;
 }
 
 int rmdir_in_tar(int fd, char* full_path){
@@ -52,25 +58,34 @@ int rmdir_in_tar(int fd, char* full_path){
     return 1;
 }
 
-//returns the number of times the path appears in the tarball
-//returns to a pointer 'file_offset' the position of the rep and the number of blocks found
-int occ_counter_path(int fd, char* full_path, off_t* file_offset, off_t *tar_size){
-    lseek(fd, 0, SEEK_SET);
-    int occurence = 0;
-    struct posix_header hd;
-    while(read(fd, &hd, 512) > 0){//reading the entire tarball
-        if(strncmp(hd.name, full_path, strlen(full_path)) == 0){
-            occurence++;
-            if(hd.typeflag == '5'){
-                *file_offset = lseek(fd,0,SEEK_CUR);//position of the blocks RIGHT NEXT to the one the user wants to delete
-            }
-        }
-        int filesize = 0;
-        sscanf(hd.size, "%o", &filesize);
-        int nb_content_block = (filesize + 512 -1) / 512;
+void exec_rmdir(char *dir, char option[50][50]){
+    int r = fork();
+    if(r == 0) execlp("rmdir", "rmdir", dir, NULL);
+    else wait(NULL);
+}
 
-        (*tar_size) += (1+nb_content_block)*512;
-        lseek(fd,nb_content_block*512, SEEK_CUR); //allow to jump to the next header block
+int rmdir_func(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],int nb_option){
+    char location[512];
+    for(int i = 0; i < nb_arg; i++){
+        saveMemory(memory, &old_memory);
+        getLocation(args[i], location); //check string_traitement for details
+        int lenLocation = strlen(location);
+        if(lenLocation > 0){//if there is an extra path cd to that path
+            if(cd(location, memory) == -1) return -1;
+        }
+        char *dirToDelete = args[i] + lenLocation;
+        if(in_a_tar(memory) == 1){
+            char *path_to_dir = concatString(memory->FAKE_PATH, dirToDelete);
+            rmdir_in_tar(atoi(memory->tar_descriptor),path_to_dir);
+        } else{
+             exec_rmdir(dirToDelete, option);
+         }
+
+        //restoring the last state of the memory
+        saveMemory(&old_memory, memory);
+        char *destination = malloc(strlen(memory->REAL_PATH));
+        strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);
+        cd(destination,memory); //cd-ing back to where we were
     }
-    return occurence;
+    return 1;
 }
