@@ -135,13 +135,32 @@ int ls(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],in
         else
             exec_ls(execvp_array(option,nb_option));
     } else {
-        for(int i = 0; i < nb_arg; i++){
+        for(int index_args = 0; index_args < nb_arg; index_args++){
+
+            //int len_arg = strlen(args[index_args]);
+            char location[512];
+            getLocation(args[index_args], location); // @string_traitement.c for details
+            char *fileToVisit;
+            if(strlen(location) > 0){//if there is an extra path cd to that path
+                if(cd(location, memory)==-1){
+                    return -1;
+                }
+                fileToVisit = args[index_args] + strlen(location);
+            }
             copyMemory(memory,&old_memory); //saving current state of the tsh_memory
-            if(cd(args[i], memory) > -1){ //cd-ing to the directory location (if it exists)
-                if(in_a_tar(memory) == 1)
-                    ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option_l);
-                else
-                    exec_ls(execvp_array(option,nb_option));
+            if(cd(location, memory) > -1){ //cd-ing to the directory location (if it exists)
+                if(in_a_tar(memory) == 1){
+                    //but has the user entered a file or a directory ?
+                    if(fileToVisit[strlen(fileToVisit)-1] == '/'
+                    || dir_exist(atoi(memory->tar_descriptor), concatDirToPath(memory->FAKE_PATH, fileToVisit)) == 1){ //directory
+                        if(cd(fileToVisit,memory) > -1)
+                            ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option_l);
+                    } else
+                        ls_in_tar(atoi(memory->tar_descriptor), concate_string(memory->FAKE_PATH,fileToVisit), option_l);
+
+                    //ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option_l);
+                }
+                else exec_ls(execvp_array(option,nb_option));
 
                 copyMemory(&old_memory, memory); //restoring the last state of the memory
                 char *destination = malloc(strlen(memory->REAL_PATH));
