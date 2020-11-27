@@ -108,7 +108,6 @@ char** execvp_array(char option[50][50], int nb_option){
     for(int i = 1; i < nb_option+1; i++){
         assert((ret[i] = malloc(sizeof(char)*strlen(option[i-1]))) != NULL);
         strcpy(ret[i], option[i-1]);
-        i++;
     }
     ret[nb_option+1] = NULL;
     return ret;
@@ -140,7 +139,7 @@ int ls(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],in
             //int len_arg = strlen(args[index_args]);
             char location[512];
             getLocation(args[index_args], location); // @string_traitement.c for details
-            char *fileToVisit;
+            char *fileToVisit = args[index_args];
             if(strlen(location) > 0){//if there is an extra path cd to that path
                 if(cd(location, memory)==-1){
                     return -1;
