@@ -272,5 +272,8 @@ void getLocation(char *source, char *result){
 }
 
 int is_unix_directory(char *str){
-    return (strcmp(str,"..") == 0 || strcmp(str,"../") == 0 || strcmp(str,".") == 0 || strcmp(str,"./") == 0);
+    char location[512];
+    getLocation(str,location);
+    char *str2 = str + strlen(location);
+    return ( strcmp(str2,".") == 0 || strcmp(str2,"./") == 0 || strcmp(str2,"..") == 0 || strcmp(str2,"../") == 0);
 }
