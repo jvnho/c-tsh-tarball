@@ -42,14 +42,18 @@ int is_array_empty(struct ls_memory mem){
 
 void print_ls_l(struct ls_memory mem){ //if option -l was given by user
     for(int i = 0; i < mem.NUMBER; i++){
-        write(1, strcat(mem.INFO[i]," "), strlen(mem.INFO[i])+1);
-        write(1, strcat(mem.NAME[i]," \n"), strlen(mem.NAME[i])+2);
+        write(1, mem.INFO[i], strlen(mem.INFO[i]));
+        write(1, " ", 1);
+        write(1, mem.NAME[i], strlen(mem.NAME[i]));
+        write(1, "\n", 1);
     }
 }
 
 void print_ls(struct ls_memory mem){//if no option was given
-    for(int i = 0; i < mem.NUMBER; i++)
-        write(1, strcat(mem.NAME[i]," "), strlen(mem.NAME[i])+2);
+    for(int i = 0; i < mem.NUMBER; i++){
+        write(1, mem.NAME[i], strlen(mem.NAME[i]));
+        write(1," ", 1);
+    }
     write(1,"\n",1);
 }
 
@@ -73,7 +77,10 @@ void clear_struct(struct ls_memory *mem){
 int ls_in_tar(int fd, char* full_path, int arg_l, char type){
     lseek(fd, 0, SEEK_SET);
     struct posix_header hd;
+
     struct ls_memory mem;
+    clear_struct(&mem);
+
     int len_path = strlen(full_path), fic_found = 0;
 
     while(read(fd, &hd, BLOCKSIZE) > 0){ //reading the entire tarball
@@ -99,7 +106,8 @@ int ls_in_tar(int fd, char* full_path, int arg_l, char type){
 
             if( is_in_array(CUT_PATH, mem) == 0){ //checking if the file is not is the array (to not print in more than once)
                 if(arg_l == 1) fill_info_array(hd, &mem);//filling FILE_INFO's array if -l argument is given
-                strcpy(mem.NAME[ (mem.NUMBER)++ ], CUT_PATH);//copying CUT_PATH(i.e file/rep name to ARRAY)
+                strcpy(mem.NAME[mem.NUMBER], CUT_PATH);//copying CUT_PATH(i.e file/rep name to ARRAY)
+                mem.NUMBER++;
                 fic_found++;
             }
         }
@@ -110,7 +118,6 @@ int ls_in_tar(int fd, char* full_path, int arg_l, char type){
         lseek(fd,512*nb_bloc_fichier, SEEK_CUR);
     }
     if(is_array_empty(mem) == 0) print_ls_to_STROUT(arg_l, mem); //there is at least one thing to display
-    clear_struct(&mem);
     return fic_found;
 }
 
@@ -147,7 +154,7 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
     if(dir[strlen(dir)-1] == '/'  || is_unix_directory(dir) == 1){ //we are sure the user entered a directory to ls
         if(cd(dir, memory) > -1){ //cd-ing to the directory location (if it exists)
             if(in_a_tar(memory) == 1) ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');
-            //else exec_ls(execvp_array(option,nb_option));
+            else exec_ls(execvp_array(option,nb_option));
         }
     } else { // in this case, we don't know if the user wants to ls a directory or a file
         char location[512], *dirToVisit = dir;
@@ -162,10 +169,9 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
             if(ls_in_tar(atoi(memory->tar_descriptor), file_path, l_opt, 'f') == 0){ //try to ls a file
                 if(cd(dirToVisit, memory) > -1){ //trying to get into the dir
                     if(in_a_tar(memory) == 1) ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');
-                    //else exec_ls(execvp_array(option,nb_option));
                 }
             }
-        } //else exec_ls(execvp_array(option,nb_option));
+        } else exec_ls(execvp_array(option,nb_option));
     }
     copyMemory(&old_memory, memory); //restoring the last state of the memory
     char *destination = malloc(strlen(memory->REAL_PATH));
@@ -178,7 +184,7 @@ int ls(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],in
     int l_opt = option_l_present(option, nb_option);
     if(nb_arg == 0){
         if(in_a_tar(memory) == 1) ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');
-        //else exec_ls(execvp_array(option,nb_option));
+        else exec_ls(execvp_array(option,nb_option));
     }
     for(int i = 0; i < nb_arg; i++){
         do_ls(memory, args[i], option, nb_option, l_opt);
