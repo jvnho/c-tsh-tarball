@@ -122,16 +122,23 @@ int ls_in_tar(int fd, char* full_path, int arg_l, char type){
 }
 
 //making an array for execvp
-char** execvp_array(char option[50][50], int nb_option){
+char** execvp_array(char *dir, char option[50][50], int nb_option){
     char **ret;
     assert((ret = malloc(sizeof(char*) * (nb_option+2))) != NULL );
     assert((ret[0] = malloc(sizeof(char)*2)) != NULL);
     strcpy(ret[0], "ls");
-    for(int i = 1; i < nb_option+1; i++){
-        assert((ret[i] = malloc(sizeof(char)*strlen(option[i-1]))) != NULL);
-        strcpy(ret[i], option[i-1]);
+    int index = 1;
+    for(int i = 0; i < nb_option; i++){
+        assert((ret[index] = malloc(sizeof(char)*strlen(option[i]))) != NULL);
+        strcpy(ret[index], option[i]);
+        index++;
     }
-    ret[nb_option+1] = NULL;
+    if(dir != NULL){
+        assert((ret[index] = malloc(sizeof(char)*strlen(dir))) != NULL);
+        strcpy(ret[index], dir);
+        index++;
+    }
+    ret[index] = NULL;
     return ret;
 }
 
@@ -148,31 +155,7 @@ void exec_ls(char **option){
     else wait(NULL);
 }
 
-void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, int l_opt){
-    copyMemory(memory,&old_memory); //saving current state of the tsh_memory
-
-    if(dir[strlen(dir)-1] == '/'  || is_unix_directory(dir) == 1){ //we are sure the user entered a directory to ls
-        if(cd(dir, memory) > -1){ //cd-ing to the directory location (if it exists)
-            if(in_a_tar(memory) == 1) ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');
-            else exec_ls(execvp_array(option,nb_option));
-        }
-    } else { // in this case, we don't know if the user wants to ls a directory or a file
-        char location[512], *dirToVisit = dir;
-        getLocation(dir,location); //@string_traitement.c for details
-        if(strlen(location) > 0){
-            if(cd(location, memory) == -1) //path doesn't exist
-                return;
-            dirToVisit += strlen(location);
-        }
-        if(in_a_tar(memory) == 1){
-            char *file_path = concate_string(memory->FAKE_PATH, dirToVisit);
-            if(ls_in_tar(atoi(memory->tar_descriptor), file_path, l_opt, 'f') == 0){ //try to ls a file
-                if(cd(dirToVisit, memory) > -1){ //trying to get into the dir
-                    if(in_a_tar(memory) == 1) ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');
-                }
-            }
-        } else exec_ls(execvp_array(option,nb_option));
-    }
+void restoreLastState(tsh_memory *memory){
     copyMemory(&old_memory, memory); //restoring the last state of the memory
     char *destination = malloc(strlen(memory->REAL_PATH));
     strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);
@@ -180,14 +163,54 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
     free(destination);
 }
 
+void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, int l_opt){
+    copyMemory(memory,&old_memory); //saving current state of the tsh_memory
+
+    if(dir[strlen(dir)-1] == '/'  || is_unix_directory(dir) == 1){ //we are sure the user entered a directory to ls (@string_traitement.c)
+        if(cd(dir, memory) > -1){ //cd-ing to the directory location (if it exists)
+            if(in_a_tar(memory) == 1) ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');
+            else exec_ls(execvp_array(NULL,option,nb_option));
+        }
+    } else { // in this case, we don't know if the user wants to ls a directory or a file
+        char location[512], *dirToVisit = dir;
+        getLocation(dir,location); //@string_traitement.c for details
+
+        //in this case, user wants to ls a .tar file so we cd in it and run ls
+        if(strlen(location) == 0 && is_extension_tar(dirToVisit) == 1){ //@string_traitement.c
+            cd(dirToVisit, memory);
+            ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');
+            restoreLastState(memory);
+            return;
+        }
+
+        if(strlen(location) > 0){
+            if(cd(location, memory) == -1){ //path doesn't exist
+                restoreLastState(memory);
+                return;
+            }
+        }
+        dirToVisit += strlen(location);
+        if(in_a_tar(memory) == 1){
+            char *file_path = concate_string(memory->FAKE_PATH, dirToVisit);
+            if(ls_in_tar(atoi(memory->tar_descriptor), file_path, l_opt, 'f') == 0){ //try to ls a file
+                if(cd(dirToVisit, memory) > -1){ //trying to get into the dir
+                    if(in_a_tar(memory) == 1) ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');
+                }
+            }
+        } else exec_ls(execvp_array(dirToVisit,option,nb_option));
+    }
+    restoreLastState(memory);
+}
+
 int ls(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],int nb_option){
     int l_opt = option_l_present(option, nb_option);
     if(nb_arg == 0){
         if(in_a_tar(memory) == 1) ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');
-        else exec_ls(execvp_array(option,nb_option));
-    }
-    for(int i = 0; i < nb_arg; i++){
-        do_ls(memory, args[i], option, nb_option, l_opt);
+        else exec_ls(execvp_array(NULL,option,nb_option));
+    } else {
+        for(int i = 0; i < nb_arg; i++){
+            do_ls(memory, args[i], option, nb_option, l_opt);
+        }
     }
     return 1;
 }

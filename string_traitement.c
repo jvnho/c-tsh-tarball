@@ -277,3 +277,7 @@ int is_unix_directory(char *str){
     char *str2 = str + strlen(location);
     return ( strcmp(str2,".") == 0 || strcmp(str2,"./") == 0 || strcmp(str2,"..") == 0 || strcmp(str2,"../") == 0);
 }
+
+int is_extension_tar(char *str){
+    return (str[strlen(str)-1] == 'r' && str[strlen(str)-2] == 'a' && str[strlen(str)-3] == 't' && str[strlen(str)-4] == '.');
+}
