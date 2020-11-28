@@ -270,3 +270,7 @@ void getLocation(char *source, char *result){
     //copy destionation source(from where) size(how many char)
     memcpy(result, source, indexSlach + 1);// +1 because index start from 0
 }
+
+int is_unix_directory(char *str){
+    return (strcmp(str,"..") == 0 || strcmp(str,"../") == 0 || strcmp(str,".") == 0 || strcmp(str,"./") == 0);
+}

@@ -126,47 +126,49 @@ void exec_ls(char **option){
     else wait(NULL);
 }
 
-int ls(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],int nb_option){
-    int option_l = option_l_present(option, nb_option);
-    if(nb_arg == 0){ //no path given
-        if(in_a_tar(memory) == 1)
-            ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option_l);
-        else
-            exec_ls(execvp_array(option,nb_option));
-    } else {
-        for(int index_args = 0; index_args < nb_arg; index_args++){
+void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, int l_opt){
+    copyMemory(memory,&old_memory); //saving current state of the tsh_memory
 
-            //int len_arg = strlen(args[index_args]);
-            char location[512];
-            getLocation(args[index_args], location); // @string_traitement.c for details
-            char *fileToVisit = args[index_args];
-            if(strlen(location) > 0){//if there is an extra path cd to that path
-                if(cd(location, memory)==-1){
-                    return -1;
-                }
-                fileToVisit = args[index_args] + strlen(location);
-            }
-            copyMemory(memory,&old_memory); //saving current state of the tsh_memory
-            if(cd(location, memory) > -1){ //cd-ing to the directory location (if it exists)
-                if(in_a_tar(memory) == 1){
-                    //but has the user entered a file or a directory ?
-                    if(fileToVisit[strlen(fileToVisit)-1] == '/'
-                    || dir_exist(atoi(memory->tar_descriptor), concatDirToPath(memory->FAKE_PATH, fileToVisit)) == 1){ //directory
-                        if(cd(fileToVisit,memory) > -1)
-                            ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option_l);
-                    } else
-                        ls_in_tar(atoi(memory->tar_descriptor), concate_string(memory->FAKE_PATH,fileToVisit), option_l);
+    int ls_a_dir = 0;
+    char location[512], *dirToVisit;
+    getLocation(dir,location); //@string_traitement.c for details
+    dirToVisit = dir + strlen(location);
 
-                    //ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, option_l);
-                }
-                else exec_ls(execvp_array(option,nb_option));
-
-                copyMemory(&old_memory, memory); //restoring the last state of the memory
-                char *destination = malloc(strlen(memory->REAL_PATH));
-                strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);
-                cd(destination,memory); //cd-ing back to where we were
-            }
+    if(dir[strlen(dir)-1] == '/'  || is_unix_directory(dirToVisit) == 1){ //we are sure the user entered a directory to ls
+        printf("%s\n", dirToVisit);
+        ls_a_dir = 1;
+        if(cd(dir, memory) > -1){ //cd-ing to the directory location (if it exists)
+            if(in_a_tar(memory) == 1) ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt);
+            else exec_ls(execvp_array(option,nb_option));
         }
+    } else { //we don't know if the user wants to ls a directory or a file
+
+        // if(cd(location, memory) > -1){ //cd-ing to the directory location (if it exists)
+        //     //but has the user entered a directory or a file ?
+        //     if(in_a_tar(memory) == 1){
+        //         if(ls_a_dir == 1){
+        //             ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt);
+        //             return;
+        //         } else if(is_unix_directory(dirToVisit) == 0){ //@string_traitement.c for details
+        //                 cd(dirToVisit+strlen(location), memory);
+        //                 ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt);
+        //         } else {
+        //             ls_in_tar(atoi(memory->tar_descriptor), concate_string(memory->FAKE_PATH, dirToVisit+strlen(location)), l_opt);
+        //         }
+        //     }
+        //     else exec_ls(execvp_array(option,nb_option));
+        // }
+    }
+    copyMemory(&old_memory, memory); //restoring the last state of the memory
+    char *destination = malloc(strlen(memory->REAL_PATH));
+    strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);
+    cd(destination,memory); //cd-ing back to where we were
+}
+
+int ls(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],int nb_option){
+    int l_opt = option_l_present(option, nb_option);
+    for(int i = 0; i < nb_arg; i++){
+        do_ls(memory, args[i], option, nb_option, l_opt);
     }
     return 1;
 }
