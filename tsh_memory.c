@@ -71,7 +71,7 @@ int in_a_tar(tsh_memory *state){
 void resetBuffer(tsh_memory *memory){
     memset(memory->comand, 0, MAX_COMMAND);
 }
-void saveMemory(tsh_memory *initial, tsh_memory *save){
+void copyMemory(tsh_memory *initial, tsh_memory *save){
     memset(save, 0, sizeof(struct tsh_memory));
     strcpy(save->FAKE_PATH, initial->FAKE_PATH);
     strcpy(save->tar_name, initial->tar_name);

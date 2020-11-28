@@ -103,7 +103,7 @@ char *int_to_string(int chiffre){
     return result;
 }
 //voir le cas ou dir se termine par un slach
-char * concatString(char * path, char *dir){
+char * concatDirToPath(char * path, char *dir){
 
     int length = strlen(path)+strlen(dir)+2;
     char * result = malloc(length);
@@ -118,6 +118,13 @@ char * concatString(char * path, char *dir){
     }
     return result;
 }
+
+char *concate_string(char *s1, char *s2){
+    char *ret = malloc((strlen(s1)+strlen(s2)+1)*sizeof(char));
+    sprintf(ret,"%s%s%c", s1, s2, '\0');
+    return ret;
+}
+
 int get_index_first_slach(char *initial_string){
     char * substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
     if(substring == NULL)return -1;//there is not a .tar -> so there is not first slach befor .tar
@@ -262,4 +269,15 @@ void getLocation(char *source, char *result){
     if(indexSlach == -1)return;
     //copy destionation source(from where) size(how many char)
     memcpy(result, source, indexSlach + 1);// +1 because index start from 0
+}
+
+int is_unix_directory(char *str){
+    char location[512];
+    getLocation(str,location);
+    char *str2 = str + strlen(location);
+    return ( strcmp(str2,".") == 0 || strcmp(str2,"./") == 0 || strcmp(str2,"..") == 0 || strcmp(str2,"../") == 0);
+}
+
+int is_extension_tar(char *str){
+    return (str[strlen(str)-1] == 'r' && str[strlen(str)-2] == 'a' && str[strlen(str)-3] == 't' && str[strlen(str)-4] == '.');
 }

@@ -19,7 +19,7 @@ int shouldSave = 1;
 char *concate_string(char *s1, char *s2);
 
 int if_cd_is_valid(int descriptor, char * PATH, char * directory){
-    char * recherched_path = concatString(PATH, directory);
+    char * recherched_path = concatDirToPath(PATH, directory);
     return dir_exist(descriptor, recherched_path);
 }
 void reduceFakePath(char * directory, tsh_memory *mem){
@@ -50,7 +50,7 @@ int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in
             if(directory[strlen(directory)-1] == '/')//to check if we should add / at the end
                 strcat(memory->FAKE_PATH, directory);//simple concat
             else
-                strcat(memory->FAKE_PATH, concatString(directory, ""));//concat that add  / at the end
+                strcat(memory->FAKE_PATH, concatDirToPath(directory, ""));//concat that add  / at the end
             return 0;
         }else{
             write(1, "Noo such directory\n", strlen("Noo such directory\n"));
@@ -80,12 +80,12 @@ int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in
 
 int cd(char *directory, tsh_memory *memory){
     if(shouldSave){
-        saveMemory(memory, &save);
+        copyMemory(memory, &save);
     }
     if(in_a_tar(memory) && directory[0] != '/'){//in a anormal circumstances and when it's not an absolute path
         remove_simple_dot_from_dir(directory); // remove eventual ./, /./, /. from the directory (details: string_traitement.c)
         if(cd_in_tar(directory, memory)==-1){
-            saveMemory(&save, memory);//restore
+            copyMemory(&save, memory);//restore
             shouldSave = 1;
             chdir(memory->REAL_PATH);
             return -1;
@@ -107,7 +107,7 @@ int cd(char *directory, tsh_memory *memory){
     if(strlen(beforeTar)){
         if(chdir(beforeTar)==-1){
             perror("");
-            saveMemory(&save, memory);//error
+            copyMemory(&save, memory);//error
             shouldSave = 1;
             chdir(memory->REAL_PATH);
             return -1;
@@ -118,7 +118,7 @@ int cd(char *directory, tsh_memory *memory){
         if(instanciate_tsh_memory(tarName, memory)==-1) return -1;//should avoid the normal cd done before
         if(strlen(afterTar)){
             if(cd_in_tar(afterTar, memory) == -1){//if error we should't have done the first part
-                saveMemory(&save, memory);
+                copyMemory(&save, memory);
                 memory->REAL_PATH[strlen(memory->REAL_PATH)-2] = '\0';
                 chdir(memory->REAL_PATH);
                 shouldSave = 1;
@@ -128,10 +128,4 @@ int cd(char *directory, tsh_memory *memory){
         }
     }
     return 0;
-}
-
-char *concate_string(char *s1, char *s2){
-    char *ret = malloc((strlen(s1)+strlen(s2)+1)*sizeof(char));
-    sprintf(ret,"%s%s%c", s1, s2, '\0');
-    return ret;
 }
