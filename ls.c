@@ -124,7 +124,7 @@ int ls_in_tar(int fd, char* full_path, int arg_l, char type){
 //making an array for execvp
 char** execvp_array(char *dir, char option[50][50], int nb_option){
     char **ret;
-    assert((ret = malloc(sizeof(char*) * (nb_option+2))) != NULL );
+    assert((ret = malloc(sizeof(char*) * (nb_option+3))) != NULL );
     assert((ret[0] = malloc(sizeof(char)*2)) != NULL);
     strcpy(ret[0], "ls");
     int index = 1;
@@ -149,9 +149,9 @@ int option_l_present(char option[50][50], int nb_option){
     return 0;
 }
 
-void exec_ls(char **option){
+void exec_ls(char **args){
     int r = fork();
-    if(r == 0) execvp("ls", option);
+    if(r == 0) execvp("ls", args);
     else wait(NULL);
 }
 
