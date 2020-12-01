@@ -184,10 +184,7 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
         }
 
         if(strlen(location) > 0){
-            if(cd(location, memory) == -1){ //path doesn't exist
-                restoreLastState(memory);
-                return;
-            }
+            if(cd(location, memory) == -1) return; //path doesn't exist
         }
         dirToVisit += strlen(location);
         if(in_a_tar(memory) == 1){
