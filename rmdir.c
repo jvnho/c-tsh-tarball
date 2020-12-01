@@ -102,12 +102,10 @@ int rmdir_func(tsh_memory *memory, char args[50][50], int nb_arg, char option[50
         getLocation(args[i], location); //check string_traitement for details
         int lenLocation = strlen(location);
         if(lenLocation > 0){//if there is an extra path cd to that path
-            if(cd(location, memory) == -1){
-                restoreLastState2(memory);
-                return -1;
-            }
+            if(cd(location, memory) == -1) return -1; //path doesn't exist
         }
         char *dirToDelete = args[i] + lenLocation;
+        
         if(in_a_tar(memory) == 1 && is_unix_directory(dirToDelete) == 0){
             char *path_to_dir = concatDirToPath(memory->FAKE_PATH, dirToDelete);
             rmdir_in_tar(atoi(memory->tar_descriptor),path_to_dir);
