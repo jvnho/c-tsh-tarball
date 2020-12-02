@@ -1,6 +1,14 @@
 #ifndef LS_H
 #define LS_H
 
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <assert.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
 #include "tsh_memory.h"
 
 #define NB_ENTRY 512

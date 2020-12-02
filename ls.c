@@ -1,13 +1,3 @@
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/wait.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <assert.h>
-
 #include "ls.h"
 #include "cd.h"
 #include "tar.h"
@@ -16,6 +6,7 @@
 #include "string_traitement.h"
 
 tsh_memory old_memory; //will be use to save/restore a memory
+char **array_execvp;
 
 int is_in_array(char *string, struct ls_memory mem){ //checking if string is in ls_memory's NAME array
     for(int i = 0; i < mem.NUMBER; i++){
@@ -35,10 +26,6 @@ void fill_info_array(struct posix_header hd, struct ls_memory *mem){ //filling l
     char c[(strlen(hd.uname)+strlen(hd.gname)+strlen(hd.size)+12) * sizeof(char)];
     sprintf(c, "%c%s %s %s %d", file_type(hd.typeflag), octal_to_string(hd.mode), hd.uname, hd.gname, filesize);
     strcpy(mem->INFO[mem->NUMBER], c);
-}
-
-int is_array_empty(struct ls_memory mem){
-    return mem.NUMBER == 0;
 }
 
 void print_ls_l(struct ls_memory mem){ //if option -l was given by user
@@ -96,6 +83,7 @@ int ls_in_tar(int fd, char* full_path, int arg_l, char type){
                 return 1;
             }
         }
+
         if( type != 'f' && strncmp(hd.name, full_path, len_path)==0 && strcmp(hd.name, full_path)!=0){
             char CUT_PATH[255];//CUT_PATH = file or directory name cut from its path
             int taille_nom = 0;
@@ -118,29 +106,8 @@ int ls_in_tar(int fd, char* full_path, int arg_l, char type){
         int nb_bloc_fichier = (filesize + 512 -1) / 512;
         lseek(fd,512*nb_bloc_fichier, SEEK_CUR);
     }
-    if(is_array_empty(mem) == 0) print_ls_to_STROUT(arg_l, mem); //there is at least one thing to display
+    if(mem.NUMBER > 0) print_ls_to_STROUT(arg_l, mem); //there is at least one thing to display
     return fic_found;
-}
-
-//making an array for execvp
-char** execvp_array(char *dir, char option[50][50], int nb_option){
-    char **ret;
-    assert((ret = malloc(sizeof(char*) * (nb_option+3))) != NULL );
-    assert((ret[0] = malloc(sizeof(char)*2)) != NULL);
-    strcpy(ret[0], "ls");
-    int index = 1;
-    for(int i = 0; i < nb_option; i++){
-        assert((ret[index] = malloc(sizeof(char)*strlen(option[i]))) != NULL);
-        strcpy(ret[index], option[i]);
-        index++;
-    }
-    if(dir != NULL){
-        assert((ret[index] = malloc(sizeof(char)*strlen(dir))) != NULL);
-        strcpy(ret[index], dir);
-        index++;
-    }
-    ret[index] = NULL;
-    return ret;
 }
 
 int option_l_present(char option[50][50], int nb_option){
@@ -150,22 +117,20 @@ int option_l_present(char option[50][50], int nb_option){
     return 0;
 }
 
-void exec_ls(char **args){
-    int r = fork();
-    if(r == 0) execvp("ls", args);
-    else wait(NULL);
-}
-
 void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, int l_opt){
 
     copyMemory(memory,&old_memory); //saving current state of the tsh_memory
 
     if(dir[strlen(dir)-1] == '/'  || is_unix_directory(dir) == 1){ //we are sure the user wants to ls a directory (@string_traitement.c)
         if(cd(dir, memory) > -1){ //cd-ing to the directory location (if it exists)
-            if(in_a_tar(memory) == 1) ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');
-            else exec_ls(execvp_array(NULL,option,nb_option));
+            if(in_a_tar(memory) == 1) {
+                ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');
+            } else {
+                array_execvp = execvp_array("ls", NULL,option,nb_option); //details @functions.h
+                exec_cmd("ls", array_execvp);
+            }
         }
-    } else { // in this case, we don't know if the user wants to ls a directory or a file
+    } else { // at this point, we don't know if the user wants to ls a directory or a file
         char location[512];
         char *dirToVisit = dir;
         getLocation(dir,location); //@string_traitement.c for details
@@ -180,7 +145,7 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
 
         if(strlen(location) > 0){
             if(cd(location, memory) == -1){
-                //restoreLastState(old_memory, memory);
+                restoreLastState(old_memory, memory);
                 return; //path doesn't exist
             }
             dirToVisit += strlen(location);
@@ -190,13 +155,14 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
 
             char *file_path = concate_string(memory->FAKE_PATH, dirToVisit);
 
-            if(ls_in_tar(atoi(memory->tar_descriptor), file_path, l_opt, 'f') == 0){ //trying to found in the tar if the file "dirToVisit" exists
-                if(cd(dirToVisit, memory) > -1){ //trying to found in the tar if the directory "dirToVisit" exists
+            if(ls_in_tar(atoi(memory->tar_descriptor), file_path, l_opt, 'f') == 0){ //trying to find in the tar if the file "dirToVisit" exists
+                if(cd(dirToVisit, memory) > -1){ //trying now to find in the tar if the directory "dirToVisit" exists
                     ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');  
                 }
             }
         } else {
-            exec_ls(execvp_array(dirToVisit,option,nb_option));
+            array_execvp = execvp_array("ls", dirToVisit,option,nb_option);
+            exec_cmd("ls", array_execvp);
         }
     }
     restoreLastState(old_memory, memory);
@@ -205,8 +171,12 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
 int ls(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],int nb_option){
     int l_opt = option_l_present(option, nb_option);
     if(nb_arg == 0){
-        if(in_a_tar(memory) == 1) ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');
-        else exec_ls(execvp_array(NULL,option,nb_option));
+        if(in_a_tar(memory) == 1) {
+            ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');
+        } else { 
+            array_execvp = execvp_array("ls", NULL,option,nb_option);
+            exec_cmd("ls", array_execvp);
+        }
     } else {
         for(int i = 0; i < nb_arg; i++){
             do_ls(memory, args[i], option, nb_option, l_opt);
