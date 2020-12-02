@@ -53,7 +53,7 @@ int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in
                 strcat(memory->FAKE_PATH, concatDirToPath(directory, ""));//concat that add  / at the end
             return 0;
         }else{
-            write(1, "Noo such directory\n", strlen("Noo such directory\n"));
+            write(1, "No such directory\n", strlen("No such directory\n"));
             return -1;
         }
     }
