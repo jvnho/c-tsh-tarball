@@ -110,13 +110,6 @@ int ls_in_tar(int fd, char* full_path, int arg_l, char type){
     return fic_found;
 }
 
-int option_l_present(char option[50][50], int nb_option){
-    for(int i = 0; i < nb_option; i++)
-        if(strcmp(option[i], "-l") == 0)
-            return 1;
-    return 0;
-}
-
 void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, int l_opt){
 
     copyMemory(memory,&old_memory); //saving current state of the tsh_memory
@@ -169,7 +162,7 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
 }
 
 int ls(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],int nb_option){
-    int l_opt = option_l_present(option, nb_option);
+    int l_opt = option_present("-l", option, nb_option);
     if(nb_arg == 0){
         if(in_a_tar(memory) == 1) {
             ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');

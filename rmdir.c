@@ -11,8 +11,10 @@
 #include "rmdir.h"
 #include "cd.h"
 #include "string_traitement.h"
+#include "function.h"
 
 tsh_memory old_memory;
+char **array_execvp;
 
 //returns the number of times the path appears in the tarball
 //returns to a pointer 'file_offset' the position of the rep and the number of blocks found
@@ -59,40 +61,6 @@ int rmdir_in_tar(int fd, char* full_path){
     return 1;
 }
 
-char** execvp_opts(char *dir, char option[50][50], int nb_option){ //fonciton temporaire
-    char **ret;
-    assert((ret = malloc(sizeof(char*) * (nb_option+3))) != NULL );
-    assert((ret[0] = malloc(sizeof(char)*2)) != NULL);
-    strcpy(ret[0], "rmdir");
-    int index = 1;
-    for(int i = 0; i < nb_option; i++){
-        assert((ret[index] = malloc(sizeof(char)*strlen(option[i]))) != NULL);
-        strcpy(ret[index], option[i]);
-        index++;
-    }
-    if(dir != NULL){
-        assert((ret[index] = malloc(sizeof(char)*strlen(dir))) != NULL);
-        strcpy(ret[index], dir);
-        index++;
-    }
-    ret[index] = NULL;
-    return ret;
-}
-
-void exec_rmdir(char **args){
-    int r = fork();
-    if(r == 0) execvp("rmdir", args);
-    else wait(NULL);
-}
-
-void restoreLastState2(tsh_memory *memory){ //fonction temporaire 
-    copyMemory(&old_memory, memory); //restoring the last state of the memory
-    char *destination = malloc(strlen(memory->REAL_PATH));
-    strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);
-    cd(destination,memory); //cd-ing back to where we were
-    free(destination);
-}
-
 int rmdir_func(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],int nb_option){
     char location[512];
     for(int i = 0; i < nb_arg; i++){
@@ -101,23 +69,27 @@ int rmdir_func(tsh_memory *memory, char args[50][50], int nb_arg, char option[50
 
         getLocation(args[i], location); //check string_traitement for details
         int lenLocation = strlen(location);
-        if(lenLocation > 0){//if there is an extra path cd to that path
-            if(cd(location, memory) == -1) return -1; //path doesn't exist
-        }
-        char *dirToDelete = args[i] + lenLocation;
+        char *dirToDelete = args[i];
         
-        if(in_a_tar(memory) == 1 && is_unix_directory(dirToDelete) == 0){
+        if(lenLocation > 0){//if there is an extra path cd to that path
+            if(cd(location, memory) == -1) 
+                return -1; //path doesn't exist
+            dirToDelete = args[i] + lenLocation;
+        }
+        
+        if(in_a_tar(memory) == 1){
             char *path_to_dir = concatDirToPath(memory->FAKE_PATH, dirToDelete);
             rmdir_in_tar(atoi(memory->tar_descriptor),path_to_dir);
         } else {
-            if(strcmp(option[0],"-p")==0){ //cas spécial du rmdir du système unix 
-                restoreLastState2(memory);
-                exec_rmdir(execvp_opts(args[i],option, nb_option));
+            if(option_present("-p", option, nb_option) == 1 || option_present("--parents", option, nb_option)){ //cas spécial du rmdir du système unix 
+                restoreLastState(old_memory,memory);
+                array_execvp = execvp_array("rmdir",args[i],option, nb_option);
             } else { 
-                exec_rmdir(execvp_opts(dirToDelete,option, nb_option));
+                array_execvp = execvp_array("rmdir",dirToDelete,option, nb_option);
             }
+            exec_cmd("rmdir", array_execvp);
         }
-        restoreLastState2(memory);
+        restoreLastState(old_memory,memory);
     }
     return 1;
 }

@@ -45,3 +45,11 @@ void exec_cmd(char *cmd, char **args){
     if(r == 0) execvp(cmd, args);
     else wait(NULL);
 }
+
+//check if a certain "opt_name" is present in option array
+int option_present(char *opt_name, char option[50][50], int nb_option){
+    for(int i = 0; i < nb_option; i++)
+        if(strcmp(option[i], opt_name) == 0)
+            return 1;
+    return 0;
+}
