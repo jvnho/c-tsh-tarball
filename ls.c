@@ -129,7 +129,7 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
         getLocation(dir,location); //@string_traitement.c for details
 
         //in this case, user wants to ls a .tar file so we cd in it and run ls
-        if(strlen(location) == 0 && is_extension_tar(dirToVisit) == 1){ //@string_traitement.c
+        if(strlen(location) == 0 || is_extension_tar(dirToVisit) == 1){ //@string_traitement.c
             cd(dirToVisit, memory);
             ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');
             restoreLastState(old_memory, memory);
@@ -149,8 +149,14 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
             char *file_path = concate_string(memory->FAKE_PATH, dirToVisit);
 
             if(ls_in_tar(atoi(memory->tar_descriptor), file_path, l_opt, 'f') == 0){ //trying to find in the tar if the file "dirToVisit" exists
+
                 if(cd(dirToVisit, memory) > -1){ //trying now to find in the tar if the directory "dirToVisit" exists
-                    ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');  
+                    if(in_a_tar(memory) == 1) {
+                        ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');  
+                    } else {
+                        array_execvp = execvp_array("ls", dirToVisit,option,nb_option);
+                        exec_cmd("ls", array_execvp);
+                    }
                 }
             }
         } else {
