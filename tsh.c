@@ -14,9 +14,9 @@
 #include "ls.h"
 #include "rmdir.h"
 #include "simpleCommande.h"
-#include "execute.h"
 char * PATH;
 tsh_memory * memory;
+int execute(tsh_memory *memory);
 int main(void){
     //we create a memory about the current state so all processu can relate on it
     if((memory = create_memory())==NULL)return -1;

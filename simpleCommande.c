@@ -11,8 +11,8 @@
 #include "mkdir.h"
 #include "ls.h"
 #include "rmdir.h"
-#include "tsh_memory.h"
 #include "string_traitement.h"
+#include "pipe.h"
 
 char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir"};
 #define NB_FUN 6
@@ -23,6 +23,7 @@ char args[50][50];
 int i_args = 0;
 const char space[2] = " ";
 int returnval;
+int pipe_tsh(tsh_memory *m, tsh_memory *a);
 
 void fillArgs(char *commande){
     //fill by token
@@ -177,4 +178,13 @@ int execSimpleCommande(tsh_memory *memory){
         returnval = (*(listFun[fun_index]))(memory);//invok the appropriate function
     }
     return returnval;
+}
+int execute(tsh_memory *memory){
+    if(strstr(memory->comand, "|")==NULL){//Pas de pipe
+        
+    }else{
+        write(1, "avec pipe\n", strlen("avec pipe\n"));
+    }
+    //pipe(memory, memory);
+    return 0;
 }
