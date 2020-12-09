@@ -1,4 +1,5 @@
 #ifndef PIPE_H
 #define PIPE_H
-extern int pipe(char *commande1, char *commande2);
+#include "tsh_memory.h"
+extern int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2);
 #endif
