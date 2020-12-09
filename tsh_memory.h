@@ -19,7 +19,7 @@ extern void free_tsh_memory(tsh_memory *state);
 extern int in_a_tar(tsh_memory *state);
 extern void resetBuffer(tsh_memory *memory);
 extern int exit2(tsh_memory *state);
-extern void saveMemory(tsh_memory *initial, tsh_memory *save);
+extern void copyMemory(tsh_memory *initial, tsh_memory *save);
 void clearMemory(tsh_memory *memory);
 void clearFakePath(tsh_memory *memory);
 #endif
