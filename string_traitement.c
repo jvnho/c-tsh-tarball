@@ -281,3 +281,6 @@ int is_unix_directory(char *str){
 int is_extension_tar(char *str){
     return (str[strlen(str)-1] == 'r' && str[strlen(str)-2] == 'a' && str[strlen(str)-3] == 't' && str[strlen(str)-4] == '.');
 }
+void spilitPipe(char *firt, char *second, char *source){
+    
+}

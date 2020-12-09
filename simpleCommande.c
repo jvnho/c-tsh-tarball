@@ -187,6 +187,10 @@ int execSimpleCommande(tsh_memory *memory){
 }
 int execute(tsh_memory *memory){
     if(strstr(memory->comand, "|")==NULL){//Pas de pipe
+        tsh_memory mem1;
+        tsh_memory mem2;
+        copyMemory(memory, &mem1);
+        copyMemory(memory, &mem2);
         execSimpleCommande(memory);
     }else{
         write(1, "avec pipe\n", strlen("avec pipe\n"));
