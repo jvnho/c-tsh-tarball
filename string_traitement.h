@@ -16,4 +16,5 @@ extern void remove_simple_dot_from_dir(char *str);
 extern void getLocation(char *source, char *result);
 extern int is_unix_directory(char *str);
 extern int is_extension_tar(char *str);
+extern int spilitPipe(char *firt, char *second, char *source);
 #endif

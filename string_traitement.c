@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <unistd.h>
 #define BUFSIZE 512
 typedef struct position_mots{
     int debut;
@@ -281,6 +282,13 @@ int is_unix_directory(char *str){
 int is_extension_tar(char *str){
     return (str[strlen(str)-1] == 'r' && str[strlen(str)-2] == 'a' && str[strlen(str)-3] == 't' && str[strlen(str)-4] == '.');
 }
-void spilitPipe(char *firt, char *second, char *source){
-    
+int spilitPipe(char *first, char *second, char *source){
+    memset(first, 0, 512);
+    memset(second, 0, 512);
+    char *tok;
+    if((tok = strtok(source, "|")) == NULL)return -1;
+    strcpy(first, tok);
+    if((tok = strtok(NULL, "|")) == NULL)return -1;
+    strcpy(second, tok);
+    return 0;
 }

@@ -187,13 +187,18 @@ int execSimpleCommande(tsh_memory *memory){
 }
 int execute(tsh_memory *memory){
     if(strstr(memory->comand, "|")==NULL){//Pas de pipe
+        execSimpleCommande(memory);
+    }else{
         tsh_memory mem1;
         tsh_memory mem2;
         copyMemory(memory, &mem1);
         copyMemory(memory, &mem2);
-        execSimpleCommande(memory);
-    }else{
-        write(1, "avec pipe\n", strlen("avec pipe\n"));
+        if(spilitPipe(mem1.comand, mem2.comand, memory->comand) == -1){
+            write(1, "parse error near `|'\n", strlen("parse error near `|'\n"));
+            return -1;
+        }
+        write(1, mem1.comand, strlen(mem1.comand));
+        write(1, mem2.comand, strlen(mem2.comand));
     }
     //pipe(memory, memory);
     return 0;
