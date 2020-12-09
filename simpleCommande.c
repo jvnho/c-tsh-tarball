@@ -143,6 +143,7 @@ int adapter_mkdir(tsh_memory *memory){
     return mkdir(NULL ,args, i_option, i_args, memory);
 }
 int adapter_ls(tsh_memory *memory){
+    write(1, "---\n", strlen("---\n"));
     return ls(memory,args,i_args);
 }
 int adapter_rmdir(tsh_memory *memory){
@@ -181,7 +182,7 @@ int execSimpleCommande(tsh_memory *memory){
 }
 int execute(tsh_memory *memory){
     if(strstr(memory->comand, "|")==NULL){//Pas de pipe
-        
+        execSimpleCommande(memory);
     }else{
         write(1, "avec pipe\n", strlen("avec pipe\n"));
     }
