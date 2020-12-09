@@ -12,10 +12,13 @@
 #include "ls.h"
 #include "rmdir.h"
 #include "string_traitement.h"
+#include "rm.h"
 #include "pipe.h"
 
-char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir"};
-#define NB_FUN 6
+
+
+char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir", "rm"};
+#define NB_FUN 7
 char co[50];
 char option[50][50];
 int i_option = 0;
@@ -47,7 +50,7 @@ void fillOptions(char *commande){
     if(strstr(commande, "-")==NULL){
         fillArgs(commande);
     }else{
-        
+
         char com[512];
         strcpy(com, commande);
         com[strlen(commande)] = '\0';
@@ -75,7 +78,7 @@ void fillOptions(char *commande){
 
         }
     }
-    
+
 }
 void fillCo(char *commande){
     char com[512];
@@ -111,17 +114,17 @@ char ** argsPlusNULL(){
 
     char **result;
     //command
-    assert(result = malloc((i_option + i_args + 2) * sizeof(char *)));
-    assert(result[0] = malloc(strlen(co)*sizeof(char)));
+    assert((result = malloc((i_option + i_args + 2) * sizeof(char *))) != NULL);
+    assert((result[0] = malloc(strlen(co)*sizeof(char))) != NULL);
     strcpy(result[0], co);
     int index_result = 1;
     for(int i = 0; i< i_option; i++){
-        assert(result[index_result] = malloc(strlen(option[i])*sizeof(char)));
+        assert((result[index_result] = malloc(strlen(option[i])*sizeof(char))) != NULL);
         strcpy(result[index_result], option[i]);
         index_result++;
     }
     for(int i = 0; i<i_args; i++){
-        assert(result[index_result] = malloc(strlen(args[i])*sizeof(char)));
+        assert((result[index_result] = malloc(strlen(args[i])*sizeof(char))) != NULL);
         strcpy(result[index_result], args[i]);
         index_result++;
     }
@@ -143,15 +146,17 @@ int adapter_mkdir(tsh_memory *memory){
     return mkdir(NULL ,args, i_option, i_args, memory);
 }
 int adapter_ls(tsh_memory *memory){
-    write(1, "---\n", strlen("---\n"));
-    return ls(memory,args,i_args);
+    return ls(memory,args,i_args,option,i_option);
 }
 int adapter_rmdir(tsh_memory *memory){
-    return rmdir_func(memory, args[1]);
+    return rmdir_func(memory, args, i_args, option, i_option);
+}
+int adapter_rm(tsh_memory *memory){
+    return rm(memory, args, i_args, option, i_option);
 }
 
 typedef int (*pt_adapter) (tsh_memory *memory);//declaration pointer of function
-pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls, adapter_rmdir};
+pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls, adapter_rmdir, adapter_rm};
 
 int getFuncitonIndex(char *name){
     for(int i=0; i<NB_FUN; i++){
@@ -163,9 +168,9 @@ int getFuncitonIndex(char *name){
 int execSimpleCommande(tsh_memory *memory){
     resetCommand();
     fillCo(memory->comand);
-    
+
     int fun_index = getFuncitonIndex(co);
-    
+
     if(fun_index<0){
         int pid_fils = fork();
         if(pid_fils==0){
@@ -173,7 +178,7 @@ int execSimpleCommande(tsh_memory *memory){
             execvp(args2[0], args2);
         }else{
             int status;
-            waitpid(pid_fils, &status, WUNTRACED); 
+            waitpid(pid_fils, &status, WUNTRACED);
         }
     }else {//all the command in our list
         returnval = (*(listFun[fun_index]))(memory);//invok the appropriate function
