@@ -16,7 +16,7 @@ mkdir.o : mkdir.c tar.h tsh_memory.h string_traitement.h cd.h
 ls.o : ls.c tar.h tsh_memory.h function.h
 rmdir.o: rmdir.c tar.h tsh_memory.h string_traitement.h
 rm.o: rm.c cd.h tsh_memory.h
-simpleCommande.o : simpleCommande.c tsh_memory.h cd.h pwd.h mkdir.h ls.h rmdir.h string_traitement.h pipe.h
+simpleCommande.o : simpleCommande.c tsh_memory.h cd.h pwd.h mkdir.h ls.h rmdir.h string_traitement.h
 
 cleanall:
 	rm -rf *.o main *~

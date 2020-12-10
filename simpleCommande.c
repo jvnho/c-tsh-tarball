@@ -13,7 +13,6 @@
 #include "rmdir.h"
 #include "string_traitement.h"
 #include "rm.h"
-#include "pipe.h"
 
 
 
@@ -26,7 +25,7 @@ char args[50][50];
 int i_args = 0;
 const char space[2] = " ";
 int returnval;
-int pipe_tsh(tsh_memory *m, tsh_memory *a);
+int save_write_fd;
 
 void fillArgs(char *commande){
     //fill by token
@@ -185,6 +184,28 @@ int execSimpleCommande(tsh_memory *memory){
     }
     return returnval;
 }
+int execute(tsh_memory *memory);
+int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
+    save_write_fd = dup(1);
+    int fd_pipe[2];
+    if(pipe(fd_pipe)==-1){
+        perror("pipe:");
+        return -1;
+    }
+    if(fork()){//parent writer
+        close(fd_pipe[0]);
+        dup2(fd_pipe[1], 1);
+        close(fd_pipe[1]);
+        execute(memory1);
+        dup2(save_write_fd, 1);
+    }else{//child read
+        close(fd_pipe[0]);
+        dup2(fd_pipe[0], 0);
+        close(fd_pipe[0]);
+        execute(memory2);
+    }
+    return 0;
+}
 int execute(tsh_memory *memory){
     if(strstr(memory->comand, "|")==NULL){//Pas de pipe
         execSimpleCommande(memory);
@@ -195,9 +216,7 @@ int execute(tsh_memory *memory){
             write(1, "parse error near `|'\n", strlen("parse error near `|'\n"));
             return -1;
         }
-        write(1, mem1.comand, strlen(mem1.comand));
-        write(1, mem2.comand, strlen(mem2.comand));
-        //pipe_tsh(&mem1, &mem2);
+        pipe_tsh(&mem1, &mem2);
     }
     return 0;
 }
