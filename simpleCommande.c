@@ -191,15 +191,13 @@ int execute(tsh_memory *memory){
     }else{
         tsh_memory mem1;
         tsh_memory mem2;
-        copyMemory(memory, &mem1);
-        copyMemory(memory, &mem2);
-        if(spilitPipe(mem1.comand, mem2.comand, memory->comand) == -1){
+        if(spilitPipe(memory, &mem1, &mem2) == -1){
             write(1, "parse error near `|'\n", strlen("parse error near `|'\n"));
             return -1;
         }
         write(1, mem1.comand, strlen(mem1.comand));
         write(1, mem2.comand, strlen(mem2.comand));
+        //pipe_tsh(&mem1, &mem2);
     }
-    //pipe(memory, memory);
     return 0;
 }
