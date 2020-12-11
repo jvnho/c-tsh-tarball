@@ -238,7 +238,9 @@ int execute(tsh_memory *memory){
             write(1, "parse error near `|'\n", strlen("parse error near `|'\n"));
             return -1;
         }
-        pipe_tsh(&mem1, &mem2);
+        write(1, mem1.comand, sizeof(mem1.comand));
+        printf("\n");
+        //pipe_tsh(&mem1, &mem2);
     }
     return 0;
 }

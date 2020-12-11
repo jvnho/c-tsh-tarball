@@ -283,6 +283,18 @@ int is_unix_directory(char *str){
 int is_extension_tar(char *str){
     return (str[strlen(str)-1] == 'r' && str[strlen(str)-2] == 'a' && str[strlen(str)-3] == 't' && str[strlen(str)-4] == '.');
 }
+int getFirstPipeFromBehind(char *source){
+    int len = strlen(source);
+    for(int i = 0; i>=0; i--){
+        if(source[i] == '|')return i;
+    }
+    return -1;
+}
+void splitAndFill(char *source, char *first, char *second){
+    int index = getFirstPipeFromBehind(source);
+    memset(first, 0, 512);
+    memset(second, 0, 512);
+}
 //split the command in to on the "|" in order to execute it separly
 int spilitPipe(tsh_memory *source, tsh_memory *memory1, tsh_memory *memory2){
     copyMemory(source, memory1);//copy the context of execution
