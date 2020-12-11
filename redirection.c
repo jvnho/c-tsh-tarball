@@ -31,9 +31,9 @@ int right_redirection(tsh_memory *memory,int fd_tar, char *cmd, char *arg,char *
         int fd_target = 0;
 
         if(append == 0) 
-            if( (fd_target = open(filename, O_CREAT | O_TRUNC | O_RDWR, 0644) == -1) return -1;
+            if( (fd_target = open(filename, O_CREAT | O_TRUNC | O_RDWR, 0644) == -1)) return -1;
         else if(append == 1)
-            if( (fd_target = open(filename, O_CREAT | O_APPEND | O_RDWR, 0644) == -1) return -1;
+            if( (fd_target = open(filename, O_CREAT | O_APPEND | O_RDWR, 0644) == -1)) return -1;
 
         dup2(fd_target,STDOUT_FILENO);
         //execution de ls 
@@ -41,8 +41,14 @@ int right_redirection(tsh_memory *memory,int fd_tar, char *cmd, char *arg,char *
 
         close(fd_target);
     } else { //user wants the output file inside a tar
-        int pipefd[2]
+        int pipefd[2];
         pipe(pipefd);
+        int r = fork();
+        if(r == 1){
+
+        } else {
+                
+        }
     }
     close(old_stdout);
 }
