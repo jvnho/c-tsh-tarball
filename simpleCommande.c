@@ -188,13 +188,29 @@ int execSimpleCommande(tsh_memory *memory){
 int execute(tsh_memory *memory);
 int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
     
-    save_write_fd = dup(1);
+    save_write_fd = dup(0);
     int fd_pipe[2];
     if(pipe(fd_pipe)==-1){
         perror("pipe:");
         return -1;
     }
     int pid_fils = fork();
+    if(pid_fils){//Parent (read)
+        close(fd_pipe[1]);
+        dup2(fd_pipe[0], 0);
+        close(fd_pipe[0]);
+        int status;
+        waitpid(pid_fils, &status, 0);
+        execute(memory2);
+        dup2(save_write_fd, 0);
+    }else{//child (write)
+        close(fd_pipe[0]);
+        dup2(fd_pipe[1], 1);
+        close(fd_pipe[1]);
+        execute(memory1);
+        exit(0);
+    }
+    /*
     if(pid_fils){//parent writer
         close(fd_pipe[0]);
         dup2(fd_pipe[1], 1);
@@ -209,7 +225,7 @@ int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
         close(fd_pipe[0]);
         execute(memory2);
         exit(0);
-    }
+    }*/
     return 0;
 }
 int execute(tsh_memory *memory){
