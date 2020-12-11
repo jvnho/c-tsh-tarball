@@ -201,6 +201,8 @@ int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
         close(fd_pipe[1]);
         execute(memory1);
         dup2(save_write_fd, 1);
+        int status;
+        waitpid(pid_fils, &status, 0);
     }else{//child read
         close(fd_pipe[1]);
         dup2(fd_pipe[0], 0);
