@@ -200,6 +200,7 @@ int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
         dup2(fd_pipe[1], 1);
         close(fd_pipe[1]);
         execute(memory1);
+        dup2(save_write_fd, 1);
     }else{//child read
         close(fd_pipe[1]);
         dup2(fd_pipe[0], 0);
