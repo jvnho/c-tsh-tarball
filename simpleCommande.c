@@ -206,6 +206,7 @@ int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
         dup2(fd_pipe[0], 0);
         close(fd_pipe[0]);
         execute(memory2);
+        exit(0);
     }
     return 0;
 }
