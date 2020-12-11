@@ -165,9 +165,7 @@ int getFuncitonIndex(char *name){
 }
 
 int execSimpleCommande(tsh_memory *memory){
-    write(1, "–––\n", strlen("–––\n"));
-    write(1, memory->comand, strlen(memory->comand));
-    write(1, "\n", strlen("\n"));
+    
     resetCommand();
     fillCo(memory->comand);
 
@@ -200,12 +198,9 @@ int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
     if(pid_fils){//parent writer
         
         close(fd_pipe[0]);
-        
-        printf("result = %d\n", dup2(fd_pipe[1], 1));
         close(fd_pipe[1]);
-        
-        execute(memory1);
         dup2(save_write_fd, 1);
+        execute(memory1);
     }else{//child read
         close(fd_pipe[0]);
         dup2(fd_pipe[0], 0);
