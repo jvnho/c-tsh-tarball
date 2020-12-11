@@ -11,9 +11,10 @@
 #include "mkdir.h"
 #include "ls.h"
 #include "rmdir.h"
-#include "tsh_memory.h"
 #include "string_traitement.h"
 #include "rm.h"
+
+
 
 char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir", "rm"};
 #define NB_FUN 7
@@ -24,6 +25,7 @@ char args[50][50];
 int i_args = 0;
 const char space[2] = " ";
 int returnval;
+int save_write_fd;
 
 void fillArgs(char *commande){
     //fill by token
@@ -163,6 +165,7 @@ int getFuncitonIndex(char *name){
 }
 
 int execSimpleCommande(tsh_memory *memory){
+    
     resetCommand();
     fillCo(memory->comand);
 
@@ -181,4 +184,45 @@ int execSimpleCommande(tsh_memory *memory){
         returnval = (*(listFun[fun_index]))(memory);//invok the appropriate function
     }
     return returnval;
+}
+int execute(tsh_memory *memory);
+int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
+    
+    save_write_fd = dup(1);
+    int fd_pipe[2];
+    if(pipe(fd_pipe)==-1){
+        perror("pipe:");
+        return -1;
+    }
+    int pid_fils = fork();
+    if(pid_fils){//parent writer
+        close(fd_pipe[0]);
+        dup2(fd_pipe[1], 1);
+        close(fd_pipe[1]);
+        execute(memory1);
+        dup2(save_write_fd, 1);
+        int status;
+        waitpid(pid_fils, &status, 0);
+    }else{//child read
+        close(fd_pipe[1]);
+        dup2(fd_pipe[0], 0);
+        close(fd_pipe[0]);
+        execute(memory2);
+        exit(0);
+    }
+    return 0;
+}
+int execute(tsh_memory *memory){
+    if(strstr(memory->comand, "|")==NULL){//Pas de pipe
+        execSimpleCommande(memory);
+    }else{
+        tsh_memory mem1;
+        tsh_memory mem2;
+        if(spilitPipe(memory, &mem1, &mem2) == -1){
+            write(1, "parse error near `|'\n", strlen("parse error near `|'\n"));
+            return -1;
+        }
+        pipe_tsh(&mem1, &mem2);
+    }
+    return 0;
 }
