@@ -77,6 +77,8 @@ void copyMemory(tsh_memory *initial, tsh_memory *save){
     strcpy(save->tar_name, initial->tar_name);
     strcpy(save->REAL_PATH, initial->REAL_PATH);
     strcpy(save->tar_descriptor, initial->tar_descriptor);
+    strcpy(save->comand, initial->comand);
+    save->exit = initial->exit;
 }
 
 void clearMemory(tsh_memory *memory){

@@ -1,5 +1,6 @@
 #ifndef STRING_TRAITEMENT_H
 #define STRING_TRAITEMENT_H
+#include "tsh_memory.h"
 extern int count_args(char *args);
 extern int string_to_int(char *chiffre);
 extern int get_prev_directory(char *path);
@@ -16,4 +17,5 @@ extern void remove_simple_dot_from_dir(char *str);
 extern void getLocation(char *source, char *result);
 extern int is_unix_directory(char *str);
 extern int is_extension_tar(char *str);
+extern int spilitPipe(tsh_memory *source, tsh_memory *memory1, tsh_memory *memory2);
 #endif
