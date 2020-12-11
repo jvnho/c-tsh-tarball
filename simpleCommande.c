@@ -188,7 +188,7 @@ int execSimpleCommande(tsh_memory *memory){
 int execute(tsh_memory *memory);
 int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
     
-    //save_write_fd = dup(1);
+    save_write_fd = dup(1);
     int fd_pipe[2];
     if(pipe(fd_pipe)==-1){
         perror("pipe:");
@@ -201,7 +201,7 @@ int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
         close(fd_pipe[1]);
         execute(memory1);
     }else{//child read
-        close(fd_pipe[0]);
+        close(fd_pipe[1]);
         dup2(fd_pipe[0], 0);
         close(fd_pipe[0]);
         execute(memory2);
