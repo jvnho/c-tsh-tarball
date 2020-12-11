@@ -196,10 +196,9 @@ int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
     }
     int pid_fils = fork();
     if(pid_fils){//parent writer
-        
         close(fd_pipe[0]);
+        dup2(fd_pipe[1], 1);
         close(fd_pipe[1]);
-        dup2(save_write_fd, 1);
         execute(memory1);
     }else{//child read
         close(fd_pipe[0]);
