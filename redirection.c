@@ -14,32 +14,78 @@
 
 tsh_memory old_memory; //will be use to save/restore a memory
 
-redirection_array* split_redirection_output(char *input){ //does for example: from "ls > fic >> fic2" to ["fic";"fic2"]
+void fill_redir_array(redirection_array *data, char *str, int length, int output, int append){
+        strncpy(data->OUTPUT_NAME, str, length);
+        data->OUTPUT[data->NUMBER] = output;
+        data->APPEND[data->NUMBER] = append;
+        data->NUMBER++;
+}
+
+void left_redirection_to_cmd(tsh_memory *memory,char * command){ //does for example: "cat < fic > fic2" --> "cat fic" or "ls rep > fic" --> "ls rep"
+    char copy = strdup(command);
+    char cmd[512];
+    char *tok;
+    if((tok = strtok(copy,"<")) != NULL){
+        strncpy(cmd,tok, strlen(tok)-1); //remove the last char (= space) from tok
+    }
+    if((tok = strtok(NULL,">2>"))  != NULL){ //cant be null if we called this function
+        strcat(cmd,tok+1);
+    }
+}
+
+redirection_array* split_redirection_output(char *input){
 
     redirection_array *data = malloc(sizeof(redirection_array));
-    memset(&data, 0, sizeof(data)); //to avoid any segmentation fault
+    memset(data, 0, sizeof(data));//to avoid any segmentation fault
 
-    char *copy = strdup(input), *tok = strtok(copy, ">>>2>2>>2>&1");
-    while(tok != NULL){
-        char *output_name = tok+1, *end;
-        if( (end = (strstr(output_name," "))) == NULL){
-            end = strstr(output_name,"\0");//garanteed not null
-        }
-        int length = end - output_name; //name of the redirection
+    char *buf, *end;
+    int length = 0, tok_length = 0;
+    char name[512];
+    
+    if((buf = strstr(input,"2>&1")) != NULL){ //if 2>&1 was given
 
-        char redirection[512];
-        if(length > 0){ //on prend jusqu'à un certain point avant la fin de la chaîne
-            strncpy(redirection, output_name, length);
-            redirection[length] = '\0';
-        } else { //on prend jusqu'à la fin de la chapîne de charactere
-            strcpy(redirection, output_name);
-            redirection[strlen(output_name)] = '\0';
+        tok_length = strlen("2>&1 ");
+        if((end = strstr(buf + tok_length," ")) != NULL){ //can't be NULL the user must entered somewhere to redirect
+            length = end - (buf + tok_length);
+        } else return NULL;
+        //strncpy(data->OUTPUT_NAME, buf+5, length);
+        fill_redir_array(data, buf + tok_length, length, 3, 0);
+        return data; //we consider user didn't entered any other output redirection if 2>&1 was given
+    } 
+
+    int append = 0;
+
+    if((buf = strstr(input, "2>") ) != NULL){ //stderr
+
+        tok_length = strlen("2> ");
+        if((buf+2)[0] == '>'){ //enter gave double arrows (append)
+            append = 1;
+            tok_length++;
+        } else {
+            append = 0;
         }
-        strcpy(data->OUTPUT_NAME[data->NUMBER], redirection);
-        data->NUMBER++;
-        data->APPEND[data->NUMBER] = 0;
-        
-        tok = strtok(NULL, ">>>2>2>>2>&1");
+
+        if( (end = strstr(buf + tok_length," ")) != NULL){
+            length = end - (buf + tok_length);
+        } else return NULL;
+        //strncpy(data->OUTPUT_NAME, buf + tok_length, length);
+        fill_redir_array(data, buf + tok_length, length, 2, append);
+    }
+
+    if((buf = strstr(input, ">") ) != NULL){ //stdout
+
+        tok_length = strlen("> ");
+        if((buf+1)[0] == '>'){ //enter gave double arrows (append)
+            append = 1;
+            tok_length++;
+        } else { 
+            append = 0;
+        }
+        if( (end = strstr(buf + tok_length," ")) != NULL){
+            length = end - (buf + tok_length);
+        }else return NULL;
+        //strncpy(data->OUTPUT_NAME, buf + tok_length, length);
+        fill_redir_array(data, buf + tok_length, length, 1, append);
     }
     return data;
 }
