@@ -170,14 +170,13 @@ int execSimpleCommande(tsh_memory *memory){
     fillCo(memory->comand);
 
     int fun_index = getFuncitonIndex(co);
-
     if(fun_index<0){
         
         int pid_fils = fork();
         if(pid_fils==0){
             char **args2 = argsPlusNULL();//ou mettre free?
             if(strlen(args2[0]))execvp(args2[0], args2);
-            exit(1);
+            exit(1);//if no command exit error
         }else{
             int status;
             waitpid(pid_fils, &status, WUNTRACED);
@@ -188,9 +187,9 @@ int execSimpleCommande(tsh_memory *memory){
             }
         }
     }else {//all the command in our list
-        returnval = (*(listFun[fun_index]))(memory);//invok the appropriate function
+        return (*(listFun[fun_index]))(memory);//invok the appropriate function
     }
-    return 0;//ok
+    return 0;
 }
 int execute(tsh_memory *memory);
 int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
@@ -208,28 +207,33 @@ int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
         close(fd_pipe[0]);
         int status;
         waitpid(pid_fils, &status, 0);
-        execute(memory2);
+        if(WIFEXITED(status)){//if the child used exit
+            if(WEXITSTATUS(status)){
+                dup2(save_read_fd, 0);
+                return WEXITSTATUS(status);//not 0, then no need to execut the second part
+            }
+        }
+        int result = execute(memory2);
         dup2(save_read_fd, 0);
+        return result;
     }else{//child (write)
         close(fd_pipe[0]);
         dup2(fd_pipe[1], 1);
         close(fd_pipe[1]);
-        execute(memory1);
-        exit(0);
+        exit(execute(memory1));
     }
     return 0;
 }
 int execute(tsh_memory *memory){
     if(strstr(memory->comand, "|")==NULL){//Pas de pipe
-        execSimpleCommande(memory);
+        return execSimpleCommande(memory);
     }else{
         tsh_memory mem1;
         tsh_memory mem2;
         if(spilitPipe(memory, &mem1, &mem2) == -1){
-            write(1, "parse error near `|'\n", strlen("parse error near `|'\n"));
+            write(2, "parse error near `|'\n", strlen("parse error near `|'\n"));
             return -1;
         }
-        pipe_tsh(&mem1, &mem2);
+        return pipe_tsh(&mem1, &mem2);
     }
-    return 0;
 }
