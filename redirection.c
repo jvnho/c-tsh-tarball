@@ -1,4 +1,3 @@
-
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -15,10 +14,10 @@
 tsh_memory old_memory; //will be use to save/restore a memory
 
 void fill_redir_array(redirection_array *data, char *str, int length, int output, int append){
-        strncpy(data->OUTPUT_NAME, str, length);
-        data->OUTPUT[data->NUMBER] = output;
-        data->APPEND[data->NUMBER] = append;
-        data->NUMBER++;
+    strncpy(data->OUTPUT_NAME, str, length);
+    data->OUTPUT[data->NUMBER] = output;
+    data->APPEND[data->NUMBER] = append;
+    data->NUMBER++;
 }
 
 void remove_redir_from_cmd(tsh_memory *memory){ //removes redirection symbol from the tsh_memory "comand"
@@ -29,28 +28,23 @@ void remove_redir_from_cmd(tsh_memory *memory){ //removes redirection symbol fro
     char *start, *end, *right;
     int gap, length;
     if(((start = strstr(cmd, "<")) != NULL)){ //user entered for ex: "cat < fic fic2..."
-
         length = start - cmd;
         strncpy(new_cmd, cmd, length);
         right =  cmd + strlen(new_cmd) + 2;
-
     } else if(((start = strstr(cmd, " ")) != NULL)){ //user entered instead "cat fic fic2..."
         length = start - cmd;
         strncpy(new_cmd, cmd, length);
         strcat(new_cmd, " ");
-
         right = cmd + strlen(new_cmd);
     }
-
     if(((end = strstr(right, "2>")) != NULL) || ((end = strstr(right, ">")) != NULL)){ //splitting args from redirection "fic fic2 > fic3" --> "fic fic2"
         length = end - right;
     }
-
     strncat(new_cmd, right, length);
     strcpy(memory->comand, new_cmd); // new_cmd is "cat fic fic2"
 }
 
-redirection_array* split_redirection_output(char *input){
+struct redirection_array* split_redirection_output(char *input){
     struct redirection_array *data = malloc(sizeof(redirection_array));
     memset(data, 0, sizeof(data));//to avoid any segmentation fault
 
@@ -102,64 +96,86 @@ redirection_array* split_redirection_output(char *input){
     return data;
 }
 
-int redirection(tsh_memory *memory){
-    remove_redir_from_cmd(memory); //récupère la commande voulu par l'utilisateur et un éventuel redirection vers la gauche
+char* cmd_output_to_pipe(tsh_memory *memory, int std){
+    int old_std;
+    if(std == 1)old_std = dup(STDOUT_FILENO);
+    else old_std = dup(STDERR_FILENO);//2
 
-    struct redirection_array *data = split_redirection_output(memory->comand); //récupère et met dans le tableau les redirections voulues par l'utilisateur
+    char *output;
+    assert((output = malloc(sizeof(char) * 512)) != NULL);
+    int fd_pipe[2];
 
-    int fd_pipe_stdout[2], fd_pipe_stderr[2]; 
-    char *out, *err;
-    assert((out = malloc(sizeof(char)*512)) != NULL);
-    assert((err = malloc(sizeof(char)*512)) != NULL);
-    out[0] = '\0', err[0] = '\0';
-
-    int old_stdout = dup(STDOUT_FILENO), old_stderr = dup(STDERR_FILENO);
-
-    //stdout
-    pipe(fd_pipe_stdout);
+    pipe(fd_pipe);
     int pid = fork();
     if(pid == -1){
         exit(-1);
-    } else if(pid == 0){ //chidl proccess
-        close(fd_pipe_stdout[0]);
-        dup2(fd_pipe_stdout[1], 1);
+    } else if(pid == 0){ //child proccess
+        close(fd_pipe[0]);
+        dup2(fd_pipe[1], std);
         execSimpleCommande(memory);
-        dup2(old_stdout, 1);
-        close(fd_pipe_stdout[1]);
+        dup2(old_std, std);
+        close(fd_pipe[1]);
         exit(0);
     } else { //parent proccess
-        close(fd_pipe_stdout[1]);
+        close(fd_pipe[1]);
         int read_size = 0;
         char buf[512];
-        while(read(fd_pipe_stdout[0], buf, 512) > 0){
+        while(read(fd_pipe[0], buf, 512) > 0){
             read_size += strlen(buf);
-            if(read_size > strlen(out)) (assert(realloc(out, sizeof(out)*2)) != NULL);
-            strcat(out,buf);
+            if(read_size > strlen(output)) (assert(realloc(output, sizeof(output)*2)) != NULL);
+            strcat(output,buf);
         }
-        close(fd_pipe_stdout[0]);
+        close(fd_pipe[0]);
     }
+}
 
-    //stderr
-    pipe(fd_pipe_stderr);
-    pid = fork();
-        if(pid == -1){
-        exit(-1);
-    } else if(pid == 0){ //chidl proccess
-        close(fd_pipe_stderr[0]);
-        dup2(fd_pipe_stderr[1], 2);
-        execSimpleCommande(memory);
-        dup2(old_stderr, 2);
-        close(fd_pipe_stderr[1]);
-        exit(0);
-    } else { //parent proccess
-        close(fd_pipe_stderr[1]);
-        int read_size = 0;
-        char buf[512];
-        while(read(fd_pipe_stderr[0], buf, 512) > 0){
-            read_size += strlen(buf);
-            if(read_size > strlen(err)) (assert(realloc(err, sizeof(err)*2)) != NULL);
-            strcat(err,buf);
+int redirection(tsh_memory *memory){
+    remove_redir_from_csmd(memory); //récupère la commande voulu par l'utilisateur et un éventuel redirection vers la gauche
+
+    struct redirection_array *data = split_redirection_output(memory->comand); //récupère et met dans le tableau les redirections voulues par l'utilisateur
+
+    char *out = cmd_output_to_pipe(memory,1); //exec command while redirecting stdout
+    char *err = cmd_output_to_pipe(memory,2); //same but redirecting stderr
+
+    int out_written = 0, err_written = 0;
+
+    for(int i = 0; i < data->NUMBER; i++){
+        char *redir_name = data->OUTPUT_NAME[i];
+        if(is_unix_directory(redir_name) == 1 || redir_name[strlen(redir_name)-1] == '/') return -1; //redirection given is a directory
+
+        copyMemory(memory, &old_memory);//keep the curent state of the programm
+
+        char location[512];
+        getLocation(redir_name, location);
+        int lenLocation = strlen(location);
+        if(lenLocation){//if there is an extra path cd to that path
+            if(cd(location, memory)==-1) return -1; //path doesn't exist
+            redir_name = redir_name + lenLocation;
         }
-        close(fd_pipe_stderr[0]);
+        int append = data->APPEND[i];
+        if(in_a_tar(memory) == 0){ //redirection file is outside the tar
+            int fd_file;
+            if(append == 1) fd_file = open(redir_name, O_RDWR | O_CREAT | O_APPEND, 0644);
+            else fd_file = open(redir_name, O_RDWR | O_CREAT | O_TRUNC, 0644);
+            switch(data->OUTPUT[i]){
+                case 3: // 2>&1
+                    write(fd_file, out, sizeof(out));
+                    write(fd_file, err, sizeof(err));
+                    out_written = 1, err_written = 1;
+                return 1;
+
+                case 2: //2> (or 2>>)
+                write(fd_file, err, sizeof(err));
+                err_written = 1;
+                break;
+
+                case 1: //> (or >>)
+                write(fd_file, out, sizeof(out));
+                out_written = 1;
+                break;
+
+                default: break;
+            }
+        }
     }
 }
