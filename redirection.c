@@ -10,8 +10,25 @@
 #include "string_traitement.h"
 #include "tsh_memory.h"
 #include "mkdir.h"
+#include "rm.h"
 
 tsh_memory old_memory; //will be use to save/restore a memory
+
+off_t file_location(int fd, char *needle, int *content_blocks){ //locate the file in the tar and returns its offset and num of content blocks or if not found -1
+    struct posix_header hd;
+    while(read(fd, &hd,512) > 0){
+        int filesize = 0;
+        sscanf(hd.size, "%o", &filesize);
+        int nb_bloc_fichier = (filesize + 512 -1) / 512;
+
+        if(strcmp(hd.name, fd) == 0 && hd.typeflag != '5'){
+            *content_blocks = nb_bloc_fichier;
+            return lseek(fd, -512, SEEK_CUR);
+        } 
+        lseek(fd,512*nb_bloc_fichier, SEEK_CUR);
+    }
+    return -1; //file not found
+}
 
 void fill_redir_array(redirection_array *data, char *str, int length, int output, int append){
     strncpy(data->OUTPUT_NAME, str, length);
@@ -122,7 +139,7 @@ char* cmd_output_to_pipe(tsh_memory *memory, int std){
         char buf[512];
         while(read(fd_pipe[0], buf, 512) > 0){
             read_size += strlen(buf);
-            if(read_size > strlen(output)) (assert(realloc(output, sizeof(output)*2)) != NULL);
+            if(read_size > strlen(output)) (assert(realloc(output, sizeof(output)+512)) != NULL);
             strcat(output,buf);
         }
         close(fd_pipe[0]);
@@ -146,36 +163,78 @@ int redirection(tsh_memory *memory){
         copyMemory(memory, &old_memory);//keep the curent state of the programm
 
         char location[512];
+        memset(location, 0 , 512);
+
         getLocation(redir_name, location);
         int lenLocation = strlen(location);
         if(lenLocation){//if there is an extra path cd to that path
             if(cd(location, memory)==-1) return -1; //path doesn't exist
             redir_name = redir_name + lenLocation;
         }
-        int append = data->APPEND[i];
+        
+        int append = data->APPEND[i], std = data->OUTPUT[i];
         if(in_a_tar(memory) == 0){ //redirection file is outside the tar
             int fd_file;
             if(append == 1) fd_file = open(redir_name, O_RDWR | O_CREAT | O_APPEND, 0644);
             else fd_file = open(redir_name, O_RDWR | O_CREAT | O_TRUNC, 0644);
-            switch(data->OUTPUT[i]){
+            switch(std){
                 case 3: // 2>&1
                     write(fd_file, out, sizeof(out));
                     write(fd_file, err, sizeof(err));
                     out_written = 1, err_written = 1;
-                return 1;
-
+                    return 1;
                 case 2: //2> (or 2>>)
-                write(fd_file, err, sizeof(err));
-                err_written = 1;
-                break;
-
+                    write(fd_file, err, sizeof(err));
+                    err_written = 1;
+                    break;
                 case 1: //> (or >>)
-                write(fd_file, out, sizeof(out));
-                out_written = 1;
-                break;
-
-                default: break;
+                    write(fd_file, out, sizeof(out));
+                    out_written = 1;
+                    break;
             }
+        } else { //redirection file is inside a tar
+            char content[strlen(out) + strlen(err) + 1], path_to_file = concate_string(memory->FAKE_PATH, redir_name);
+            memset(content, 0, strlen(out) + strlen(err));
+            int fd_tar = atoi(memory->tar_descriptor);
+
+            switch(std){
+                case 3:
+                    sprintf(content, "%s\n%s", out, err);
+                    out_written = 1, err_written = 1;
+                    break;
+                case 2:
+                    strcat(content, err);
+                    err_written = 1;
+                    break;
+                case 1:
+                    strcat(content, out);
+                    out_written = 1;
+                    break;
+
+            }
+
+            struct posix_header *new_header = create_header(path_to_file, '1');//new header file
+            int block_to_add = ceil(strlen(content)/512), block_to_move = 0;
+            off_t location = file_location(fd_tar, path_to_file, &block_to_move);
+
+            if(location == -1 || append == 0){ //file doesn't exist in the tar or user does not want to append
+                if(append == 0) rm_in_tar(fd_tar, path_to_file, 0, 1);
+                put_at_the_first_null(fd_tar);
+                write(fd_tar, new_header, 512); //creating a new header
+                write(fd_tar, content, block_to_add*512); //content
+                write(fd_tar, 0, 1+block_to_add); //adding zero block byte 
+            } else { //user wants to append redirection (double arrows)
+                char old_content[512 * block_to_move];
+                lseek(fd_tar, location+512,SEEK_CUR);
+                read(fd_tar, old_content, 512*block_to_move);
+                rm_in_tar(fd_tar, path_to_file, 0, 1);
+                write(fd_tar, new_header, 512);//same
+                write(fd_tar, content, block_to_add*512);
+                write(fd_tar, 0, 1+block_to_add);
+            }
+            free(new_header);
         }
+        free(out);
+        free(err);
     }
 }

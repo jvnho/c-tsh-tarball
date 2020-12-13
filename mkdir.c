@@ -13,7 +13,7 @@
 
 tsh_memory old_memory; //will be use to save/restore a memory
 char location[512];
-struct posix_header *create_header(char * name){
+struct posix_header *create_header(char * name, char typeflag){
 
     struct posix_header *result = malloc(512);
     strcpy(result->name, name);//add the name
@@ -24,7 +24,7 @@ struct posix_header *create_header(char * name){
     sprintf(result->size, "%011o", 0);
     sprintf(result->mtime, "%011lo", time(NULL));
 
-    result->typeflag = '5';
+    result->typeflag = typeflag;
     result->linkname[0] = '\0';
 
     strcpy(result->magic, "ustar");
@@ -53,7 +53,6 @@ void put_at_the_first_null(int descriptor){
     lseek(descriptor, 0, SEEK_SET);
     struct posix_header *header = malloc(512);
     int nb_bloc_file = 0;
-    int j = 1;
     while(read(descriptor, header, 512)>0){
         if(end_bloc(header)){//the moment we check the first bloc, we return to the back because we have read it
             lseek(descriptor, -512, SEEK_CUR);
@@ -65,7 +64,6 @@ void put_at_the_first_null(int descriptor){
         for(int i=0; i<nb_bloc_file; i++){
             read(descriptor, header, 512);
         }
-        j++;
     }
 }
 void exec_mkdir(char option[50][50], int size_option, char *dir){
@@ -79,7 +77,7 @@ void exec_mkdir(char option[50][50], int size_option, char *dir){
 }
 int mkdir_in_tar(char *dir_name, int tar_descriptor){
     if(dir_exist(tar_descriptor, dir_name))return 0;
-    struct posix_header *new_head = create_header(dir_name);
+    struct posix_header *new_head = create_header(dir_name, '5');
     put_at_the_first_null(tar_descriptor);
     if(write((tar_descriptor), new_head, 512)==-1){//write on the first ending bloc
         perror("");
