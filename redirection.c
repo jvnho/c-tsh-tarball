@@ -21,21 +21,37 @@ void fill_redir_array(redirection_array *data, char *str, int length, int output
         data->NUMBER++;
 }
 
-void left_redirection_to_cmd(tsh_memory *memory,char * command){ //does for example: "cat < fic > fic2" --> "cat fic" or "ls rep > fic" --> "ls rep"
-    char copy = strdup(command);
-    char cmd[512];
-    char *tok;
-    if((tok = strtok(copy,"<")) != NULL){
-        strncpy(cmd,tok, strlen(tok)-1); //remove the last char (= space) from tok
+void remove_redir_from_cmd(tsh_memory *memory){ //removes redirection symbol from the tsh_memory "comand"
+    char *cmd = memory->comand; //command line entered by user
+    char new_cmd[512];
+    new_cmd[0] = '\0';
+    
+    char *start, *end, *right;
+    int gap, length;
+    if(((start = strstr(cmd, "<")) != NULL)){ //user entered for ex: "cat < fic fic2..."
+
+        length = start - cmd;
+        strncpy(new_cmd, cmd, length);
+        right =  cmd + strlen(new_cmd) + 2;
+
+    } else if(((start = strstr(cmd, " ")) != NULL)){ //user entered instead "cat fic fic2..."
+        length = start - cmd;
+        strncpy(new_cmd, cmd, length);
+        strcat(new_cmd, " ");
+
+        right = cmd + strlen(new_cmd);
     }
-    if((tok = strtok(NULL,">2>"))  != NULL){ //cant be null if we called this function
-        strcat(cmd,tok+1);
+
+    if(((end = strstr(right, "2>")) != NULL) || ((end = strstr(right, ">")) != NULL)){ //splitting args from redirection "fic fic2 > fic3" --> "fic fic2"
+        length = end - right;
     }
+
+    strncat(new_cmd, right, length);
+    strcpy(memory->comand, new_cmd); // new_cmd is "cat fic fic2"
 }
 
 redirection_array* split_redirection_output(char *input){
-
-    redirection_array *data = malloc(sizeof(redirection_array));
+    struct redirection_array *data = malloc(sizeof(redirection_array));
     memset(data, 0, sizeof(data));//to avoid any segmentation fault
 
     char *buf, *end;
@@ -56,7 +72,6 @@ redirection_array* split_redirection_output(char *input){
     int append = 0;
 
     if((buf = strstr(input, "2>") ) != NULL){ //stderr
-
         tok_length = strlen("2> ");
         if((buf+2)[0] == '>'){ //enter gave double arrows (append)
             append = 1;
@@ -64,16 +79,13 @@ redirection_array* split_redirection_output(char *input){
         } else {
             append = 0;
         }
-
         if( (end = strstr(buf + tok_length," ")) != NULL){
             length = end - (buf + tok_length);
         } else return NULL;
         //strncpy(data->OUTPUT_NAME, buf + tok_length, length);
         fill_redir_array(data, buf + tok_length, length, 2, append);
     }
-
     if((buf = strstr(input, ">") ) != NULL){ //stdout
-
         tok_length = strlen("> ");
         if((buf+1)[0] == '>'){ //enter gave double arrows (append)
             append = 1;
@@ -81,7 +93,7 @@ redirection_array* split_redirection_output(char *input){
         } else { 
             append = 0;
         }
-        if( (end = strstr(buf + tok_length," ")) != NULL){
+        if((end = strstr(buf + tok_length," ")) != NULL){
             length = end - (buf + tok_length);
         }else return NULL;
         //strncpy(data->OUTPUT_NAME, buf + tok_length, length);
@@ -90,54 +102,64 @@ redirection_array* split_redirection_output(char *input){
     return data;
 }
 
-int right_redirection(tsh_memory *memory, char *target, int output, int ecriture, int append){
-    if(is_unix_directory(target) == 1 || target[strlen(target)-1] == '/') return -1; //target given is a directory
+int redirection(tsh_memory *memory){
+    remove_redir_from_cmd(memory); //récupère la commande voulu par l'utilisateur et un éventuel redirection vers la gauche
 
-    copyMemory(memory,&old_memory); //saving current state of the tsh_memory
+    struct redirection_array *data = split_redirection_output(memory->comand); //récupère et met dans le tableau les redirections voulues par l'utilisateur
 
-    //will allow to cd the closest directory outside the tar
-    char path_outside_tar[512];
-    sprintf(path_outside_tar, "%s%c", (getcwd(path_outside_tar, sizeof(path_outside_tar)), "/")); //concats directory work with a "/"
-    
-    char *filename = target;
-    char location[512];
-    getLocation(target,location);
-    if(strlen(location) > 0){
-        if(cd(location,memory) == -1)//path given doesn't exist
-            return -1;
-        filename = target + strlen(location);
-    } 
+    int fd_pipe_stdout[2], fd_pipe_stderr[2]; 
+    char *out, *err;
+    assert((out = malloc(sizeof(char)*512)) != NULL);
+    assert((err = malloc(sizeof(char)*512)) != NULL);
+    out[0] = '\0', err[0] = '\0';
 
-    int old_stdout = dup(STDOUT_FILENO);
-    if(in_a_tar(memory) == 0){ //user wants the output file outside a tar
-        int fd_target = 0;
-        if(append == 0) // ">" was given
-            if( (fd_target = open(filename, O_CREAT | O_TRUNC | O_RDWR, 0644) == -1)) return -1;
-        else if(append == 1) // ">>" was given
-            if( (fd_target = open(filename, O_CREAT | O_APPEND | O_RDWR, 0644) == -1)) return -1;
+    int old_stdout = dup(STDOUT_FILENO), old_stderr = dup(STDERR_FILENO);
 
-        dup2(fd_target,STDOUT_FILENO);
-        
-        dup2(old_stdout,STDOUT_FILENO);
-        close(fd_target);
-    }
-    close(old_stdout);
-}
-
-int redirection(tsh_memory *memory, int fd_tar){
-    //récupère la commande voulu par l'utilisateur et un éventuel redirection vers la gauche
-
-
-    //récupère et met dans le tableau les redirections vers la droite voulu par l'utilisateur
-    redirection_array *data = split_redirection_output(memory->comand); //line_cmd à changer
-
-    //boucle qui fait parcours dans ARRAY.OUTPUT_NAME
-    for(int i = 0; i < data->NUMBER; i++){
-        if((i+1) == data->NUMBER){
-            //on fait les dup, dup2 sur la sortie standard ou erreur etc..
-            //execSimpleCommand(nouveau tsh avec uniquement la commande voulu par utilisateur et son arg)
-            //on remet le sorties en place
-        } else {
+    //stdout
+    pipe(fd_pipe_stdout);
+    int pid = fork();
+    if(pid == -1){
+        exit(-1);
+    } else if(pid == 0){ //chidl proccess
+        close(fd_pipe_stdout[0]);
+        dup2(fd_pipe_stdout[1], 1);
+        execSimpleCommande(memory);
+        dup2(old_stdout, 1);
+        close(fd_pipe_stdout[1]);
+        exit(0);
+    } else { //parent proccess
+        close(fd_pipe_stdout[1]);
+        int read_size = 0;
+        char buf[512];
+        while(read(fd_pipe_stdout[0], buf, 512) > 0){
+            read_size += strlen(buf);
+            if(read_size > strlen(out)) (assert(realloc(out, sizeof(out)*2)) != NULL);
+            strcat(out,buf);
         }
+        close(fd_pipe_stdout[0]);
+    }
+
+    //stderr
+    pipe(fd_pipe_stderr);
+    pid = fork();
+        if(pid == -1){
+        exit(-1);
+    } else if(pid == 0){ //chidl proccess
+        close(fd_pipe_stderr[0]);
+        dup2(fd_pipe_stderr[1], 2);
+        execSimpleCommande(memory);
+        dup2(old_stderr, 2);
+        close(fd_pipe_stderr[1]);
+        exit(0);
+    } else { //parent proccess
+        close(fd_pipe_stderr[1]);
+        int read_size = 0;
+        char buf[512];
+        while(read(fd_pipe_stderr[0], buf, 512) > 0){
+            read_size += strlen(buf);
+            if(read_size > strlen(err)) (assert(realloc(err, sizeof(err)*2)) != NULL);
+            strcat(err,buf);
+        }
+        close(fd_pipe_stderr[0]);
     }
 }
