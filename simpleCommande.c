@@ -172,18 +172,25 @@ int execSimpleCommande(tsh_memory *memory){
     int fun_index = getFuncitonIndex(co);
 
     if(fun_index<0){
+        
         int pid_fils = fork();
         if(pid_fils==0){
             char **args2 = argsPlusNULL();//ou mettre free?
-            execvp(args2[0], args2);
+            if(strlen(args2[0]))execvp(args2[0], args2);
+            exit(1);
         }else{
             int status;
             waitpid(pid_fils, &status, WUNTRACED);
+            if(WIFEXITED(status)){//if the child used exit
+                return WEXITSTATUS(status);//0 ok, 1 error
+            }if(WIFSIGNALED(status)){
+                return WTERMSIG(status);
+            }
         }
     }else {//all the command in our list
         returnval = (*(listFun[fun_index]))(memory);//invok the appropriate function
     }
-    return returnval;
+    return 0;//ok
 }
 int execute(tsh_memory *memory);
 int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
