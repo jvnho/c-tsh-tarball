@@ -11,7 +11,7 @@
 #include "rmdir.h"
 #include "cd.h"
 #include "string_traitement.h"
-#include "function.h"
+#include "exec_funcs.h"
 
 tsh_memory old_memory;
 char **array_execvp;

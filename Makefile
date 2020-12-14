@@ -14,8 +14,8 @@ exec_funcs.o : exec_funcs.c tsh_memory.h cd.h
 pwd.o : pwd.c pwd.h
 mkdir.o : mkdir.c tar.h tsh_memory.h string_traitement.h cd.h
 ls.o : ls.c tar.h tsh_memory.h exec_funcs.h
-rmdir.o: rmdir.c tar.h tsh_memory.h string_traitement.h
-rm.o: rm.c cd.h tsh_memory.h
+rmdir.o: rmdir.c tar.h tsh_memory.h string_traitement.h exec_funcs.h
+rm.o: rm.c cd.h tsh_memory.h exec_funcs.h
 redirection.o : redirection.c tar.h simpleCommande.h cd.h tsh_memory.h string_traitement.h mkdir.h rm.h
 simpleCommande.o : simpleCommande.c tsh_memory.h cd.h pwd.h mkdir.h ls.h rmdir.h string_traitement.h
 
