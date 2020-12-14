@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 
 #include "tsh_memory.h"
+#include "simpleCommande.h"
 #include "cd.h"
 #include "pwd.h"
 #include "mkdir.h"
@@ -141,8 +142,8 @@ int adapter_pwd(tsh_memory *memory){
     return pwd(memory);
 }
 int adapter_mkdir(tsh_memory *memory){
-    if(i_option)return mkdir(option ,args, i_option, i_args, memory);
-    return mkdir(NULL ,args, i_option, i_args, memory);
+    if(i_option)return mkdir_func(option ,args, i_option, i_args, memory);
+    return mkdir_func(NULL ,args, i_option, i_args, memory);
 }
 int adapter_ls(tsh_memory *memory){
     return ls(memory,args,i_args,option,i_option);
