@@ -2,7 +2,7 @@
 #include "cd.h"
 #include "tar.h"
 #include "tsh_memory.h"
-#include "function.h"
+#include "exec_funcs.h"
 #include "string_traitement.h"
 
 tsh_memory old_memory; //will be use to save/restore a memory
@@ -111,7 +111,6 @@ int ls_in_tar(int fd, char* full_path, int arg_l, char type){
 }
 
 void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, int l_opt){
-
     copyMemory(memory,&old_memory); //saving current state of the tsh_memory
 
     if(dir[strlen(dir)-1] == '/'  || is_unix_directory(dir) == 1){ //we are sure the user wants to ls a directory (@string_traitement.c)
@@ -135,7 +134,6 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
             restoreLastState(old_memory, memory);
             return;
         }
-
         if(strlen(location) > 0){
             if(cd(location, memory) == -1){
                 restoreLastState(old_memory, memory);
@@ -143,13 +141,9 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
             }
             dirToVisit += strlen(location);
         }
-        
         if(in_a_tar(memory) == 1){
-
             char *file_path = concate_string(memory->FAKE_PATH, dirToVisit);
-
             if(ls_in_tar(atoi(memory->tar_descriptor), file_path, l_opt, 'f') == 0){ //trying to find in the tar if the file "dirToVisit" exists
-
                 if(cd(dirToVisit, memory) > -1){ //trying now to find in the tar if the directory "dirToVisit" exists
                     if(in_a_tar(memory) == 1) {
                         ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');  
