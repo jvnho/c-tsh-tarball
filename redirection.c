@@ -14,6 +14,7 @@
 #include "tsh_memory.h"
 #include "mkdir.h"
 #include "rm.h"
+#include "exec_funcs.h"
 
 tsh_memory old_memory; //will be use to save/restore a memory
 
@@ -42,26 +43,20 @@ void fill_redir_array(redirection_array *data, char *str, int length, int output
 
 void convert_to_simple_cmd(tsh_memory *memory){ //removes redirection symbol from the tsh_memory "comand"
     char *cmd = memory->comand; //command line entered by user
-    char new_cmd[512];
+    char new_cmd[strlen(cmd)];
     new_cmd[0] = '\0';
-    
-    char *start, *end, *right;
-    int length;
-    if(((start = strstr(cmd, "<")) != NULL)){ //user entered for ex: "cat < fic fic2..."
-        length = start - cmd;
-        strncpy(new_cmd, cmd, length);
-        right =  cmd + strlen(new_cmd) + 2;
-    } else if(((start = strstr(cmd, " ")) != NULL)){ //user entered instead "cat fic fic2..."
-        length = start - cmd;
-        strncpy(new_cmd, cmd, length);
-        strcat(new_cmd, " ");
-        right = cmd + strlen(new_cmd);
+
+    char *tok = strtok(cmd, " ");
+    while(tok != NULL){
+        if((strstr(tok,">") != NULL) || (strstr(tok, "2>") != NULL)) break;
+        if(strstr(tok,"<") == NULL){
+            strcat(new_cmd, tok);
+            strcat(new_cmd, " ");   
+        }
+        tok = strtok(NULL, " "); 
     }
-    if(((end = strstr(right, "2>")) != NULL) || ((end = strstr(right, ">")) != NULL)){ //splitting args from redirection "fic fic2 > fic3" --> "fic fic2"
-        length = end - right;
-    }
-    strncat(new_cmd, right, length);
-    strcpy(memory->comand, new_cmd); // new_cmd is "cat fic fic2"
+    new_cmd[strlen(new_cmd) -1] = '\0';
+    strcpy(memory->comand, new_cmd);
 }
 
 struct redirection_array* split_redirection_output(char *input){
@@ -151,7 +146,7 @@ char* cmd_output_to_pipe(tsh_memory *memory, int std){
 int redirection(tsh_memory *memory){
     convert_to_simple_cmd(memory); //récupère la commande voulu par l'utilisateur et un éventuel redirection vers la gauche
 
-    struct redirection_array *data = split_redirection_output(memory->comand); //récupère et met dans le tableau les redirections voulues par l'utilisateur
+    /*struct redirection_array *data = split_redirection_output(memory->comand); //récupère et met dans le tableau les redirections voulues par l'utilisateur
 
     char *out = cmd_output_to_pipe(memory,1); //exec command while redirecting stdout
     char *err = cmd_output_to_pipe(memory,2); //same but redirecting stderr
@@ -235,11 +230,12 @@ int redirection(tsh_memory *memory){
                 write(fd_tar, 0, 1+block_to_add);
             }
             free(new_header);
+            restoreLastState(old_memory, memory);
         }
-        if(err_written == 0) write(2, err, strlen(err));
-        if(out_written == 0) write(1, out, strlen(err));
-        free(out);
-        free(err);
     }
+    if(err_written == 0) write(2, err, strlen(err));
+    if(out_written == 0) write(1, out, strlen(err));
+    free(out);
+    free(err);*/
     return 1;
 }
