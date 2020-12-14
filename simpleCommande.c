@@ -14,7 +14,7 @@
 #include "rmdir.h"
 #include "string_traitement.h"
 #include "rm.h"
-
+#include "redirection.h"
 
 
 char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir", "rm"};
@@ -214,9 +214,7 @@ int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
     return 0;
 }
 int execute(tsh_memory *memory){
-    if(strstr(memory->comand, "|")==NULL){//Pas de pipe
-        execSimpleCommande(memory);
-    }else{
+    if(strstr(memory->comand, "|") != NULL){//Pipe found in command line
         tsh_memory mem1;
         tsh_memory mem2;
         if(spilitPipe(memory, &mem1, &mem2) == -1){
@@ -224,6 +222,11 @@ int execute(tsh_memory *memory){
             return -1;
         }
         pipe_tsh(&mem1, &mem2);
+    } else if(strstr(memory->comand,"<") != NULL || strstr(memory->comand,">") != NULL){
+        redirection(memory);
+    }
+    else{
+        execSimpleCommande(memory);
     }
     return 0;
 }

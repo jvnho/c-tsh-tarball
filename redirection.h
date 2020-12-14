@@ -8,7 +8,7 @@
 
 typedef struct redirection_array{
     char OUTPUT_NAME[NB_ENTRY][MAX_SIZE]; //name of the redirection target
-    int OUTPUT[NB_ENTRY];// 0 stdin, 1 stdout, 2 strerr, 3 both(2>&1)
+    int STD[NB_ENTRY];// 0 stdin, 1 stdout, 2 strerr, 3 both(2>&1)
     int APPEND[NB_ENTRY]; //1 or 0
     int NUMBER; //number of redirection
 } redirection_array;
