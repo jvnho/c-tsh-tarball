@@ -2,10 +2,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <math.h>
 
+#include "simpleCommande.h"
 #include "tar.h"
 #include "redirection.h"
-#include "simpleCommande.h"
 #include "cd.h"
 #include "string_traitement.h"
 #include "tsh_memory.h"
@@ -21,7 +24,7 @@ off_t file_location(int fd, char *needle, int *content_blocks){ //locate the fil
         sscanf(hd.size, "%o", &filesize);
         int nb_bloc_fichier = (filesize + 512 -1) / 512;
 
-        if(strcmp(hd.name, fd) == 0 && hd.typeflag != '5'){
+        if(strcmp(hd.name, hd.name) == 0 && hd.typeflag != '5'){
             *content_blocks = nb_bloc_fichier;
             return lseek(fd, -512, SEEK_CUR);
         } 
@@ -31,19 +34,19 @@ off_t file_location(int fd, char *needle, int *content_blocks){ //locate the fil
 }
 
 void fill_redir_array(redirection_array *data, char *str, int length, int output, int append){
-    strncpy(data->OUTPUT_NAME, str, length);
+    strncpy(data->OUTPUT_NAME[data->NUMBER], str, length);
     data->OUTPUT[data->NUMBER] = output;
     data->APPEND[data->NUMBER] = append;
     data->NUMBER++;
 }
 
-void remove_redir_from_cmd(tsh_memory *memory){ //removes redirection symbol from the tsh_memory "comand"
+void convert_to_simple_cmd(tsh_memory *memory){ //removes redirection symbol from the tsh_memory "comand"
     char *cmd = memory->comand; //command line entered by user
     char new_cmd[512];
     new_cmd[0] = '\0';
     
     char *start, *end, *right;
-    int gap, length;
+    int length;
     if(((start = strstr(cmd, "<")) != NULL)){ //user entered for ex: "cat < fic fic2..."
         length = start - cmd;
         strncpy(new_cmd, cmd, length);
@@ -63,11 +66,9 @@ void remove_redir_from_cmd(tsh_memory *memory){ //removes redirection symbol fro
 
 struct redirection_array* split_redirection_output(char *input){
     struct redirection_array *data = malloc(sizeof(redirection_array));
-    memset(data, 0, sizeof(data));//to avoid any segmentation fault
 
     char *buf, *end;
     int length = 0, tok_length = 0;
-    char name[512];
     
     if((buf = strstr(input,"2>&1")) != NULL){ //if 2>&1 was given
 
@@ -139,15 +140,16 @@ char* cmd_output_to_pipe(tsh_memory *memory, int std){
         char buf[512];
         while(read(fd_pipe[0], buf, 512) > 0){
             read_size += strlen(buf);
-            if(read_size > strlen(output)) (assert(realloc(output, sizeof(output)+512)) != NULL);
+            if(read_size > strlen(output)) (assert((realloc(output, sizeof(output)+512)) != NULL));
             strcat(output,buf);
         }
         close(fd_pipe[0]);
     }
+    return output;
 }
 
 int redirection(tsh_memory *memory){
-    remove_redir_from_csmd(memory); //récupère la commande voulu par l'utilisateur et un éventuel redirection vers la gauche
+    convert_to_simple_cmd(memory); //récupère la commande voulu par l'utilisateur et un éventuel redirection vers la gauche
 
     struct redirection_array *data = split_redirection_output(memory->comand); //récupère et met dans le tableau les redirections voulues par l'utilisateur
 
@@ -193,7 +195,7 @@ int redirection(tsh_memory *memory){
                     break;
             }
         } else { //redirection file is inside a tar
-            char content[strlen(out) + strlen(err) + 1], path_to_file = concate_string(memory->FAKE_PATH, redir_name);
+            char content[strlen(out) + strlen(err) + 1];
             memset(content, 0, strlen(out) + strlen(err));
             int fd_tar = atoi(memory->tar_descriptor);
 
@@ -212,7 +214,7 @@ int redirection(tsh_memory *memory){
                     break;
 
             }
-
+            char *path_to_file = concate_string(memory->FAKE_PATH, redir_name);
             struct posix_header *new_header = create_header(path_to_file, '1');//new header file
             int block_to_add = ceil(strlen(content)/512), block_to_move = 0;
             off_t location = file_location(fd_tar, path_to_file, &block_to_move);
@@ -234,7 +236,10 @@ int redirection(tsh_memory *memory){
             }
             free(new_header);
         }
+        if(err_written == 0) write(2, err, strlen(err));
+        if(out_written == 0) write(1, out, strlen(err));
         free(out);
         free(err);
     }
+    return 1;
 }

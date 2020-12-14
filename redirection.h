@@ -1,6 +1,8 @@
 #ifndef REDIRECTION_H
 #define REDIRECTION_H
 
+#include "tsh_memory.h"
+
 #define NB_ENTRY 512
 #define MAX_SIZE 1024
 
@@ -11,5 +13,6 @@ typedef struct redirection_array{
     int NUMBER; //number of redirection
 } redirection_array;
 
+extern int redirection(tsh_memory *memory);
 
 #endif
