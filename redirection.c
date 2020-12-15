@@ -109,25 +109,31 @@ void reading(int fd_stdout, int fd_stderr, char *buf_out, char *buf_err){
         FD_ZERO(&readfds);
         FD_SET(fd_stdout, &readfds);
         FD_SET(fd_stderr, &readfds);
-        select(max_fd, &readfds, NULL, NULL, NULL);
+        select(max_fd+1, &readfds, NULL, NULL, NULL);
         char buffer[512];
         memset(buffer, 0 ,512);
         if(FD_ISSET(fd_stdout, &readfds)){
-            while( (read_stdout += read(fd_stdout, buffer, 512)) > 0){
-                if(read_stdout > allocated_size_out){
+            int r = 0;
+            while((r = read(fd_stdout, buffer, 512)) > 0){
+                read_stdout += r;
+                /*if(read_stdout > allocated_size_out){
                     buf_out = realloc(buf_out, allocated_size_out + 512);
                     allocated_size_out += 512;
-                }
-                strcat(buf_out, buffer);
+                }*/
+                //strcat(buf_out, buffer);
+                printf("%s\n", buffer);
             }
         }
         if(FD_ISSET(fd_stderr, &readfds)){
-            while( (read_stderr += read(fd_stderr, buffer, 512)) > 0){
-                if(read_stderr > allocated_size_err){
+            int r = 0;
+            while((r = read(fd_stderr, buffer, 512)) > 0){
+                read_stderr += r;
+                /*if(read_stderr > allocated_size_err){
                     buf_err = realloc(buf_err, allocated_size_err + 512);
                     allocated_size_err += 512;
                 }
-                strcat(buf_err, buffer);
+                strcat(buf_err, buffer);*/
+                printf("%s\n", buffer);
             }       
         } 
     }
@@ -154,13 +160,10 @@ void cmd_output_to_pipe(tsh_memory *memory, char *out, char *err){
         close(fd_pipe_out[0]);
         //dup2
         dup2(fd_pipe_out[1],STDOUT_FILENO);
+        close(fd_pipe_out[1]);
         dup2(fd_null,STDERR_FILENO);
         //execute
         execSimpleCommande(memory);
-        //dup2 (restoring stdout & stderr)
-        dup2(old_stdout, STDOUT_FILENO);
-        dup2(old_stderr, STDERR_FILENO);
-        close(fd_pipe_out[1]);
         exit(1);
         break;
 
@@ -174,13 +177,10 @@ void cmd_output_to_pipe(tsh_memory *memory, char *out, char *err){
                 close(fd_pipe_err[0]);
                 //dup2
                 dup2(fd_pipe_err[1],STDERR_FILENO);
+                close(fd_pipe_err[1]);
                 dup2(fd_null,STDOUT_FILENO);
                 //execute
                 execSimpleCommande(memory);
-                //dup2 (restoring stdout & stderr)
-                dup2(old_stdout, STDOUT_FILENO);
-                dup2(old_stderr, STDERR_FILENO);
-                close(fd_pipe_err[1]);
                 exit(1);
                 break;
 
@@ -188,6 +188,9 @@ void cmd_output_to_pipe(tsh_memory *memory, char *out, char *err){
                 close(fd_pipe_out[1]);
                 close(fd_pipe_err[1]);
                 reading(fd_pipe_out[0], fd_pipe_err[0], out, err);
+                //dup2 restoring stdout & stderr
+                dup2(old_stdout, STDOUT_FILENO);
+                dup2(old_stderr, STDERR_FILENO);
                 close(fd_pipe_out[0]);
                 close(fd_pipe_err[0]);
                 break;  
