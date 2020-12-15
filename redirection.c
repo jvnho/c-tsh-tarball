@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
+#include <sys/select.h>
+#include <sys/time.h>
 
 #include "simpleCommande.h"
 #include "tar.h"
@@ -17,6 +19,9 @@
 #include "exec_funcs.h"
 
 tsh_memory old_memory; //will be use to save/restore a memory
+
+int allocated_size_out = 512; //keeps a track of the allocated size for the stdout buffer
+int allocated_size_err = 512; //same but for stderr
 
 void print_data(redirection_array *array){
     printf("%d\n", array->NUMBER);
@@ -96,51 +101,99 @@ struct redirection_array* associate_redirection(char *cmd){
     return data;
 }
 
-char* cmd_output_to_pipe(tsh_memory *memory, int std){
-    int unused_std, old_std, old_unused_std;
-    if(std == 1){
-        unused_std = STDERR_FILENO;
-        old_unused_std = dup(STDERR_FILENO);
-        old_std = dup(STDOUT_FILENO);
-    } else {
-        unused_std = STDOUT_FILENO;
-        old_unused_std = dup(STDOUT_FILENO);
-        old_std = dup(STDERR_FILENO);
-    }
-
-    char *output;
-    assert((output = malloc(sizeof(char) * 512)) != NULL);
-    memset(output, 0, 512);
-    int fd_null;
-    if((fd_null = open("/dev/null", O_WRONLY)) == -1) exit(-1);
-
-    int fd_pipe[2];
-    pipe(fd_pipe);
-    int pid = fork();
-    if(pid == -1){
-        exit(-1);
-    } else if(pid == 0){ //child proccess
-        close(fd_pipe[0]);
-        dup2(fd_pipe[1], std);
-        dup2(fd_null, unused_std);
-        execSimpleCommande(memory);
-        dup2(old_std, std);
-        dup2(old_unused_std, unused_std);
-        close(fd_pipe[1]);
-        exit(0);
-    } else { //parent proccess
-        close(fd_pipe[1]);
-        int read_size = 0, read_size_total = 0;
-        char buf[512];
-        while( (read_size = read(fd_pipe[0], buf, 512)) > 0){
-            read_size_total += read_size;
-            if(read_size_total > sizeof(output)) (assert((realloc(output, sizeof(output)+512)) != NULL));
-            strcat(output,buf);
+void reading(int fd_stdout, int fd_stderr, char *buf_out, char *buf_err){
+    int read_stdout = 0, read_stderr = 0;
+    fd_set readfds;
+    int max_fd = (fd_stdout>fd_stderr)?fd_stdout:fd_stderr;
+    while(1){
+        FD_ZERO(&readfds);
+        FD_SET(fd_stdout, &readfds);
+        FD_SET(fd_stderr, &readfds);
+        select(max_fd, &readfds, NULL, NULL, NULL);
+        char buffer[512];
+        memset(buffer, 0 ,512);
+        if(FD_ISSET(fd_stdout, &readfds)){
+            while( (read_stdout += read(fd_stdout, buffer, 512)) > 0){
+                if(read_stdout > allocated_size_out){
+                    buf_out = realloc(buf_out, allocated_size_out + 512);
+                    allocated_size_out += 512;
+                }
+                strcat(buf_out, buffer);
+            }
         }
-        close(fd_pipe[0]);
+        if(FD_ISSET(fd_stderr, &readfds)){
+            while( (read_stderr += read(fd_stderr, buffer, 512)) > 0){
+                if(read_stderr > allocated_size_err){
+                    buf_err = realloc(buf_err, allocated_size_err + 512);
+                    allocated_size_err += 512;
+                }
+                strcat(buf_err, buffer);
+            }       
+        } 
+    }
+}
+
+void cmd_output_to_pipe(tsh_memory *memory, char *out, char *err){
+    int fd_pipe_out[2];
+    int fd_pipe_err[2];
+
+    if(pipe(fd_pipe_out) == -1) exit(-1);
+    if(pipe(fd_pipe_err) == -1) exit(-1);
+
+    int fd_null;
+    assert( (fd_null = open("/dev/null", O_WRONLY)) != -1);
+
+    int old_stdout = dup(STDOUT_FILENO), old_stderr = dup(STDERR_FILENO);
+
+    switch(fork()){
+    case -1: exit(-1);
+
+    case 0: //child 1: stdout
+        close(fd_pipe_err[0]);
+        close(fd_pipe_err[1]);
+        close(fd_pipe_out[0]);
+        //dup2
+        dup2(fd_pipe_out[1],STDOUT_FILENO);
+        dup2(fd_null,STDERR_FILENO);
+        //execute
+        execSimpleCommande(memory);
+        //dup2 (restoring stdout & stderr)
+        dup2(old_stdout, STDOUT_FILENO);
+        dup2(old_stderr, STDERR_FILENO);
+        close(fd_pipe_out[1]);
+        exit(1);
+        break;
+
+    default: //parent
+        switch(fork()){
+            case -1: exit(-1);
+
+            case 0: //child 2: stderr
+                close(fd_pipe_out[0]);
+                close(fd_pipe_out[1]);
+                close(fd_pipe_err[0]);
+                //dup2
+                dup2(fd_pipe_err[1],STDERR_FILENO);
+                dup2(fd_null,STDOUT_FILENO);
+                //execute
+                execSimpleCommande(memory);
+                //dup2 (restoring stdout & stderr)
+                dup2(old_stdout, STDOUT_FILENO);
+                dup2(old_stderr, STDERR_FILENO);
+                close(fd_pipe_err[1]);
+                exit(1);
+                break;
+
+            default: //same parent
+                close(fd_pipe_out[1]);
+                close(fd_pipe_err[1]);
+                reading(fd_pipe_out[0], fd_pipe_err[0], out, err);
+                close(fd_pipe_out[0]);
+                close(fd_pipe_err[0]);
+                break;  
+        }
     }
     close(fd_null);
-    return output;
 }
 
 //function that writes the output (stdout and/or stderr) of a command in a file outside a tar
@@ -221,8 +274,13 @@ int redirection(tsh_memory *memory){
     print_data(data);
     
     //executing command while redirecting stdout and stderr
-    char *out = cmd_output_to_pipe(memory,1); //what stdout received
-    char *err = cmd_output_to_pipe(memory,2); //what stderr received
+    char *out;
+    assert((out = malloc(sizeof(char)*512))!= NULL); //what stdout received
+    memset(out, 0, 512);
+    char *err;
+    assert( (err = malloc(sizeof(char)*512)) != NULL); //what stderr received
+    memset(err, 0, 512);
+    cmd_output_to_pipe(memory, out, err);
 
     int out_written = 0, err_written = 0; //allow us to know if we wrote function output in a redirection
 
