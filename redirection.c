@@ -57,7 +57,7 @@ void convert_to_simple_cmd(tsh_memory *memory){ //removes redirection symbol fro
         }
         tok = strtok(NULL, " "); 
     }
-    new_cmd[strlen(new_cmd) -1] = '\0';
+    new_cmd[strlen(new_cmd)] = '\0';
     strcpy(memory->comand, new_cmd);
 }
 
@@ -97,12 +97,20 @@ struct redirection_array* associate_redirection(char *cmd){
 }
 
 char* cmd_output_to_pipe(tsh_memory *memory, int std){
-    int unused_std;
-    if(std == 1) unused_std = STDERR_FILENO;
-    else unused_std = STDOUT_FILENO;
+    int unused_std, old_std, old_unused_std;
+    if(std == 1){
+        unused_std = STDERR_FILENO;
+        old_unused_std = dup(STDERR_FILENO);
+        old_std = dup(STDOUT_FILENO);
+    } else {
+        unused_std = STDOUT_FILENO;
+        old_unused_std = dup(STDOUT_FILENO);
+        old_std = dup(STDERR_FILENO);
+    }
 
     char *output;
     assert((output = malloc(sizeof(char) * 512)) != NULL);
+    memset(output, 0, 512);
     int fd_null;
     if((fd_null = open("/dev/null", O_WRONLY)) == -1) exit(-1);
 
@@ -116,7 +124,8 @@ char* cmd_output_to_pipe(tsh_memory *memory, int std){
         dup2(fd_pipe[1], std);
         dup2(fd_null, unused_std);
         execSimpleCommande(memory);
-        //dup2(old_std, std); nécessaire ou pas ???
+        dup2(old_std, std);
+        dup2(old_unused_std, unused_std);
         close(fd_pipe[1]);
         exit(0);
     } else { //parent proccess
@@ -125,7 +134,7 @@ char* cmd_output_to_pipe(tsh_memory *memory, int std){
         char buf[512];
         while( (read_size = read(fd_pipe[0], buf, 512)) > 0){
             read_size_total += read_size;
-            if(read_size > sizeof(output)) (assert((realloc(output, sizeof(output)+512)) != NULL));
+            if(read_size_total > sizeof(output)) (assert((realloc(output, sizeof(output)+512)) != NULL));
             strcat(output,buf);
         }
         close(fd_pipe[0]);
@@ -209,6 +218,8 @@ int redirection(tsh_memory *memory){
     struct redirection_array *data = associate_redirection(strdup(memory->comand)); //associating every redirection to the standard output/error interested by user
     convert_to_simple_cmd(memory); //converting command line entered by user to make it readable by the programm
 
+    print_data(data);
+    
     //executing command while redirecting stdout and stderr
     char *out = cmd_output_to_pipe(memory,1); //what stdout received
     char *err = cmd_output_to_pipe(memory,2); //what stderr received
@@ -229,7 +240,6 @@ int redirection(tsh_memory *memory){
             if(cd(location, memory)== -1) return -1; //path doesn't exist
             redir_name = redir_name + strlen(location);
         }
-        
         int append = data->APPEND[i], std = data->STD[i];
         if(in_a_tar(memory) == 0) redirection_out_tar(redir_name, std, &out_written, &err_written, out, err, append); //redirection file is outside the tar
         else redirection_in_tar(memory, redir_name, std, &out_written, &err_written, out, err, append); //redirection file is inside a tar

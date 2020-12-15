@@ -129,7 +129,7 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
 
         //in this case, user wants to ls a .tar file so we cd in it and run ls
         if(strlen(location) == 0 || is_extension_tar(dirToVisit) == 1){ //@string_traitement.c
-            cd(dirToVisit, memory);
+            if(cd(dirToVisit, memory) == -1) return;
             ls_in_tar(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt, 'd');
             restoreLastState(old_memory, memory);
             return;
