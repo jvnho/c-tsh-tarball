@@ -116,7 +116,7 @@ char* cmd_output_to_pipe(tsh_memory *memory, int std){
         dup2(fd_pipe[1], std);
         dup2(fd_null, unused_std);
         execSimpleCommande(memory);
-        //dup2(old_std, std);
+        //dup2(old_std, std); nécessaire ou pas ???
         close(fd_pipe[1]);
         exit(0);
     } else { //parent proccess
@@ -196,15 +196,10 @@ void redirection_in_tar(tsh_memory *memory, char *redir_name, int std, int *out_
         new_file_in_tar(fd_tar, new_header, content, block_to_add);
     } else { //user wants to append redirection (double arrows)
         char old_content[512 * block_to_move];
-
         lseek(fd_tar, file_offset+512,SEEK_CUR);
         if(append ==1) read(fd_tar, old_content, 512*block_to_move);
-
         rm_in_tar(fd_tar, path_to_file, 0, 1);
-        put_at_the_first_null(fd_tar);
-        write(fd_tar, new_header, 512);//same
-        write(fd_tar, content, block_to_add*512);
-        write(fd_tar, 0, 1+block_to_add);
+        new_file_in_tar(fd_tar, new_header, content, block_to_add);
     }
     free(new_header);
     free(path_to_file);
