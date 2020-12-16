@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS= -Wall -g
 LDLIBS= -lm
 
-tsh : tsh.o tar.o cd.o tsh_memory.o string_traitement.o function.o pwd.o mkdir.o ls.o rmdir.o rm.o simpleCommande.o
+tsh : tsh.o tar.o cd.o tsh_memory.o string_traitement.o function.o pwd.o mkdir.o ls.o rmdir.o rm.o simpleCommande.o pipe.o
 
 
 tsh.o : tsh.c cd.h tsh_memory.h pwd.h mkdir.h tar.h ls.h rmdir.h simpleCommande.h

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include "tsh_memory.h"
 #include "simpleCommande.h"
 int save_read_fd;

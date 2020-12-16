@@ -189,7 +189,6 @@ int execSimpleCommande(tsh_memory *memory){
     }
     return 0;
 }
-int execute(tsh_memory *memory);
 void printError(tsh_memory *memory, int error){
     char message[50];
     memset(message, 0, 50);
