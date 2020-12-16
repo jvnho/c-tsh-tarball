@@ -299,6 +299,13 @@ void splitAndFill(char *source, char *first, char *second){
     if(source[index + 1] == ' ')memcpy(second, source + index + 2, (strlen(source) - (index + 2) + 1)*sizeof(char));//copy from after the space
     else memcpy(second, source + index + 1, (strlen(source) - index)*sizeof(char));
 }
+int isCommandVoid(char *command){
+    int len = strlen(command);
+    for(int i = 0; i<len; i++){
+        if(command[i] != ' ')return 0;
+    }
+    return 1;
+}
 //split the command in to on the "|" in order to execute it separly
 int spilitPipe(tsh_memory *source, tsh_memory *memory1, tsh_memory *memory2){
     copyMemory(source, memory1);//copy the context of execution
