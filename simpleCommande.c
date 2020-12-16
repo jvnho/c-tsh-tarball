@@ -175,16 +175,14 @@ int execSimpleCommande(tsh_memory *memory){
         int pid_fils = fork();
         if(pid_fils==0){
             char **args2 = argsPlusNULL();//ou mettre free?
-            if(strlen(args2[0]))execvp(args2[0], args2);
-            exit(1);//if no command exit error
+            if(strlen(args2[0])==0)exit(130);//no command passed
+            if(execvp(args2[0], args2) == -1)exit(127);//command not found
         }else{
             int status;
             waitpid(pid_fils, &status, WUNTRACED);
             if(WIFEXITED(status)){//if the child used exit
                 return WEXITSTATUS(status);//0 ok, 1 error
-            }if(WIFSIGNALED(status)){
-                return WTERMSIG(status);
-            }
+            }//how about a signal?
         }
     }else {//all the command in our list
         return (*(listFun[fun_index]))(memory);//invok the appropriate function
@@ -192,6 +190,12 @@ int execSimpleCommande(tsh_memory *memory){
     return 0;
 }
 int execute(tsh_memory *memory);
+void printError(tsh_memory *memory, int error){
+    char message[50];
+    memset(message, 0, 50);
+    sprintf(message, "tsh : command not found: %s\n", memory->comand);
+    if(error == 127)write(2, message, strlen(message));
+}
 int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
     
     save_read_fd = dup(0);
@@ -207,10 +211,10 @@ int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
         close(fd_pipe[0]);
         int status;
         waitpid(pid_fils, &status, 0);
-        if(WIFEXITED(status)){//if the child used exit
-            if(WEXITSTATUS(status)){
+        if(WIFEXITED(status)){//if the child used exit()
+            if(WEXITSTATUS(status)){//if the number passed by exit is not 0, then the child finished with error
                 dup2(save_read_fd, 0);
-                return WEXITSTATUS(status);//not 0, then no need to execut the second part
+                return WEXITSTATUS(status);//report the error of my child to my parent
             }
         }
         int result = execute(memory2);
@@ -220,13 +224,14 @@ int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
         close(fd_pipe[0]);
         dup2(fd_pipe[1], 1);
         close(fd_pipe[1]);
-        exit(execute(memory1));
+        exit(execute(memory1));//report the result to parent who is waiting
     }
     return 0;
 }
 int execute(tsh_memory *memory){
     if(strstr(memory->comand, "|")==NULL){//Pas de pipe
-        return execSimpleCommande(memory);
+        if((returnval = execSimpleCommande(memory)))printError(memory, returnval);
+        return returnval;
     }else{
         tsh_memory mem1;
         tsh_memory mem2;
