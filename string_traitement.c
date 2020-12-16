@@ -283,18 +283,34 @@ int is_unix_directory(char *str){
 int is_extension_tar(char *str){
     return (str[strlen(str)-1] == 'r' && str[strlen(str)-2] == 'a' && str[strlen(str)-3] == 't' && str[strlen(str)-4] == '.');
 }
+int getFirstPipeFromBehind(char *source){
+    int len = strlen(source);
+    for(int i = len; i>=0; i--){
+        if(source[i] == '|')return i;
+    }
+    return -1;
+}
+void splitAndFill(char *source, char *first, char *second){
+    int index = getFirstPipeFromBehind(source);
+    memset(first, 0, 512);
+    memset(second, 0, 512);
+    if(source[index - 1] == ' ')memcpy(first, source, sizeof(char)*(index - 1));//copy without space
+    else memcpy(first, source, sizeof(char)* index);
+    if(source[index + 1] == ' ')memcpy(second, source + index + 2, (strlen(source) - (index + 2) + 1)*sizeof(char));//copy from after the space
+    else memcpy(second, source + index + 1, (strlen(source) - index)*sizeof(char));
+}
+int isCommandVoid(char *command){
+    int len = strlen(command);
+    for(int i = 0; i<len; i++){
+        if(command[i] != ' ')return 0;
+    }
+    return 1;
+}
 //split the command in to on the "|" in order to execute it separly
 int spilitPipe(tsh_memory *source, tsh_memory *memory1, tsh_memory *memory2){
     copyMemory(source, memory1);//copy the context of execution
     copyMemory(source, memory2);
-    memset(memory1->comand, 0, 512);//clear the command
-    memset(memory2->comand, 0, 512);
-    char *tok;
-    if((tok = strtok(source->comand, "|")) == NULL)return -1;
-    strcpy(memory1->comand, tok);//initialize the command of mem1 to the command befor '|'
-    if(memory1->comand[strlen(memory1->comand)-1] == ' ')memory1->comand[strlen(memory1->comand)-1] = '\0';//remove the space  at the end
-    if((tok = strtok(NULL, "|")) == NULL)return -1;//initialize the second part of the command
-    if(tok[0] == ' ')strcpy(memory2->comand, tok+1);
-    else strcpy(memory2->comand, tok);
+    splitAndFill(source->comand, memory1->comand, memory2->comand);
+    if(isCommandVoid(memory1->comand)||isCommandVoid(memory2->comand))return -1;
     return 0;
 }

@@ -78,7 +78,10 @@ void exec_mkdir(char option[50][50], int size_option, char *dir){
     else execlp("mkdir", "mkdir", option[0], option[1], option[2], option[3], dir, NULL);
 }
 int mkdir_in_tar(char *dir_name, int tar_descriptor){
-    if(dir_exist(tar_descriptor, dir_name))return 0;
+    if(dir_exist(tar_descriptor, dir_name)){
+        write(2, "File exists\n", strlen("File exists\n"));
+        return 0;
+    }
     struct posix_header *new_head = create_header(dir_name);
     put_at_the_first_null(tar_descriptor);
     if(write((tar_descriptor), new_head, 512)==-1){//write on the first ending bloc

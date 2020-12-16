@@ -181,5 +181,5 @@ int ls(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],in
             do_ls(memory, args[i], option, nb_option, l_opt);
         }
     }
-    return 1;
+    return 0;
 }
