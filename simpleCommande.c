@@ -214,6 +214,7 @@ int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
         if(WIFEXITED(status)){//if the child used exit()
             if(WEXITSTATUS(status)){//if the number passed by exit is not 0, then the child finished with error
                 dup2(save_read_fd, 0);
+                printf("here = %d\n", WEXITSTATUS(status));
                 return WEXITSTATUS(status);//report the error of my child to my parent
             }
         }
@@ -237,7 +238,7 @@ int execute(tsh_memory *memory){
         tsh_memory mem2;
         if(spilitPipe(memory, &mem1, &mem2) == -1){
             write(2, "parse error near `|'\n", strlen("parse error near `|'\n"));
-            return -1;
+            return 1;
         }
         return pipe_tsh(&mem1, &mem2);
     }

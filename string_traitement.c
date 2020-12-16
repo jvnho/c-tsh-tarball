@@ -311,6 +311,6 @@ int spilitPipe(tsh_memory *source, tsh_memory *memory1, tsh_memory *memory2){
     copyMemory(source, memory1);//copy the context of execution
     copyMemory(source, memory2);
     splitAndFill(source->comand, memory1->comand, memory2->comand);
-    //check error
+    if(isCommandVoid(memory1->comand)||isCommandVoid(memory2->comand))return -1;
     return 0;
 }
