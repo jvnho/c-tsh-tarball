@@ -298,3 +298,11 @@ int spilitPipe(tsh_memory *source, tsh_memory *memory1, tsh_memory *memory2){
     else strcpy(memory2->comand, tok);
     return 0;
 }
+
+void get_tar_path(tsh_memory *memory, char *container, char *abs_path){
+    printf("abs_path %s\n", abs_path);
+    memset(container,0, 512);
+    char *sub = strstr(abs_path, ".tar");
+    int starting = sub - abs_path;
+    strcpy(container, abs_path+starting+5);
+}
