@@ -3,8 +3,11 @@
 #include <sys/errno.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <dirent.h>
+#include <sys/stat.h>
 #include "bloc.h"
 #include "tar.h"
+#include "string_traitement.h"
 content_bloc content[512];//fill it befor the specifc call of cp (cp_tar_tar or cp_tar_dir)
 int i_content = 0;
 //cp somthing from tar, in a tar -> befor go to the tar collect all the bloc and the fd of the tar, the cd to target, if we are in tar getThe fd and, execut this function
@@ -59,6 +62,26 @@ int cp_file_tar(char *source, char *target, int fd_target){
         if(writeZero(fd_target)==-1)return -1;
         return writeZero(fd_target);
     }
+    return 0;
+}
+int cp_dir_tar(char *directory, char *target, int fd_target){
+    DIR *dir = opendir(directory);
+    struct dirent * inoeud_nom;
+    while((inoeud_nom = readdir(dir))){
+        
+        if((strcmp(inoeud_nom->d_name, ".") != 0)&&(strcmp(inoeud_nom->d_name, "..") != 0)){
+            struct stat buff;
+            char name_concat[512];
+            concatenation(directory, inoeud_nom->d_name, name_concat);
+            if(lstat(name_concat, &buff)==-1)perror("lstat:");
+            if(S_IFDIR & buff.st_mode){//if it's a dir
+                cp_dir_tar(name_concat, target, fd_target);
+            }else if(S_IFMT & buff.st_mode){//if it's a file
+                cp_file_tar(name_concat, target, fd_target);
+            }
+        }
+    }
+    closedir(dir);
     return 0;
 }
 
