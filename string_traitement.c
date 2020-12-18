@@ -1,6 +1,10 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <unistd.h>
+#include "tsh_memory.h"
+#define BUFSIZE 512
 typedef struct position_mots{
     int debut;
     int fin;
@@ -67,7 +71,7 @@ int string_to_int(char *chiffre){
     }
     return resultat;
 }
-int getDigitLength(int chiffre){//the numbre of digit 
+int getDigitLength(int chiffre){//the numbre of digit
     int counter = 0;
     while(chiffre%10!=0){
         counter++;
@@ -100,9 +104,9 @@ char *int_to_string(int chiffre){
     result[size] = '\0';
     return result;
 }
-//add '/' at the end of dir if it doesn't have a slach
-char * concatString(char * path, char *dir){
-    
+//voir le cas ou dir se termine par un slach
+char * concatDirToPath(char * path, char *dir){
+
     int length = strlen(path)+strlen(dir)+2;
     char * result = malloc(length);
     strcpy(result, path);
@@ -125,6 +129,13 @@ char * simpleConcat(char *path, char *dir){
     result[length - 1] = '\0';
     return result;
 }
+
+char *concate_string(char *s1, char *s2){
+    char *ret = malloc((strlen(s1)+strlen(s2)+1)*sizeof(char));
+    sprintf(ret,"%s%s%c", s1, s2, '\0');
+    return ret;
+}
+
 int get_index_first_slach(char *initial_string){
     char * substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
     if(substring == NULL)return -1;//there is not a .tar -> so there is not first slach befor .tar
@@ -174,4 +185,125 @@ void getPostTar(char *initial_string, char *result){
     if(begin_index > len_initial) return;//the .tar is at the end -> also don't have a postTar
     memcpy(result, initial_string + begin_index, len_initial - begin_index + 1);
     result[len_initial - begin_index + 1] = '\0';
+}
+
+//returns the position of the (second) slash from the end, if not found it returns -1
+int get_prev_directory(char *path){
+    int index = strlen(path)-2; //PATH[strlen(PATH)-2] already equals to a slash
+    while(index >= 0){
+        if(path[index] == '/')
+            return index;
+        index--;
+    }
+    return -1;
+}
+
+char* octal_to_string(char *mode){
+    char *ret = malloc(sizeof(char)*9);
+    ret[0] = '\0';
+        for(int i = 0; i < strlen(mode); i++){
+        switch(mode[i]){
+            case '1': strcat(ret,"r--"); break;
+            case '2': strcat(ret,"-w-"); break;
+            case '4': strcat(ret,"--x"); break;
+            case '3': strcat(ret,"rw-"); break;
+            case '5': strcat(ret,"r-x"); break;
+            case '6': strcat(ret,"-wx"); break;
+            case '7': strcat(ret,"rwx"); break;
+            default: break;//if char == 'zero' it does nothing (i.e mode is 00666, 00111,...)
+        }
+    }
+    return ret;
+}
+int firstSlach(char *dir){
+    int len = strlen(dir);
+    for(int i = 0; i<len; i++){
+        if(dir[i]=='/')return i;
+    }
+    return -1;
+}
+//fill result of the first dir/ in source into the result
+int getFirstDir(char *source, char *result){
+    memset(result, 0, sizeof(char)*512);
+    int index_first_slach = firstSlach(source);
+    memcpy(result, source, index_first_slach + 1);
+    return index_first_slach;
+}
+char **addNullEnd(char **initial, int size){
+    char **result;
+    assert(result = malloc((size + 1)*sizeof(char *)));
+    for(int i = 0; i< size; i++){
+        assert(result[i] = malloc(strlen(initial[i])*sizeof(char)));
+        strcpy(result[i], initial[i]);
+    }
+    result[size] = NULL;
+    return result;
+}
+//remove "./", "./" ,"/./" from str
+void remove_simple_dot_from_dir(char *str){
+    //beginning of the string
+    while(str[0] == '.' && (str[1] != '.' && str[1] == '/')){ // if "././././dos1" entered
+        strcpy(str,str+2);
+    }
+
+    //end of the string
+    while(1){
+        int str_length = strlen(str);
+        if(str[str_length-1] == '/' && str[str_length-2] == '.' && str[str_length-3] != '.'){ // cd doss1/./
+            strncpy(str, str, str_length-2);
+            str[str_length-2] = '\0';
+        } else if(str[str_length-1] == '.' && str[str_length-2] != '.'){ // cd doss1/.
+            str[str_length-1] = '\0';
+        } else break;
+    }
+    //anywhere in middle of the string
+    char *tmp;
+    while( (tmp = strstr(str,"/./")) != NULL){ //while there are /./ found in the string
+        int length = tmp - str ; //number of char before the "/."
+        char *buf = malloc(sizeof(char)* (strlen(str)-2));
+        strncpy(buf, str, length);
+        strcat(buf,tmp+2);
+        strcpy(str,buf);
+    }
+}
+int getIndexFirstSlachBehind(char *source){
+    int len = strlen(source);
+    for(int i = len -2; 0<=i; i--){
+        if(source[i]=='/')return i;
+    }
+    return -1;
+}
+//if source = aa/bb/cc/dossier => result = aa/bb/cc
+void getLocation(char *source, char *result){
+    memset(result, 0, 512);
+    int indexSlach = getIndexFirstSlachBehind(source);
+    if(indexSlach == -1)return;
+    //copy destionation source(from where) size(how many char)
+    memcpy(result, source, indexSlach + 1);// +1 because index start from 0
+}
+
+int is_unix_directory(char *str){
+    char location[512];
+    getLocation(str,location);
+    char *str2 = str + strlen(location);
+    return ( strcmp(str2,".") == 0 || strcmp(str2,"./") == 0 || strcmp(str2,"..") == 0 || strcmp(str2,"../") == 0);
+}
+
+int is_extension_tar(char *str){
+    return (str[strlen(str)-1] == 'r' && str[strlen(str)-2] == 'a' && str[strlen(str)-3] == 't' && str[strlen(str)-4] == '.');
+}
+//split the command in to on the "|" in order to execute it separly
+int spilitPipe(tsh_memory *source, tsh_memory *memory1, tsh_memory *memory2){
+    copyMemory(source, memory1);//copy the context of execution
+    copyMemory(source, memory2);
+    memset(memory1->comand, 0, 512);//clear the command
+    memset(memory2->comand, 0, 512);
+    char *tok;
+    if((tok = strtok(source->comand, "|")) == NULL)return -1;
+    strcpy(memory1->comand, tok);//initialize the command of mem1 to the command befor '|'
+    if(memory1->comand[strlen(memory1->comand)-1] == ' ')memory1->comand[strlen(memory1->comand)-1] = '\0';//remove the space  at the end
+    if((tok = strtok(NULL, "|")) == NULL)return -1;//initialize the second part of the command
+    if(tok[0] == ' ')strcpy(memory2->comand, tok+1);
+    else strcpy(memory2->comand, tok);
+    return 0;
 }

@@ -134,3 +134,18 @@ int writeZero(int tar_descriptor){
     return 0;
 }
 
+int dir_exist(int descriptor, char * directory){
+    lseek(descriptor, 0, SEEK_SET);
+    struct posix_header header;
+    int nb_bloc_file = 0;
+    while(read(descriptor, &header, 512)>0){//parcour de tete en tete jusqu' a la fin
+        if(strcmp(header.name, directory)==0)return 1;
+        int tmp = 0;
+        sscanf(header.size, "%o", &tmp);
+        nb_bloc_file = (tmp + 512 -1) / 512;
+        for(int i=0; i<nb_bloc_file; i++){
+            read(descriptor, &header, 512);
+        }
+    }
+    return 0;
+}

@@ -5,7 +5,7 @@
 #include "string_traitement.h"
 char FILE_PATH[512];
 int getIndexLastSlach(char *path){
-    int n = strlen(path) - 1;
+    int n = strlen(path) - 2;
     for(int i = n; 0<=i; i--){
         if(path[i] == '/')return i;
     }
@@ -24,18 +24,15 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
     int index_content = 0;
     char new_name[512];//name to write on the new header
     int result_read = 0;
+    int without_path = getIndexLastSlach(path_to_source) + 1;//used to remove the path 
     while((result_read = read(descriptor, &header, 512))>0){//parcour de tete en tete jusqu' a la fin
     
         strncpy(FILE_PATH, header.name, strlen(path_to_source));
         
         if(strcmp(FILE_PATH, path_to_source) == 0){//found a bloc to cp
-            //fill the the header
-            if(source[strlen(source)-1] == '/'){//directory-> so we copy that directory (target/directory/something)
-                tab[index_tab].hd = copyHeader(header, simpleConcat(target, strcpy(new_name, header.name + strlen(fake_path))));
-            }
-            else{//file we take just the name of file at the end
-                tab[index_tab].hd = copyHeader(header, simpleConcat(target, strcpy(new_name, header.name + getIndexLastSlach(header.name) + 1)));
-            }
+            //fill the the header 
+            tab[index_tab].hd = copyHeader(header, simpleConcat(target, strcpy(new_name, header.name + without_path)));
+            
             //fill the bloc
             sscanf(header.size, "%o", &tmp);
             nb_bloc_file = (tmp + 512 -1) / 512;
