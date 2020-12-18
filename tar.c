@@ -92,28 +92,29 @@ struct posix_header copyHeader(struct posix_header initial, char *name){
     
     return result;
 }
-struct posix_header *create_header(char * name){
+struct posix_header *create_header(char * name, int dir, int size){
 
     struct posix_header *result = malloc(512);
     strcpy(result->name, name);//add the name
-    sprintf(result->mode, "000755 ");
+    if(dir)sprintf(result->mode, "000755 ");
+    else sprintf(result->mode, "000644 ");
+        
     sprintf(result->uid, "000765 ");
     sprintf(result->gid, "000024 ");
 
-    sprintf(result->size, "%011o", 0);
-    sprintf(result->mtime, "%011lo", time(NULL));
+    sprintf(result->size, "%011o", size);
+    sprintf(result->mtime, "%ld", time(NULL));//au pire metre zero
 
-    result->mtime[0] = '\0';//how to get the time of the arrchivement
 
-    result->typeflag = '5';
+    if(dir){result->typeflag = '5';}else result->typeflag = '0';
     result->linkname[0] = '\0';
 
     strcpy(result->magic, "ustar");
     result->version[0]='0';
     result->version[1]= '0';
 
-    strcpy(result->uname, getlogin());
-    strcpy(result->gname, getlogin());
+    strcpy(result->uname, getlogin());//sarobidy
+    strcpy(result->gname, getlogin());//staff
 
     strcpy(result->devmajor, "000000 ");
     strcpy(result->devminor, "000000 ");
@@ -122,6 +123,7 @@ struct posix_header *create_header(char * name){
     set_checksum(result);
     return result;
 }
+
 //write a zero bloc at the end
 int writeZero(int tar_descriptor){
     lseek(tar_descriptor, 0, SEEK_END);

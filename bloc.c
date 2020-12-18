@@ -55,13 +55,44 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
     }
     return index_tab;
 }
-int fill_fromFile(content_bloc *tab, char *source, int starting_index){
+/*
+int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* starting_index){
     int fd_file;
     if((fd_file = open(source, O_RDONLY)) == -1){
         perror("");
         return -1;
     }
+    //fill the bloc
+    int nb_bloc = 0;
+    int leng = 0;
+    int i= 1;
+    int sizeFile = 0;
+    while((leng = read(fd_file, tab[*starting_index].content[nb_bloc], 512))>0){
+        if(leng<512){//complet the rest of this bloc by zero
+            char end_bloc[512-leng];
+            memset(end_bloc, 0, 512-leng);
+            tab[*starting_index].content[nb_bloc][leng] = '\0';
+            strcat(tab[*starting_index].content[nb_bloc], end_bloc);
+            sizeFile = sizeFile + leng;
+            nb_bloc++;
+            break;
+        }
+        sizeFile = sizeFile + leng;
+        nb_bloc++;
+        i++;
+    }
     
+    if(leng == -1){//error from read
+        perror("");
+        close(fd_file);
+        return -1;
+    }
+    struct posix_header * newHead = create_header(concate_string(target, source), 0, sizeFile);
+    tab[*starting_index].hd = *newHead;
+    tab[*starting_index].nb_bloc = nb_bloc;
+    close(fd_file);
+    *starting_index = *(starting_index) + 1;
     return 0;
 }
+*/
 
