@@ -55,7 +55,6 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
     }
     return index_tab;
 }
-/*
 int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* starting_index){
     int fd_file;
     if((fd_file = open(source, O_RDONLY)) == -1){
@@ -65,7 +64,7 @@ int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* st
     //fill the bloc
     int nb_bloc = 0;
     int leng = 0;
-    int i= 1;
+    int i = 1;
     int sizeFile = 0;
     while((leng = read(fd_file, tab[*starting_index].content[nb_bloc], 512))>0){
         if(leng<512){//complet the rest of this bloc by zero
@@ -94,5 +93,4 @@ int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* st
     *starting_index = *(starting_index) + 1;
     return 0;
 }
-*/
 

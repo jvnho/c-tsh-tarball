@@ -37,10 +37,35 @@ int cp_tar_tar(char *source, char *target, int fd_source, int fd_target, char *f
     }
     return 0;
 }
+int cp_file_tar(char *source, char *target, int fd_target){
+    if(fill_fromFile_outside(content, source, target, &i_content))return -1;//fill the tab
+    put_at_the_first_null(fd_target);//positioning at the first null
+    if(write(fd_target, &(content[i_content - 1].hd), 512) == -1){//write the head 
+        perror("");
+        return -1;
+    }
+    int nb_write = 1;
+    for(int iBloc = 0; iBloc < content[i_content - 1].nb_bloc; iBloc++){//write the bloc
+        if(write(fd_target, content[i_content - 1].content[0], 512) == -1){
+            perror("");
+            return -1;
+        }
+        nb_write++;
+    }
+    //write the end of bloc
+    if(nb_write == 1){
+        return writeZero(fd_target);
+    }if(nb_write > 1){
+        if(writeZero(fd_target)==-1)return -1;
+        return writeZero(fd_target);
+    }
+    return 0;
+}
+
 int main(int n, char **args){
     //source target .tar fakePaht
     int fd_tar = open(args[3], O_RDWR);
-    int tail = cp_tar_tar(args[1], args[2], fd_tar, fd_tar,"");
+    int tail = cp_file_tar(args[1], args[2], fd_tar);
     
     
     return 0;
