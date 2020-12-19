@@ -16,6 +16,7 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
     //target should have a '/' at the end
     //source should have a '/' at the end if it's a directory
     char *path_to_source = simpleConcat(fake_path, source);//verification slach si dossier j'appel concat string, si fichier j'appel simple concat
+    
     lseek(descriptor, 0, SEEK_SET);
     struct posix_header header;
     int tmp = 0;
@@ -30,6 +31,7 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
         strncpy(FILE_PATH, header.name, strlen(path_to_source));
         
         if(strcmp(FILE_PATH, path_to_source) == 0){//found a bloc to cp
+            printf("head = %s\n", header.name);
             //fill the the header 
             tab[index_tab].hd = copyHeader(header, simpleConcat(target, strcpy(new_name, header.name + without_path)));
             
@@ -38,6 +40,9 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
             nb_bloc_file = (tmp + 512 -1) / 512;
             for(int i=0; i<nb_bloc_file; i++){
                 read(descriptor, tab[index_tab].content[index_content], 512);
+                /*printf("________DEBUT________\n");
+                printf("%s", tab[index_tab].content[index_content]);
+                printf("________FIN________\n");*/
                 index_content++;
             }
             tab[index_tab].nb_bloc = index_content;
