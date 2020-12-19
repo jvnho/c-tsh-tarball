@@ -12,7 +12,7 @@ int getIndexLastSlach(char *path){
     return -1;
 }
 //get all header_name and content bloc if the header name is fake/source (file)  or fake/source/X  (dierctory)
-int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, char *fake_path){
+int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, char *fake_path, int *starting_index){
     //target should have a '/' at the end
     //source should have a '/' at the end if it's a directory
     char *path_to_source = simpleConcat(fake_path, source);//verification slach si dossier j'appel concat string, si fichier j'appel simple concat
@@ -21,7 +21,7 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
     struct posix_header header;
     int tmp = 0;
     int nb_bloc_file = 0;
-    int index_tab = 0;
+    int index_tab = *starting_index;
     int index_content = 0;
     char new_name[512];//name to write on the new header
     int result_read = 0;
@@ -55,6 +55,7 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
         perror("");
         return -1;
     }
+    *starting_index = index_tab;
     return index_tab;
 }
 int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* starting_index){

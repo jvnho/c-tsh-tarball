@@ -11,9 +11,10 @@
 content_bloc content[512];//fill it befor the specifc call of cp (cp_tar_tar or cp_tar_dir)
 int i_content = 0;//don't forget to reset this, with the tab
 int temp_fd;
+tsh_memory old_memory;
 //cp somthing from tar, in a tar -> befor go to the tar collect all the bloc and the fd of the tar, the cd to target, if we are in tar getThe fd and, execut this function
 int cp_tar_tar(char *source, char *target, int fd_source, int fd_target, char *fake_path){
-    int nb_header = fill_fromTar(content, source, target, fd_source, fake_path);
+    int nb_header = fill_fromTar(content, source, target, fd_source, fake_path, &i_content);
     if(nb_header == -1)return -1;
     put_at_the_first_null(fd_target);
     //write all the bloc in tab and the last bloc null
@@ -119,7 +120,7 @@ void createFile(content_bloc fileBloc){
 }
 //dir or file form tar to outside
 int cp_tar_outside(char *file, int fd_source, char *fake_path){
-    int nb_header = fill_fromTar(content, file, "", fd_source, fake_path);
+    int nb_header = fill_fromTar(content, file, "", fd_source, fake_path, &i_content);
     for(int i = 0; i<nb_header; i++){
         
         if(content[i].hd.typeflag == '5'){//Dossier
@@ -128,6 +129,11 @@ int cp_tar_outside(char *file, int fd_source, char *fake_path){
             createFile(content[i]);
         }
     }
+    return 0;
+}
+//for one argument
+int copy(char listOption[50][50], char *source, char *target, tsh_memory *memory){
+    
     return 0;
 }
 int main(int n, char **args){
