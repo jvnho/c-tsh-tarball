@@ -10,6 +10,7 @@
 #include "string_traitement.h"
 content_bloc content[512];//fill it befor the specifc call of cp (cp_tar_tar or cp_tar_dir)
 int i_content = 0;//don't forget to reset this, with the tab
+int temp_fd;
 //cp somthing from tar, in a tar -> befor go to the tar collect all the bloc and the fd of the tar, the cd to target, if we are in tar getThe fd and, execut this function
 int cp_tar_tar(char *source, char *target, int fd_source, int fd_target, char *fake_path){
     int nb_header = fill_fromTar(content, source, target, fd_source, fake_path);
@@ -98,10 +99,26 @@ int cp_dir_tar(char *directory, char *target, int fd_target){
     closedir(dir);
     return 0;
 }
+int createFile(content_bloc fileBloc){
+    if((temp_fd = open(fileBloc.hd.name, O_WRONLY|O_CREAT))== -1){//create file
+        write(2, "cp :failed to extract file\n", strlen("cp :failed to extract file\n"));
+    }else{//then write it's content
+        for(int i = 0; i<fileBloc.nb_bloc; i++){
+            write(temp_fd, fileBloc.content[i], 512);
+        } 
+        close(temp_fd);
+    }
+    return 0;
+}
 int cp_tar_outside(char *file, int fd_source, char *fake_path){
     int nb_header = fill_fromTar(content, file, "", fd_source, fake_path);
     for(int i = 0; i<nb_header; i++){
         printf("head name = %s\n", content[i].hd.name);
+        if(content[i].hd.typeflag == '5'){//Dossier
+            printf("doss\n");
+        }else{//fichier
+            createFile(content[i]);
+        }
     }
     return 0;
 }
