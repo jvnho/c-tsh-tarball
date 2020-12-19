@@ -64,13 +64,20 @@ int cp_file_tar(char *source, char *target, int fd_target){
     }
     return 0;
 }
+void simple_mkdir(char *directory, int fd_target){
+    put_at_the_first_null(fd_target);
+    struct posix_header *new_head = create_header(directory, 1, 0);
+    write(fd_target, new_head, 512);
+    writeZero(fd_target);
+}
 int cp_dir_tar(char *directory, char *target, int fd_target){
     
     char name_concat[512];
     char plus_slach[512];
     concatenation(target, directory, name_concat);
-    concatenation(name_concat, "", plus_slach);
-    printf("ce qu'on veu creer = %s\n", plus_slach);
+    concatenationPath(name_concat, "", plus_slach);
+    if(dir_exist(fd_target, plus_slach))return 0;//alerady exist
+    simple_mkdir(plus_slach, fd_target);
     DIR *dir = opendir(directory);
     struct dirent * inoeud_nom;
     while((inoeud_nom = readdir(dir))){
@@ -78,13 +85,14 @@ int cp_dir_tar(char *directory, char *target, int fd_target){
         if((strcmp(inoeud_nom->d_name, ".") != 0)&&(strcmp(inoeud_nom->d_name, "..") != 0)){
             struct stat buff;
             
-            concatenation(directory, inoeud_nom->d_name, name_concat);
+            concatenationPath(directory, inoeud_nom->d_name, name_concat);
+            
             if(lstat(name_concat, &buff)==-1)perror("lstat:");
             if(S_IFDIR & buff.st_mode){//if it's a dir
                 cp_dir_tar(name_concat, target, fd_target);
             }else if(S_IFMT & buff.st_mode){//if it's a file
-                printf("creation de = %s\n", name_concat);
-                //cp_file_tar(name_concat, target, fd_target);
+                
+                cp_file_tar(name_concat, target, fd_target);
             }
         }
     }
