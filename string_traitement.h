@@ -19,6 +19,7 @@ extern void getLocation(char *source, char *result);
 extern int is_unix_directory(char *str);
 extern int is_extension_tar(char *str);
 extern int spilitPipe(tsh_memory *source, tsh_memory *memory1, tsh_memory *memory2);
+extern void concatenationPath(char *first, char *second, char *result);
 extern void concatenation(char *first, char *second, char *result);
 
 #endif

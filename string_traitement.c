@@ -307,10 +307,17 @@ int spilitPipe(tsh_memory *source, tsh_memory *memory1, tsh_memory *memory2){
     else strcpy(memory2->comand, tok);
     return 0;
 }
-void concatenation(char *first, char *second, char *result){//sans malloc
+//add slach betwen
+void concatenationPath(char *first, char *second, char *result){//sans malloc
     memset(result, 0, 512);
     strcpy(result, first);
     result[strlen(first)] = '/';
+    strcat(result, second);
+}
+//witout slach
+void concatenation(char *first, char *second, char *result){
+    memset(result, 0, 512);
+    strcpy(result, first);
     strcat(result, second);
 }
 

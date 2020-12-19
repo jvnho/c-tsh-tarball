@@ -9,7 +9,7 @@
 #include "tar.h"
 #include "string_traitement.h"
 content_bloc content[512];//fill it befor the specifc call of cp (cp_tar_tar or cp_tar_dir)
-int i_content = 0;
+int i_content = 0;//don't forget to reset this, with the tab
 //cp somthing from tar, in a tar -> befor go to the tar collect all the bloc and the fd of the tar, the cd to target, if we are in tar getThe fd and, execut this function
 int cp_tar_tar(char *source, char *target, int fd_source, int fd_target, char *fake_path){
     int nb_header = fill_fromTar(content, source, target, fd_source, fake_path);
@@ -65,19 +65,26 @@ int cp_file_tar(char *source, char *target, int fd_target){
     return 0;
 }
 int cp_dir_tar(char *directory, char *target, int fd_target){
+    
+    char name_concat[512];
+    char plus_slach[512];
+    concatenation(target, directory, name_concat);
+    concatenation(name_concat, "", plus_slach);
+    printf("ce qu'on veu creer = %s\n", plus_slach);
     DIR *dir = opendir(directory);
     struct dirent * inoeud_nom;
     while((inoeud_nom = readdir(dir))){
         
         if((strcmp(inoeud_nom->d_name, ".") != 0)&&(strcmp(inoeud_nom->d_name, "..") != 0)){
             struct stat buff;
-            char name_concat[512];
+            
             concatenation(directory, inoeud_nom->d_name, name_concat);
             if(lstat(name_concat, &buff)==-1)perror("lstat:");
             if(S_IFDIR & buff.st_mode){//if it's a dir
                 cp_dir_tar(name_concat, target, fd_target);
             }else if(S_IFMT & buff.st_mode){//if it's a file
-                cp_file_tar(name_concat, target, fd_target);
+                printf("creation de = %s\n", name_concat);
+                //cp_file_tar(name_concat, target, fd_target);
             }
         }
     }
@@ -88,7 +95,7 @@ int cp_dir_tar(char *directory, char *target, int fd_target){
 int main(int n, char **args){
     //source target .tar fakePaht
     int fd_tar = open(args[3], O_RDWR);
-    int tail = cp_file_tar(args[1], args[2], fd_tar);
+    int tail = cp_dir_tar(args[1], args[2], fd_tar);
     
     
     return 0;
