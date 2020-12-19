@@ -104,7 +104,6 @@ void createDir(content_bloc dirBloc){
     if(pid_fils){//parent
         waitpid(pid_fils, NULL, 0);
     }else{//child
-
         execlp("mkdir", "mkdir", dirBloc.hd.name, NULL);
     }
 }
