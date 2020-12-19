@@ -91,7 +91,6 @@ int cp_dir_tar(char *directory, char *target, int fd_target){
             if(S_IFDIR & buff.st_mode){//if it's a dir
                 cp_dir_tar(name_concat, target, fd_target);
             }else if(S_IFMT & buff.st_mode){//if it's a file
-                
                 cp_file_tar(name_concat, target, fd_target);
             }
         }
