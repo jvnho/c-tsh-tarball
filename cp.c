@@ -99,8 +99,17 @@ int cp_dir_tar(char *directory, char *target, int fd_target){
     closedir(dir);
     return 0;
 }
-int createFile(content_bloc fileBloc){
-    if((temp_fd = open(fileBloc.hd.name, O_WRONLY|O_CREAT))== -1){//create file
+void createDir(content_bloc dirBloc){
+    int pid_fils = fork();
+    if(pid_fils){//parent
+        waitpid(pid_fils, NULL, 0);
+    }else{//child
+
+        execlp("mkdir", "mkdir", dirBloc.hd.name, NULL);
+    }
+}
+void createFile(content_bloc fileBloc){
+    if((temp_fd = open(fileBloc.hd.name, O_WRONLY|O_CREAT, 0664))== -1){//create file
         write(2, "cp :failed to extract file\n", strlen("cp :failed to extract file\n"));
     }else{//then write it's content
         for(int i = 0; i<fileBloc.nb_bloc; i++){
@@ -108,14 +117,13 @@ int createFile(content_bloc fileBloc){
         } 
         close(temp_fd);
     }
-    return 0;
 }
 int cp_tar_outside(char *file, int fd_source, char *fake_path){
     int nb_header = fill_fromTar(content, file, "", fd_source, fake_path);
     for(int i = 0; i<nb_header; i++){
         printf("head name = %s\n", content[i].hd.name);
         if(content[i].hd.typeflag == '5'){//Dossier
-            printf("doss\n");
+            createDir(content[i]);
         }else{//fichier
             createFile(content[i]);
         }
@@ -126,7 +134,7 @@ int main(int n, char **args){
     //source target .tar fakePaht
     int fd_tar = open(args[1], O_RDWR);
     //doss1
-    int tail = cp_tar_outside("doss1", fd_tar, "doss1/");
+    int tail = cp_tar_outside("doss1", fd_tar, "");
     
     
     return 0;
