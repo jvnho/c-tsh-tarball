@@ -113,11 +113,12 @@ void createFile(content_bloc fileBloc){
         write(2, "cp :failed to extract file\n", strlen("cp :failed to extract file\n"));
     }else{//then write it's content
         for(int i = 0; i<fileBloc.nb_bloc; i++){
-            write(temp_fd, fileBloc.content[i], 512);
+            write(temp_fd, fileBloc.content[i], strlen(fileBloc.content[i]));
         } 
         close(temp_fd);
     }
 }
+//dir or file form tar to outside
 int cp_tar_outside(char *file, int fd_source, char *fake_path){
     int nb_header = fill_fromTar(content, file, "", fd_source, fake_path);
     for(int i = 0; i<nb_header; i++){
@@ -125,22 +126,7 @@ int cp_tar_outside(char *file, int fd_source, char *fake_path){
         if(content[i].hd.typeflag == '5'){//Dossier
             createDir(content[i]);
         }else{//fichier
-            //createFile(content[i]);
-            printf("**** head name = %s   nombre de bloc = %d\n", content[i].hd.name, content[i].nb_bloc);
-           
-            if((temp_fd = open(content[i].hd.name, O_WRONLY|O_CREAT| O_APPEND, 0664))== -1){//create file
-                write(2, "cp :failed to extract file\n", strlen("cp :failed to extract file\n"));
-            }else{
-                for(int j = 0; j<content[i].nb_bloc; j++){
-                    printf("_________Debut_______\n");
-                    printf("tail = %lu\n", strlen(content[i].content[j])*sizeof(char));
-                    printf("%s", content[i].content[j]);
-                    printf("_________FIN_______\n");
-                    //write(temp_fd, content[i].content[j], strlne);
-                }
-            }
-            
-            
+            createFile(content[i]);
         }
     }
     return 0;
@@ -149,7 +135,7 @@ int main(int n, char **args){
     //source target .tar fakePaht
     int fd_tar = open(args[1], O_RDWR);
     //doss1
-    int tail = cp_tar_outside("doss2", fd_tar, "");
+    int tail = cp_tar_outside("doss2/Clause.java", fd_tar, "");
     
     
     return 0;
