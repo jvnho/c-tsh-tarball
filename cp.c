@@ -98,11 +98,18 @@ int cp_dir_tar(char *directory, char *target, int fd_target){
     closedir(dir);
     return 0;
 }
-
+int cp_tar_outside(char *file, int fd_source, char *fake_path){
+    int nb_header = fill_fromTar(content, file, "", fd_source, fake_path);
+    for(int i = 0; i<nb_header; i++){
+        printf("head name = %s\n", content[i].hd.name);
+    }
+    return 0;
+}
 int main(int n, char **args){
     //source target .tar fakePaht
-    int fd_tar = open(args[3], O_RDWR);
-    int tail = cp_dir_tar(args[1], args[2], fd_tar);
+    int fd_tar = open(args[1], O_RDWR);
+    //doss1
+    int tail = cp_tar_outside("doss1", fd_tar, "doss1/");
     
     
     return 0;
