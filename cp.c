@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <assert.h>
 #include "bloc.h"
 #include "tar.h"
 #include "string_traitement.h"
@@ -157,8 +158,26 @@ void addSlach(char *dir, char *result){
         concatenationPath(dir, "", result);
     
 }
-int exec_cp(char option[50][50], int size_option, char *source, char *target){
-    return 0;
+char **fusionCommand(char option[50][50], int size_option, char *source, char *target){
+    char **result;
+    assert((result = malloc((size_option + 4)*sizeof(char *))) !=NULL);
+    assert((result[0] = malloc((strlen("cp")+1) *sizeof(char))) != NULL);
+    strcpy(result[0], "cp");
+    result[0][2] = '\0';
+    int index_result = 1;
+    for(int i = 0; i< size_option; i++){
+        assert((result[index_result] = malloc(strlen(option[i])*sizeof(char))) != NULL);
+        strcpy(result[index_result], option[i]);
+        index_result++;
+    }
+    result[index_result] = source;
+    result[index_result + 1] = target;
+    result[index_result + 2] = NULL;
+    return result;
+}
+void exec_cp(char option[50][50], int size_option, char *source, char *target){
+    char **args = fusionCommand(option, size_option, source, target);
+    execvp(args[0], args);
 }
 //for one argument
 int copy(char listOption[50][50], int size_option, char *source, char *real_target, tsh_memory *memory){
@@ -222,7 +241,12 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
         }//outside -> outside
         else{
             restoreMemory(&old_memory, memory);
-            return exec_cp(listOption, size_option, source, target);
+            int pid_fils = fork();
+            if(pid_fils){//parent
+                int status;
+                waitpid(pid_fils, &status, WUNTRACED);
+                if(WEXITSTATUS(status)==-1)return -1;
+            }else exec_cp(listOption, size_option, source, target);
         }
     }
     return 0;
