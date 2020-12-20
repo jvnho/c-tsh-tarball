@@ -13,11 +13,11 @@
 #include "rmdir.h"
 #include "string_traitement.h"
 #include "rm.h"
+#include "cp.h"
 
 
-
-char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir", "rm"};
-#define NB_FUN 7
+char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir", "rm", "cp"};
+#define NB_FUN 8
 char co[50];
 char option[50][50];
 int i_option = 0;
@@ -153,9 +153,13 @@ int adapter_rmdir(tsh_memory *memory){
 int adapter_rm(tsh_memory *memory){
     return rm(memory, args, i_args, option, i_option);
 }
+int adapter_cp(tsh_memory *memory){
+    if(i_option)return copy(option, i_option, args[0], args[1], memory);
+    return copy(NULL, i_option, args[0], args[1], memory);
+}
 
 typedef int (*pt_adapter) (tsh_memory *memory);//declaration pointer of function
-pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls, adapter_rmdir, adapter_rm};
+pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls, adapter_rmdir, adapter_rm, adapter_cp};
 
 int getFuncitonIndex(char *name){
     for(int i=0; i<NB_FUN; i++){

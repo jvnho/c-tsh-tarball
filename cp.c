@@ -251,12 +251,3 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
     }
     return 0;
 }
-int main(int n, char **args){
-    //source target .tar fakePaht
-    int fd_tar = open(args[1], O_RDWR);
-    //doss1
-    int tail = cp_tar_outside("doss2/", "d1/d2/",fd_tar, "");
-    
-    
-    return 0;
-}
