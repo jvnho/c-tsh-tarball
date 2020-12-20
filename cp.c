@@ -133,12 +133,22 @@ int cp_tar_outside(char *file, char *target, int fd_source, char *fake_path){
     }
     return 0;
 }
+void restoreMemory(tsh_memory *old_memory, tsh_memory *memory){
+    copyMemory(old_memory, memory);
+    char *destination = malloc(strlen(memory->REAL_PATH));
+    strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);//remove the $
+    cd(destination, memory);
+}
 //when we restore the cd, it wil close the descriptor, so save it using dup
 void saveDescirptor(tsh_memory *memory){
     int fd = atoi(memory->tar_descriptor);
     fd = dup(fd);
     memset(memory->tar_descriptor, 0, 512);
     strcpy(memory->tar_descriptor, int_to_string(fd));
+}
+char *removeSlach(char *dir){
+    if(dir[strlen(dir)-1] == '/')dir[strlen(dir)-1] = '\0';
+    return dir;
 }
 //for one argument
 int copy(char listOption[50][50], char *source, char *target, tsh_memory *memory){
@@ -151,10 +161,36 @@ int copy(char listOption[50][50], char *source, char *target, tsh_memory *memory
     copyMemory(memory, &memoryTarget);
     saveDescirptor(&memoryTarget);
     //retore the initial state
-    copyMemory(&old_memory, memory);
-    char *destination = malloc(strlen(memory->REAL_PATH));
-    strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);//remove the $
-    cd(destination, memory);
+    restoreMemory(&old_memory, memory);
+    char location[512];//the path inside the source before geting to the file to copy
+    //from ?? to -> .tar
+    if(in_a_tar(&memoryTarget)){
+        getLocation(source, location);
+        int lenLocation = strlen(location);
+        char *fileToCopy = source;
+        if(lenLocation){//there is an extraPath to cd
+            if(cd(location, memory)==-1)return -1;
+            fileToCopy = source + lenLocation;
+        }
+        //from .tar to -> .tar
+        if(in_a_tar(memory)){
+            return cp_tar_tar(fileToCopy, memoryTarget.FAKE_PATH, atoi(memory->tar_descriptor), 
+            atoi(memoryTarget.tar_descriptor), memory->FAKE_PATH);
+        }//from outside to -> .tar
+        else{
+            //check the file type
+            struct stat status;
+            if(lstat(fileToCopy, &status)==-1){//case of error restore the memory
+                perror("cp: ");
+                restoreMemory(&old_memory, memory);
+                return -1;
+            }
+            //directory
+            if(S_IFDIR & status.st_mode)return cp_dir_tar(removeSlach(fileToCopy), memoryTarget.FAKE_PATH, atoi(memoryTarget.tar_descriptor));//attention si il y a un slach a la fin
+            //file
+            return cp_file_tar(fileToCopy, memoryTarget.FAKE_PATH, atoi(memoryTarget.tar_descriptor));
+        }
+    }
     return 0;
 }
 int main(int n, char **args){

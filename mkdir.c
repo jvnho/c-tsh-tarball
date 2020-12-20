@@ -78,7 +78,7 @@ int makeDirectory(char listOption[50][50], char *dir_name, int size_option, tsh_
     }
     return 0;
 }
-int mkdir(char listOption[50][50], char listArgs[50][50], int size_option, int size_args, tsh_memory *memory){
+int mkdir_tar(char listOption[50][50], char listArgs[50][50], int size_option, int size_args, tsh_memory *memory){
     int nb_created = 0;
     for(int i = 0; i<size_args; i++){
         if(makeDirectory(listOption, listArgs[i], size_option, memory)==0)nb_created++;
