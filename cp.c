@@ -15,6 +15,12 @@ int i_content = 0;//don't forget to reset this, with the tab
 int temp_fd;
 tsh_memory old_memory;
 char location[512];
+void resetContent(){
+    for(int i = 0; i<=i_content; i++){
+        memset(&(content[i]), 0, sizeof(content_bloc));
+    }
+    i_content = 0;
+}
 //cp somthing from tar, in a tar -> befor go to the tar collect all the bloc and the fd of the tar, the cd to target, if we are in tar getThe fd and, execut this function
 int cp_tar_tar(char *source, char *target, int fd_source, int fd_target, char *fake_path){
     int nb_header = fill_fromTar(content, source, target, fd_source, fake_path, &i_content);
@@ -183,20 +189,23 @@ void exec_cp(char option[50][50], int size_option, char *source, char *target){
 }
 //for one argument
 int copy(char listOption[50][50], int size_option, char *source, char *real_target, tsh_memory *memory){
-    
+    resetContent();
     char target[512];
     addSlach(real_target, target);
     copyMemory(memory, &old_memory);
     if(strlen(target)){
-        if(cd(target, memory)==-1)return -1;
+        if(cd(target, memory)==-1){
+            return -1;
+        }
     }
-    
+    printf("premier cd \n");
     //save the state of target befor restor cd
     tsh_memory memoryTarget;
     copyMemory(memory, &memoryTarget);
     saveDescirptor(&memoryTarget);
     //retore the initial state
     restoreMemory(&old_memory, memory);
+    printf("restore\n");
     //cd to source
     char location[512];//the path inside the source before geting to the file to copy
     getLocation(source, location);
@@ -206,6 +215,7 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
         if(cd(location, memory)==-1)return -1;
         fileToCopy = source + lenLocation;
     }
+    printf("deuxieme cd\n");
     int returnValue = 0;
     //from ?? to -> .tar
     
@@ -238,7 +248,6 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
         }
     }//form ?? to -> outside
     else{
-        
         //tar -> outside
         if(in_a_tar(memory)){
             returnValue = cp_tar_outside(fileToCopy, target, atoi(memory->tar_descriptor), memory->FAKE_PATH);
