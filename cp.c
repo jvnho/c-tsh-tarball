@@ -8,6 +8,7 @@
 #include "bloc.h"
 #include "tar.h"
 #include "string_traitement.h"
+#include "cd.h"
 content_bloc content[512];//fill it befor the specifc call of cp (cp_tar_tar or cp_tar_dir)
 int i_content = 0;//don't forget to reset this, with the tab
 int temp_fd;
@@ -120,8 +121,8 @@ void createFile(content_bloc fileBloc){
     }
 }
 //dir or file form tar to outside
-int cp_tar_outside(char *file, int fd_source, char *fake_path){
-    int nb_header = fill_fromTar(content, file, "", fd_source, fake_path, &i_content);
+int cp_tar_outside(char *file, char *target, int fd_source, char *fake_path){
+    int nb_header = fill_fromTar(content, file, target, fd_source, fake_path, &i_content);
     for(int i = 0; i<nb_header; i++){
         
         if(content[i].hd.typeflag == '5'){//Dossier
@@ -132,28 +133,30 @@ int cp_tar_outside(char *file, int fd_source, char *fake_path){
     }
     return 0;
 }
+//when we restore the cd, it wil close the descriptor, so save it using dup
+void saveDescirptor(tsh_memory *memory){
+    int fd = atoi(memory->tar_descriptor);
+    fd = dup(fd);
+    memset(memory->tar_descriptor, 0, 512);
+    strcpy(memory->tar_descriptor, int_to_string(fd));
+}
 //for one argument
 int copy(char listOption[50][50], char *source, char *target, tsh_memory *memory){
     copyMemory(memory, &old_memory);
-    getLocation(source, location);
-    int lenLocation = strlen(location);
-    char *fileToCopy = source;
-    /*if(lenLocation){//if there is an extra path, cd to that path
-        if(cd(location, memory)==-1){
-            return -1;
-        }
-        fileToCopy = source + lenLocation;
-    }*/
-    //cd vers le target pour juste obtenir le nom et fd
-    //après cd vers source, comme ca on peut fill form avec le nom target
-    //après cd vers target pour écrire ce qu'on a recu dans le tableau
+    if(strlen(target)){
+        if(cd(target, memory)==-1)return -1;
+    }
+    //save the state of target befor restor cd
+    tsh_memory memoryTarget;
+    copyMemory(memory, &memoryTarget);
+    saveDescirptor(&memoryTarget);
     return 0;
 }
 int main(int n, char **args){
     //source target .tar fakePaht
     int fd_tar = open(args[1], O_RDWR);
     //doss1
-    int tail = cp_tar_outside("doss2/Clause.java", fd_tar, "");
+    int tail = cp_tar_outside("doss2/", "d1/d2/",fd_tar, "");
     
     
     return 0;
