@@ -12,6 +12,7 @@ content_bloc content[512];//fill it befor the specifc call of cp (cp_tar_tar or 
 int i_content = 0;//don't forget to reset this, with the tab
 int temp_fd;
 tsh_memory old_memory;
+char location[512];
 //cp somthing from tar, in a tar -> befor go to the tar collect all the bloc and the fd of the tar, the cd to target, if we are in tar getThe fd and, execut this function
 int cp_tar_tar(char *source, char *target, int fd_source, int fd_target, char *fake_path){
     int nb_header = fill_fromTar(content, source, target, fd_source, fake_path, &i_content);
@@ -133,7 +134,19 @@ int cp_tar_outside(char *file, int fd_source, char *fake_path){
 }
 //for one argument
 int copy(char listOption[50][50], char *source, char *target, tsh_memory *memory){
-    
+    copyMemory(memory, &old_memory);
+    getLocation(source, location);
+    int lenLocation = strlen(location);
+    char *fileToCopy = source;
+    if(lenLocation){//if there is an extra path, cd to that path
+        if(cd(location, memory)==-1){
+            return -1;
+        }
+        fileToCopy = source + lenLocation;
+    }
+    //cd vers le target pour juste obtenir le nom et fd
+    //après cd vers source, comme ca on peut fill form avec le nom target
+    //après cd vers target pour écrire ce qu'on a recu dans le tableau
     return 0;
 }
 int main(int n, char **args){
