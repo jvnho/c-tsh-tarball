@@ -18,9 +18,8 @@ char * PATH;
 tsh_memory * memory;
 int execute(tsh_memory *memory);
 int main(void){
-    printf("tail = %lu", strlen("cp"));
     //we create a memory about the current state so all processu can relate on it
-    /*if((memory = create_memory())==NULL)return -1;
+    if((memory = create_memory())==NULL)return -1;
     while(memory->exit == 0){
         PATH = getPath(memory);
         write(1, PATH, strlen(PATH));
@@ -29,6 +28,6 @@ int main(void){
         execute(memory);
         resetBuffer(memory);
     }
-    free_tsh_memory(memory);*/
+    free_tsh_memory(memory);
     return 0;
 }
