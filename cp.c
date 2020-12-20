@@ -143,9 +143,11 @@ void restoreMemory(tsh_memory *old_memory, tsh_memory *memory){
 //when we restore the cd, it wil close the descriptor, so save it using dup
 void saveDescirptor(tsh_memory *memory){
     int fd = atoi(memory->tar_descriptor);
-    fd = dup(fd);
     memset(memory->tar_descriptor, 0, 512);
-    strcpy(memory->tar_descriptor, int_to_string(fd));
+    if(fd){
+        fd = dup(fd);
+        strcpy(memory->tar_descriptor, int_to_string(fd));
+    }
 }
 char *removeSlach(char *dir){
     if(dir[strlen(dir)-1] == '/')dir[strlen(dir)-1] = '\0';
@@ -181,12 +183,14 @@ void exec_cp(char option[50][50], int size_option, char *source, char *target){
 }
 //for one argument
 int copy(char listOption[50][50], int size_option, char *source, char *real_target, tsh_memory *memory){
+    
     char target[512];
     addSlach(real_target, target);
     copyMemory(memory, &old_memory);
     if(strlen(target)){
         if(cd(target, memory)==-1)return -1;
     }
+    
     //save the state of target befor restor cd
     tsh_memory memoryTarget;
     copyMemory(memory, &memoryTarget);
@@ -204,7 +208,8 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
     }
     int returnValue = 0;
     //from ?? to -> .tar
-    if(in_a_tar(&memoryTarget)){ 
+    
+    if(in_a_tar(&memoryTarget)){
         //from .tar to -> .tar
         if(in_a_tar(memory)){
             returnValue = cp_tar_tar(fileToCopy, memoryTarget.FAKE_PATH, atoi(memory->tar_descriptor), 
@@ -233,6 +238,7 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
         }
     }//form ?? to -> outside
     else{
+        
         //tar -> outside
         if(in_a_tar(memory)){
             returnValue = cp_tar_outside(fileToCopy, target, atoi(memory->tar_descriptor), memory->FAKE_PATH);
@@ -241,10 +247,11 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
         }//outside -> outside
         else{
             restoreMemory(&old_memory, memory);
+            
             int pid_fils = fork();
             if(pid_fils){//parent
                 int status;
-                waitpid(pid_fils, &status, WUNTRACED);
+                waitpid(pid_fils, &status, 0);
                 if(WEXITSTATUS(status)==-1)return -1;
             }else exec_cp(listOption, size_option, source, target);
         }
