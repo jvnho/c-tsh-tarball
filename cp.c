@@ -150,6 +150,11 @@ int copy(char listOption[50][50], char *source, char *target, tsh_memory *memory
     tsh_memory memoryTarget;
     copyMemory(memory, &memoryTarget);
     saveDescirptor(&memoryTarget);
+    //retore the initial state
+    copyMemory(&old_memory, memory);
+    char *destination = malloc(strlen(memory->REAL_PATH));
+    strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);//remove the $
+    cd(destination, memory);
     return 0;
 }
 int main(int n, char **args){
