@@ -138,12 +138,12 @@ int copy(char listOption[50][50], char *source, char *target, tsh_memory *memory
     getLocation(source, location);
     int lenLocation = strlen(location);
     char *fileToCopy = source;
-    if(lenLocation){//if there is an extra path, cd to that path
+    /*if(lenLocation){//if there is an extra path, cd to that path
         if(cd(location, memory)==-1){
             return -1;
         }
         fileToCopy = source + lenLocation;
-    }
+    }*/
     //cd vers le target pour juste obtenir le nom et fd
     //après cd vers source, comme ca on peut fill form avec le nom target
     //après cd vers target pour écrire ce qu'on a recu dans le tableau
