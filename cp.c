@@ -187,14 +187,27 @@ void exec_cp(char option[50][50], int size_option, char *source, char *target){
     char **args = fusionCommand(option, size_option, source, target);
     execvp(args[0], args);
 }
+void printMemory(tsh_memory *mem){
+    printf("_____________\n");
+    printf("Real = %s\n", mem->REAL_PATH);
+    printf("Fake = %s\n", mem->FAKE_PATH);
+    printf("tar name = %s\n", mem->tar_name);
+    printf("____________\n");
+}
 //for one argument
 int copy(char listOption[50][50], int size_option, char *source, char *real_target, tsh_memory *memory){
+    printMemory(memory);
     resetContent();
     char target[512];
     addSlach(real_target, target);
     copyMemory(memory, &old_memory);
     if(strlen(target)){
-        if(cd(target, memory)==-1){
+        printf("target = %s\n", target);
+        int result = cd(target, memory);
+        printf("après cd \n");
+        printMemory(memory);
+        printf("result cd = %d\n", result);
+        if(result==-1){
             return -1;
         }
     }
@@ -252,6 +265,7 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
         if(in_a_tar(memory)){
             returnValue = cp_tar_outside(fileToCopy, target, atoi(memory->tar_descriptor), memory->FAKE_PATH);
             restoreMemory(&old_memory, memory);
+            printMemory(memory);
             return returnValue;
         }//outside -> outside
         else{
