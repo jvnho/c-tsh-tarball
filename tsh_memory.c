@@ -11,19 +11,22 @@
 #include "string_traitement.h"
 #define MAX_COMMAND 512
 int instanciate_tsh_memory(char *tar_file_name, tsh_memory *result){
-    //instanciate the name of tar
-    strcpy(result->tar_name, tar_file_name);
-    int len = strlen(result->tar_name);
-    result->tar_name [len]= '/';
-    result->tar_name [len+1]= '\0';
+    
+    
     //open the .tar file
-    strcpy(result->tar_descriptor, int_to_string(open(tar_file_name, O_RDWR)));
-    if(errno == ENOENT){//no such file
-        perror("");
+    int fd;
+    if((fd = open(tar_file_name, O_RDWR))==-1){
+        write(2, "can't open .tar\n", strlen("can't open .tar\n"));
         return -1;
-    }if(errno == EACCES){//permision dinied
-        perror("");
-        return -1;
+    }
+    //instanciate the name of tar
+    else{   
+        strcpy(result->tar_name, tar_file_name);
+        int len = strlen(result->tar_name);
+        result->tar_name [len]= '/';
+        result->tar_name [len+1]= '\0';
+        strcpy(result->tar_descriptor, int_to_string(fd));
+        return 0;
     }
     return 0;
 }

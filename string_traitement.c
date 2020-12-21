@@ -147,8 +147,8 @@ int get_index_first_slach(char *initial_string){
 }
 //return the substring befor the directory.tar
 void getPreTar(char *initial_string, char *result){
+    memset(result, 0, 512);
     int first_slach_beforTar = get_index_first_slach(initial_string);
-    result[0] = '\0';
     if(first_slach_beforTar == 0) return;//there is not a pre tar
     else if(first_slach_beforTar == -1){//the is not a .tar, so everithing is a pre tar
         strcpy(result, initial_string);
@@ -160,8 +160,8 @@ void getPreTar(char *initial_string, char *result){
 }
 //return the substring matched to the tar name
 void getTarName(char *initial_string, char *result){
+    memset(result, 0, 512);
     int first_slach_beforTar = get_index_first_slach(initial_string);
-    result[0] = '\0';
     if(first_slach_beforTar == -1)return;//there is nothing to complete
     //cherching the ending index .tar<-
     char *substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
@@ -176,8 +176,8 @@ void getTarName(char *initial_string, char *result){
 }
 //
 void getPostTar(char *initial_string, char *result){
+    memset(result, 0, 512);
     char *substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
-    result[0] = '\0';
     int len_initial = strlen(initial_string);
     //there is not a .tar so there is not an after .tar
     if(substring == NULL)return;

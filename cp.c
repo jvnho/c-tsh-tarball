@@ -187,38 +187,24 @@ void exec_cp(char option[50][50], int size_option, char *source, char *target){
     char **args = fusionCommand(option, size_option, source, target);
     execvp(args[0], args);
 }
-void printMemory(tsh_memory *mem){
-    printf("_____________\n");
-    printf("Real = %s\n", mem->REAL_PATH);
-    printf("Fake = %s\n", mem->FAKE_PATH);
-    printf("tar name = %s\n", mem->tar_name);
-    printf("____________\n");
-}
 //for one argument
 int copy(char listOption[50][50], int size_option, char *source, char *real_target, tsh_memory *memory){
-    printMemory(memory);
     resetContent();
     char target[512];
     addSlach(real_target, target);
     copyMemory(memory, &old_memory);
     if(strlen(target)){
-        printf("target = %s\n", target);
         int result = cd(target, memory);
-        printf("après cd \n");
-        printMemory(memory);
-        printf("result cd = %d\n", result);
         if(result==-1){
             return -1;
         }
     }
-    printf("premier cd \n");
     //save the state of target befor restor cd
     tsh_memory memoryTarget;
     copyMemory(memory, &memoryTarget);
     saveDescirptor(&memoryTarget);
     //retore the initial state
     restoreMemory(&old_memory, memory);
-    printf("restore\n");
     //cd to source
     char location[512];//the path inside the source before geting to the file to copy
     getLocation(source, location);
@@ -228,7 +214,6 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
         if(cd(location, memory)==-1)return -1;
         fileToCopy = source + lenLocation;
     }
-    printf("deuxieme cd\n");
     int returnValue = 0;
     //from ?? to -> .tar
     
@@ -265,7 +250,6 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
         if(in_a_tar(memory)){
             returnValue = cp_tar_outside(fileToCopy, target, atoi(memory->tar_descriptor), memory->FAKE_PATH);
             restoreMemory(&old_memory, memory);
-            printMemory(memory);
             return returnValue;
         }//outside -> outside
         else{
