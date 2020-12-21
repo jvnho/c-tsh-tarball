@@ -18,17 +18,6 @@
 
 tsh_memory old_memory; //will be use to save/restore a memory
 
-void print_data(redirection_array *array){
-    printf("%d\n", array->NUMBER);
-    for(int i = 0; i < array->NUMBER; i++){
-        printf("name %s\n", array->NAME[i]);
-        printf("path %s\n", array->REDIR_PATH[i]);
-        printf("std %d\n", array->STD[i]);
-        printf("in a tar %d\n", array->IN_A_TAR[i]);
-        printf("append %d\n", array->APPEND[i]);
-    }
-}
-
 void convert_to_simple_cmd(tsh_memory *memory){ //removes redirection symbol from the tsh_memory "comand"
     char *cmd = strdup(memory->comand); //command line entered by user
     char new_cmd[strlen(cmd)];
@@ -127,7 +116,6 @@ void delete_file(char *target){ //temporary
 int redirection(tsh_memory *memory){
     struct redirection_array *data = associate_redirection(memory, strdup(memory->comand)); 
     if(data == NULL) return -1;
-    print_data(data);
     if(data->NUMBER > 2) return -1;
     convert_to_simple_cmd(memory); //Converting command line entered by user to make it readable by the programm
 
