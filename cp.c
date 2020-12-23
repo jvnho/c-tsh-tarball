@@ -21,7 +21,7 @@ void resetContent(){
     }
     i_content = 0;
 }
-void not_a_dir(char *source){
+void message_dir(char *source){
     char message[512];
     memset(message, 0, 512);
     sprintf(message, "cp : %s is a directory (not copied).\n", source);
@@ -39,7 +39,7 @@ int cp_tar_tar(char *source, char *target, int fd_source, int fd_target, char *f
     }else concatenationPath(name_concat, "", plus_slach);
     if(dir_exist(fd_source, plus_slach) == 1){
         if(r == 0){//not recursive
-            not_a_dir(source);
+            message_dir(source);
             return -1;
         }
     }
@@ -103,6 +103,10 @@ void simple_mkdir(char *directory, int fd_target){
     writeZero(fd_target);
 }
 int cp_dir_tar(char *directory, char *target, int fd_target, int r){
+    if(r == 0){
+        message_dir(directory);
+        return -1;
+    }
     char name_concat[512];
     char plus_slach[512];
     concatenation(target, directory, name_concat);
@@ -120,7 +124,7 @@ int cp_dir_tar(char *directory, char *target, int fd_target, int r){
             
             if(lstat(name_concat, &buff)==-1)perror("lstat:");
             if(S_IFDIR & buff.st_mode){//if it's a dir
-                cp_dir_tar(name_concat, target, fd_target);
+                cp_dir_tar(name_concat, target, fd_target, r);
             }else if(S_IFMT & buff.st_mode){//if it's a file
                 cp_file_tar(name_concat, target, fd_target);
             }
@@ -148,7 +152,20 @@ void createFile(content_bloc fileBloc){
     }
 }
 //dir or file form tar to outside
-int cp_tar_outside(char *file, char *target, int fd_source, char *fake_path){
+int cp_tar_outside(char *file, char *target, int fd_source, char *fake_path, int r){
+    char name_concat[512];
+    char plus_slach[512];
+    concatenation(fake_path, file, name_concat);
+    if(name_concat[strlen(name_concat) - 1] == '/'){
+        memset(plus_slach, 0, 512);
+        strcpy(plus_slach, name_concat);
+    }else concatenationPath(name_concat, "", plus_slach);
+    if(dir_exist(fd_source, plus_slach) == 1){
+        if(r == 0){//not recursive
+            message_dir(file);
+            return -1;
+        }
+    }
     int nb_header = fill_fromTar(content, file, target, fd_source, fake_path, &i_content);
     for(int i = 0; i<nb_header; i++){
         
@@ -167,7 +184,7 @@ void restoreMemory(tsh_memory *old_memory, tsh_memory *memory){
     cd(destination, memory);
     strcpy(memory->tar_descriptor, old_memory->tar_descriptor);
 }
-int cp_outside_outside(char *source, char *target, tsh_memory *memory){
+int cp_outside_outside(char *source, char *target, tsh_memory *memory, int r){
     tsh_memory saveMemory;
     copyMemory(memory, &saveMemory);
     char location[512];//the path inside the source before geting to the file to copy
@@ -181,6 +198,11 @@ int cp_outside_outside(char *source, char *target, tsh_memory *memory){
     struct stat buff;
     if(lstat(fileToCopy, &buff)==-1)perror("lstat:");
     if(S_IFDIR & buff.st_mode){//if it's a dir
+        if(r == 0){
+            message_dir(fileToCopy);
+            restoreMemory(&saveMemory, memory);
+            return -1;
+        }
         if(fill_fromDir_outside(content, fileToCopy, &i_content) == -1)return -1;
     }else if(S_IFMT & buff.st_mode){//if it's a file
         if(fill_fromFile_outside(content, fileToCopy, "", &i_content) == -1)return -1;
@@ -253,6 +275,7 @@ void printfMemory(tsh_memory *memory){
 }
 //for one argument
 int copy(char listOption[50][50], int size_option, char *source, char *real_target, tsh_memory *memory){
+    int r = 0;
     resetContent();
     char target[512];
     addSlach(real_target, target);
@@ -283,7 +306,7 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
         //from .tar to -> .tar
         if(in_a_tar(memory)){
             returnValue = cp_tar_tar(fileToCopy, memoryTarget.FAKE_PATH, atoi(memory->tar_descriptor), 
-            atoi(memoryTarget.tar_descriptor), memory->FAKE_PATH, 1);
+            atoi(memoryTarget.tar_descriptor), memory->FAKE_PATH, r);
             restoreMemory(&old_memory, memory);
             return returnValue;
         }//from outside to -> .tar
@@ -297,7 +320,7 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
             }
             //directory
             if(S_IFDIR & status.st_mode){//attention si il y a un slach a la fin
-                returnValue = cp_dir_tar(removeSlach(fileToCopy), memoryTarget.FAKE_PATH, atoi(memoryTarget.tar_descriptor));
+                returnValue = cp_dir_tar(removeSlach(fileToCopy), memoryTarget.FAKE_PATH, atoi(memoryTarget.tar_descriptor), r);
                 restoreMemory(&old_memory, memory);
                 return returnValue;
             }
@@ -314,7 +337,7 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
             tsh_memory memoryCopy;
             copyMemory(memory, &memoryCopy);
             restoreMemory(&memoryTarget, memory);
-            returnValue = cp_tar_outside(fileToCopy, "", atoi(memoryCopy.tar_descriptor), memoryCopy.FAKE_PATH);
+            returnValue = cp_tar_outside(fileToCopy, "", atoi(memoryCopy.tar_descriptor), memoryCopy.FAKE_PATH, r);
 
             restoreMemory(&old_memory, memory);
             return returnValue;
@@ -322,7 +345,7 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
         else{
             if(in_a_tar(&old_memory)){
                 restoreMemory(&old_memory, memory);
-                cp_outside_outside(source, target, memory);
+                cp_outside_outside(source, target, memory, r);
             }else{
                 restoreMemory(&old_memory, memory);
                 int pid_fils = fork();
