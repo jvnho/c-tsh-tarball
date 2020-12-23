@@ -26,7 +26,9 @@ int main(void){
         read(0, memory->comand, MAX_COMMAND);//user write his command on the input
         memory->comand[strlen(memory->comand)-1] = '\0';
         execute(memory);
+        printf("\nreal paht = %s\n", memory->REAL_PATH);
         resetBuffer(memory);
+        printf("après reset = %s\n\n", memory->REAL_PATH);
     }
     free_tsh_memory(memory);
     return 0;

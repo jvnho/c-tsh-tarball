@@ -196,9 +196,11 @@ void exec_cp(char option[50][50], int size_option, char *source, char *target){
     execvp(args[0], args);
 }
 void printfMemory(tsh_memory *memory){
+    printf("real paht = %s\n", memory->REAL_PATH);
     printf("fake paht = %s\n", memory->FAKE_PATH);
     printf("tar name = %s\n", memory->tar_name);
     printf("tar descriptor = %s\n", memory->tar_descriptor);
+
 }
 //for one argument
 int copy(char listOption[50][50], int size_option, char *source, char *real_target, tsh_memory *memory){
@@ -211,8 +213,11 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
     if(strlen(target)){
         if(cd(target, memory)==-1)return -1;
     }
+    
     printf("_________cd %s\n", target);
+    
     printfMemory(memory);
+    printf("chdir = %s\n", getcwd(NULL, 0));
     //save the state of target befor restor cd
     tsh_memory memoryTarget;
     copyMemory(memory, &memoryTarget);
@@ -268,9 +273,13 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
         //tar -> outside
 
         if(in_a_tar(memory)){
+            tsh_memory memoryCopy;
+            copyMemory(memory, &memoryCopy);
+            restoreMemory(&memoryTarget, memory);
             printf("chdir = %s\n", getcwd(NULL, 0));
             printf("*********\n");
-            returnValue = cp_tar_outside(fileToCopy, target, atoi(memory->tar_descriptor), memory->FAKE_PATH);
+            returnValue = cp_tar_outside(fileToCopy, "", atoi(memoryCopy.tar_descriptor), memoryCopy.FAKE_PATH);
+
             restoreMemory(&old_memory, memory);
             return returnValue;
         }//outside -> outside

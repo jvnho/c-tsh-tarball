@@ -95,6 +95,7 @@ int cd(char *directory, tsh_memory *memory){
         else if(in_a_tar(memory)==0){
             close(string_to_int(save.tar_descriptor));
         }
+        refreshRealPaht(memory);
         return 0;
     }
     if(directory[0] == '/') clearMemory(memory);
@@ -126,8 +127,10 @@ int cd(char *directory, tsh_memory *memory){
                 shouldSave = 1;
                 return -1;
             }
+            refreshRealPaht(memory);
             return 0;
         }
     }
+    refreshRealPaht(memory);
     return 0;
 }

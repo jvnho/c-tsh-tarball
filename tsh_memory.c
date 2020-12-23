@@ -59,6 +59,26 @@ char * getPath(tsh_memory *state){
     state->REAL_PATH[length+2] = '\0';
     return state->REAL_PATH;
 }
+void refreshRealPaht(tsh_memory *state){
+    //get the pwd in the real path buffer and add '/'
+    getcwd(state->REAL_PATH, sizeof(state->REAL_PATH));
+    int len = strlen(state->REAL_PATH);
+    state->REAL_PATH[len] = '/';
+    state->REAL_PATH[len+1] = '\0';//avoid the random characteres
+
+    if(strlen(state->tar_name)!=0){
+        //concat Real + tar_name + fake (before calling strcat make sure the first string has '\0')
+        strcat(state->REAL_PATH, state->tar_name);//concat with the tar directory
+        state->REAL_PATH[strlen(state->REAL_PATH)] = '\0';
+        strcat(state->REAL_PATH, state->FAKE_PATH);
+        state->REAL_PATH[strlen(state->REAL_PATH)] = '\0';
+    }
+    //add a $ at the end
+    int length = strlen(state->REAL_PATH);
+    state->REAL_PATH[length] = '$';
+    state->REAL_PATH[length+1] = ' ';
+    state->REAL_PATH[length+2] = '\0';
+}
 void free_tsh_memory(tsh_memory *state){//at the end
     //close(string_to_int(state->tar_descriptor));
     free(state);
