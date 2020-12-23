@@ -92,9 +92,9 @@ char int_to_char(int a){
     if(a == 9)return '9';
     return '-';
 }
-char *int_to_string(int chiffre){
+char *int_to_string(int chiffre, char *result){
+    memset(result, 0, 512);
     int size = getDigitLength(chiffre);
-    char *result = malloc(size+1);
     int digit = 0;
     for(int i = (size-1); 0<=i; i--){
         digit = chiffre%10;

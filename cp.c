@@ -145,15 +145,21 @@ void restoreMemory(tsh_memory *old_memory, tsh_memory *memory){
     char *destination = malloc(strlen(memory->REAL_PATH));
     strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);//remove the $
     cd(destination, memory);
+    strcpy(memory->tar_descriptor, old_memory->tar_descriptor);
 }
 //when we restore the cd, it wil close the descriptor, so save it using dup
-void saveDescirptor(tsh_memory *memory){
+int saveDescirptor(tsh_memory *memory){
     int fd = atoi(memory->tar_descriptor);
-    memset(memory->tar_descriptor, 0, 512);
     if(fd){
-        fd = dup(fd);
-        strcpy(memory->tar_descriptor, int_to_string(fd));
+        if((fd = dup(fd))==-1){
+            perror("dup ");
+            return -1;
+        }else{
+            memset(memory->tar_descriptor, 0, 512);
+            int_to_string(fd, memory->tar_descriptor);
+        }
     }
+    return 0;
 }
 char *removeSlach(char *dir){
     if(dir[strlen(dir)-1] == '/')dir[strlen(dir)-1] = '\0';
@@ -187,24 +193,33 @@ void exec_cp(char option[50][50], int size_option, char *source, char *target){
     char **args = fusionCommand(option, size_option, source, target);
     execvp(args[0], args);
 }
+void printfMemory(tsh_memory *memory){
+    printf("fake paht = %s\n", memory->FAKE_PATH);
+    printf("tar name = %s\n", memory->tar_name);
+    printf("tar descriptor = %s\n", memory->tar_descriptor);
+}
 //for one argument
 int copy(char listOption[50][50], int size_option, char *source, char *real_target, tsh_memory *memory){
+    //printf("-------initial\n");
+    //printfMemory(memory);
     resetContent();
     char target[512];
     addSlach(real_target, target);
     copyMemory(memory, &old_memory);
     if(strlen(target)){
-        int result = cd(target, memory);
-        if(result==-1){
-            return -1;
-        }
+        if(cd(target, memory)==-1)return -1;
     }
+    //printf("_________cd %s\n", target);
+    //printfMemory(memory);
     //save the state of target befor restor cd
     tsh_memory memoryTarget;
     copyMemory(memory, &memoryTarget);
-    saveDescirptor(&memoryTarget);
+    int save = saveDescirptor(&memoryTarget);
     //retore the initial state
     restoreMemory(&old_memory, memory);
+    if(save == -1)return -1;
+    printf("__________restore\n");
+    printfMemory(memory);
     //cd to source
     char location[512];//the path inside the source before geting to the file to copy
     getLocation(source, location);
@@ -214,6 +229,8 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
         if(cd(location, memory)==-1)return -1;
         fileToCopy = source + lenLocation;
     }
+    printf("______cd %s\n", location);
+    printfMemory(memory);
     int returnValue = 0;
     //from ?? to -> .tar
     
@@ -229,7 +246,7 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
             //check the file type
             struct stat status;
             if(lstat(fileToCopy, &status)==-1){//case of error restore the memory
-                perror("cp: ");
+                perror("cp hoho: ");
                 restoreMemory(&old_memory, memory);
                 return -1;
             }

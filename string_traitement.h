@@ -4,7 +4,7 @@
 extern int count_args(char *args);
 extern int string_to_int(char *chiffre);
 extern int get_prev_directory(char *path);
-extern char *int_to_string(int chiffre);
+extern char *int_to_string(int chiffre, char *result);
 extern char * simpleConcat(char *path, char *dir);
 extern char * concatDirToPath(char * path, char *dir);
 extern char *concate_string(char *s1, char *s2);

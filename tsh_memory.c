@@ -11,30 +11,30 @@
 #include "string_traitement.h"
 #define MAX_COMMAND 512
 int instanciate_tsh_memory(char *tar_file_name, tsh_memory *result){
-    
-    
     //open the .tar file
     int fd;
     if((fd = open(tar_file_name, O_RDWR))==-1){
-        write(2, "can't open .tar\n", strlen("can't open .tar\n"));
+        perror("open ");
         return -1;
     }
     //instanciate the name of tar
     else{   
+        memset(result->FAKE_PATH, 0, 512);
+        memset(result->tar_descriptor, 0, 512);
+        memset(result->tar_name, 0, 512);
         strcpy(result->tar_name, tar_file_name);
         int len = strlen(result->tar_name);
         result->tar_name [len]= '/';
         result->tar_name [len+1]= '\0';
-        strcpy(result->tar_descriptor, int_to_string(fd));
+        memset(result->tar_descriptor, 0, 512);
+        int_to_string(fd, result->tar_descriptor);
         return 0;
     }
     return 0;
 }
 tsh_memory * create_memory(){
     tsh_memory * result = malloc(sizeof(tsh_memory));
-    (result->FAKE_PATH)[0] = '\0';//so it doesn't create a random characteres
-    result->tar_name[0] = '\0';
-    result->tar_descriptor[0] = '\0';
+    memset(result, 0, 512);
     result->exit = 0;
     return result;
 }
@@ -75,11 +75,14 @@ void resetBuffer(tsh_memory *memory){
     memset(memory->comand, 0, MAX_COMMAND);
 }
 void copyMemory(tsh_memory *initial, tsh_memory *save){
+    printf("copy memory*****\n");
+    printf("desc = %s\n", initial->tar_descriptor);
     memset(save, 0, sizeof(struct tsh_memory));
     strcpy(save->FAKE_PATH, initial->FAKE_PATH);
     strcpy(save->tar_name, initial->tar_name);
     strcpy(save->REAL_PATH, initial->REAL_PATH);
     strcpy(save->tar_descriptor, initial->tar_descriptor);
+    printf("restoration = %s\n", save->tar_descriptor);
     strcpy(save->comand, initial->comand);
     save->exit = initial->exit;
 }
