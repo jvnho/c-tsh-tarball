@@ -14,7 +14,7 @@ int instanciate_tsh_memory(char *tar_file_name, tsh_memory *result){
     //open the .tar file
     int fd;
     if((fd = open(tar_file_name, O_RDWR))==-1){
-        perror("open ");
+        perror(" ");
         return -1;
     }
     //instanciate the name of tar
