@@ -118,9 +118,7 @@ void createDir(content_bloc dirBloc){
     }
 }
 void createFile(content_bloc fileBloc){
-    printf("creation de %s\n", fileBloc.hd.name);
     if((temp_fd = open(fileBloc.hd.name, O_CREAT|O_WRONLY| O_APPEND, 0664))== -1){//create file
-        printf("temps = %d\n", temp_fd);
         perror("create file ");
     }else{//then write it's content
         for(int i = 0; i<fileBloc.nb_bloc; i++){
@@ -149,6 +147,37 @@ void restoreMemory(tsh_memory *old_memory, tsh_memory *memory){
     cd(destination, memory);
     strcpy(memory->tar_descriptor, old_memory->tar_descriptor);
 }
+int cp_outside_outside(char *source, char *target, tsh_memory *memory){
+    tsh_memory saveMemory;
+    copyMemory(memory, &saveMemory);
+    char location[512];//the path inside the source before geting to the file to copy
+    getLocation(source, location);
+    int lenLocation = strlen(location);
+    char *fileToCopy = source;
+    if(lenLocation){//there is an extraPath to cd
+        if(cd(location, memory)==-1)return -1;
+        fileToCopy = source + lenLocation;
+    }
+    struct stat buff;
+    if(lstat(fileToCopy, &buff)==-1)perror("lstat:");
+    if(S_IFDIR & buff.st_mode){//if it's a dir
+        if(fill_fromDir_outside(content, fileToCopy, &i_content) == -1)return -1;
+    }else if(S_IFMT & buff.st_mode){//if it's a file
+        if(fill_fromFile_outside(content, fileToCopy, "", &i_content) == -1)return -1;
+    }
+    restoreMemory(&saveMemory, memory);
+    cd(target, memory);
+    for(int i = 0; i<i_content; i++){
+        if(content[i].hd.typeflag == '5'){//Dossier
+            createDir(content[i]);
+        }else{//fichier
+            createFile(content[i]);
+        }
+    }
+    restoreMemory(&saveMemory, memory);
+    return 0;
+}
+
 //when we restore the cd, it wil close the descriptor, so save it using dup
 int saveDescirptor(tsh_memory *memory){
     int fd = atoi(memory->tar_descriptor);
@@ -204,8 +233,6 @@ void printfMemory(tsh_memory *memory){
 }
 //for one argument
 int copy(char listOption[50][50], int size_option, char *source, char *real_target, tsh_memory *memory){
-    printf("-------initial\n");
-    printfMemory(memory);
     resetContent();
     char target[512];
     addSlach(real_target, target);
@@ -213,11 +240,6 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
     if(strlen(target)){
         if(cd(target, memory)==-1)return -1;
     }
-    
-    printf("_________cd %s\n", target);
-    
-    printfMemory(memory);
-    printf("chdir = %s\n", getcwd(NULL, 0));
     //save the state of target befor restor cd
     tsh_memory memoryTarget;
     copyMemory(memory, &memoryTarget);
@@ -225,8 +247,6 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
     //retore the initial state
     restoreMemory(&old_memory, memory);
     if(save == -1)return -1;
-    printf("__________restore\n");
-    printfMemory(memory);
     //cd to source
     char location[512];//the path inside the source before geting to the file to copy
     getLocation(source, location);
@@ -236,8 +256,6 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
         if(cd(location, memory)==-1)return -1;
         fileToCopy = source + lenLocation;
     }
-    printf("______cd %s\n", location);
-    printfMemory(memory);
     int returnValue = 0;
     //from ?? to -> .tar
     
@@ -282,14 +300,19 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
             return returnValue;
         }//outside -> outside
         else{
-            restoreMemory(&old_memory, memory);
+            if(in_a_tar(&old_memory)){
+                restoreMemory(&old_memory, memory);
+                cp_outside_outside(source, target, memory);
+            }else{
+                restoreMemory(&old_memory, memory);
+                int pid_fils = fork();
+                if(pid_fils){//parent
+                    int status;
+                    waitpid(pid_fils, &status, 0);
+                    if(WEXITSTATUS(status)==-1)return -1;
+                }else exec_cp(listOption, size_option, source, target);
+            }
             
-            int pid_fils = fork();
-            if(pid_fils){//parent
-                int status;
-                waitpid(pid_fils, &status, 0);
-                if(WEXITSTATUS(status)==-1)return -1;
-            }else exec_cp(listOption, size_option, source, target);
         }
     }
     return 0;

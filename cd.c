@@ -39,7 +39,6 @@ int cd(char *directory, tsh_memory *memory);
 
 //directory is the argument given, PATH is the path from tsh_memory
 int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in the memory
-    printf("cd -%s-\n", directory);
     //char *PATH, char *tar_fd, char *tar_name
     if((strcmp(directory,".") == 0) || (strcmp(directory,"./")== 0)){ //ne marche pas encore, ça ne détecte pas le point sur l'entrée  standard
         return 0;

@@ -1,6 +1,8 @@
 #include <unistd.h>
 #include <sys/errno.h>
 #include <fcntl.h>
+#include <dirent.h>
+#include <sys/stat.h>
 #include "bloc.h"
 #include "string_traitement.h"
 char FILE_PATH[512];
@@ -94,6 +96,32 @@ int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* st
     tab[*starting_index].nb_bloc = nb_bloc;
     close(fd_file);
     *starting_index = *(starting_index) + 1;
+    return 0;
+}
+//extract on the curent directory
+int fill_fromDir_outside(content_bloc *tab, char *directory, int* starting_index){
+    struct posix_header *new_head = create_header(directory, 1, 0);
+    tab[*starting_index].hd = *new_head;
+    *starting_index = *starting_index + 1;
+    char name_concat[512];
+    DIR *dir = opendir(directory);
+    struct dirent * inoeud_nom;
+    while((inoeud_nom = readdir(dir))){
+        
+        if((strcmp(inoeud_nom->d_name, ".") != 0)&&(strcmp(inoeud_nom->d_name, "..") != 0)){
+            struct stat buff;
+            
+            concatenationPath(directory, inoeud_nom->d_name, name_concat);
+            
+            if(lstat(name_concat, &buff)==-1)perror("lstat:");
+            if(S_IFDIR & buff.st_mode){//if it's a dir
+                fill_fromDir_outside(tab, name_concat, starting_index);
+            }else if(S_IFMT & buff.st_mode){//if it's a file
+                fill_fromFile_outside(tab, name_concat, "", starting_index);
+            }
+        }
+    }
+    closedir(dir);
     return 0;
 }
 
