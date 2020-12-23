@@ -154,8 +154,8 @@ int adapter_rm(tsh_memory *memory){
     return rm(memory, args, i_args, option, i_option);
 }
 int adapter_cp(tsh_memory *memory){
-    if(i_option)return copy(option, i_option, args[0], args[1], memory);
-    return copy(NULL, i_option, args[0], args[1], memory);
+    if(i_option)return copy_tar(option, args, i_option, i_args, memory);
+    return copy_tar(NULL, args, i_option, i_args, memory);
 }
 
 typedef int (*pt_adapter) (tsh_memory *memory);//declaration pointer of function

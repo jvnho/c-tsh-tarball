@@ -279,8 +279,8 @@ int containsOptionR(char listOption[50][50], int size_option){
     }return 0;
 }
 //for one argument
-int copy(char listOption[50][50], int size_option, char *source, char *real_target, tsh_memory *memory){
-    int r = containsOptionR(listOption, size_option);
+int copy(char listOption[50][50], int size_option, char *source, char *real_target, tsh_memory *memory, int r){
+    
     resetContent();
     char target[512];
     addSlach(real_target, target);
@@ -362,6 +362,14 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
             }
             
         }
+    }
+    return 0;
+}
+int copy_tar(char listOption[50][50], char listArgs[50][50], int size_option, int size_args, tsh_memory *memory){
+    int r = containsOptionR(listOption, size_option);
+    char *target = listArgs[size_args -1];
+    for(int i = 0; i<=size_args-2; i++){
+        copy(listOption, size_option, listArgs[i], target, memory, r);
     }
     return 0;
 }
