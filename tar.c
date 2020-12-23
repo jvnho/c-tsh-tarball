@@ -141,7 +141,10 @@ int dir_exist(int descriptor, char * directory){
     struct posix_header header;
     int nb_bloc_file = 0;
     while(read(descriptor, &header, 512)>0){//parcour de tete en tete jusqu' a la fin
-        if(strcmp(header.name, directory)==0)return 1;
+        
+        if(strcmp(header.name, directory)==0){
+            return 1;
+        }
         int tmp = 0;
         sscanf(header.size, "%o", &tmp);
         nb_bloc_file = (tmp + 512 -1) / 512;
