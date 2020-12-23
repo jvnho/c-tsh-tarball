@@ -276,8 +276,6 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
             tsh_memory memoryCopy;
             copyMemory(memory, &memoryCopy);
             restoreMemory(&memoryTarget, memory);
-            printf("chdir = %s\n", getcwd(NULL, 0));
-            printf("*********\n");
             returnValue = cp_tar_outside(fileToCopy, "", atoi(memoryCopy.tar_descriptor), memoryCopy.FAKE_PATH);
 
             restoreMemory(&old_memory, memory);
