@@ -319,7 +319,7 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
             //check the file type
             struct stat status;
             if(lstat(fileToCopy, &status)==-1){//case of error restore the memory
-                perror("cp hoho: ");
+                perror("cp : ");
                 restoreMemory(&old_memory, memory);
                 return -1;
             }
