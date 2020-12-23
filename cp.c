@@ -273,9 +273,14 @@ void printfMemory(tsh_memory *memory){
     printf("tar descriptor = %s\n", memory->tar_descriptor);
 
 }
+int containsOptionR(char listOption[50][50], int size_option){
+    for(int i = 0; i<size_option; i++){
+        if((strcmp(listOption[i], "-r")==0)||(strcmp(listOption[i], "-R")==0))return 1;
+    }return 0;
+}
 //for one argument
 int copy(char listOption[50][50], int size_option, char *source, char *real_target, tsh_memory *memory){
-    int r = 0;
+    int r = containsOptionR(listOption, size_option);
     resetContent();
     char target[512];
     addSlach(real_target, target);
