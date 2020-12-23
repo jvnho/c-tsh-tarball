@@ -118,8 +118,10 @@ void createDir(content_bloc dirBloc){
     }
 }
 void createFile(content_bloc fileBloc){
-    if((temp_fd = open(fileBloc.hd.name, O_WRONLY|O_CREAT| O_APPEND, 0664))== -1){//create file
-        write(2, "cp :failed to extract file\n", strlen("cp :failed to extract file\n"));
+    printf("creation de %s\n", fileBloc.hd.name);
+    if((temp_fd = open(fileBloc.hd.name, O_CREAT|O_WRONLY| O_APPEND, 0664))== -1){//create file
+        printf("temps = %d\n", temp_fd);
+        perror("create file ");
     }else{//then write it's content
         for(int i = 0; i<fileBloc.nb_bloc; i++){
             write(temp_fd, fileBloc.content[i], strlen(fileBloc.content[i]));
@@ -264,7 +266,10 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
     }//form ?? to -> outside
     else{
         //tar -> outside
+
         if(in_a_tar(memory)){
+            printf("chdir = %s\n", getcwd(NULL, 0));
+            printf("*********\n");
             returnValue = cp_tar_outside(fileToCopy, target, atoi(memory->tar_descriptor), memory->FAKE_PATH);
             restoreMemory(&old_memory, memory);
             return returnValue;
