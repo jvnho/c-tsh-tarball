@@ -75,14 +75,11 @@ void resetBuffer(tsh_memory *memory){
     memset(memory->comand, 0, MAX_COMMAND);
 }
 void copyMemory(tsh_memory *initial, tsh_memory *save){
-    printf("copy memory*****\n");
-    printf("desc = %s\n", initial->tar_descriptor);
     memset(save, 0, sizeof(struct tsh_memory));
     strcpy(save->FAKE_PATH, initial->FAKE_PATH);
     strcpy(save->tar_name, initial->tar_name);
     strcpy(save->REAL_PATH, initial->REAL_PATH);
     strcpy(save->tar_descriptor, initial->tar_descriptor);
-    printf("restoration = %s\n", save->tar_descriptor);
     strcpy(save->comand, initial->comand);
     save->exit = initial->exit;
 }

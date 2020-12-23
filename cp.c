@@ -200,8 +200,8 @@ void printfMemory(tsh_memory *memory){
 }
 //for one argument
 int copy(char listOption[50][50], int size_option, char *source, char *real_target, tsh_memory *memory){
-    //printf("-------initial\n");
-    //printfMemory(memory);
+    printf("-------initial\n");
+    printfMemory(memory);
     resetContent();
     char target[512];
     addSlach(real_target, target);
@@ -209,8 +209,8 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
     if(strlen(target)){
         if(cd(target, memory)==-1)return -1;
     }
-    //printf("_________cd %s\n", target);
-    //printfMemory(memory);
+    printf("_________cd %s\n", target);
+    printfMemory(memory);
     //save the state of target befor restor cd
     tsh_memory memoryTarget;
     copyMemory(memory, &memoryTarget);
