@@ -4,7 +4,8 @@
 extern int count_args(char *args);
 extern int string_to_int(char *chiffre);
 extern int get_prev_directory(char *path);
-extern char *int_to_string(int chiffre);
+extern char *int_to_string(int chiffre, char *result);
+extern char * simpleConcat(char *path, char *dir);
 extern char * concatDirToPath(char * path, char *dir);
 extern char *concate_string(char *s1, char *s2);
 extern void getPreTar(char *initial_string, char *result);
@@ -19,4 +20,7 @@ extern int is_unix_directory(char *str);
 extern int is_extension_tar(char *str);
 extern int spilitPipe(tsh_memory *source, tsh_memory *memory1, tsh_memory *memory2);
 extern void get_tar_path(tsh_memory *memory, char *container, char *abs_path);
+extern void concatenationPath(char *first, char *second, char *result);
+extern void concatenation(char *first, char *second, char *result);
+
 #endif

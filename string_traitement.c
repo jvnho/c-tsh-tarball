@@ -92,9 +92,9 @@ char int_to_char(int a){
     if(a == 9)return '9';
     return '-';
 }
-char *int_to_string(int chiffre){
+char *int_to_string(int chiffre, char *result){
+    memset(result, 0, 512);
     int size = getDigitLength(chiffre);
-    char *result = malloc(size+1);
     int digit = 0;
     for(int i = (size-1); 0<=i; i--){
         digit = chiffre%10;
@@ -120,6 +120,15 @@ char * concatDirToPath(char * path, char *dir){
     }
     return result;
 }
+char * simpleConcat(char *path, char *dir){
+    int length = strlen(path) + strlen(dir) + 1;
+    char *result = malloc(length);
+    strcpy(result, path);
+    result[strlen(path)] = '\0';
+    strcat(result, dir);
+    result[length - 1] = '\0';
+    return result;
+}
 
 char *concate_string(char *s1, char *s2){
     char *ret = malloc((strlen(s1)+strlen(s2)+1)*sizeof(char));
@@ -138,8 +147,8 @@ int get_index_first_slach(char *initial_string){
 }
 //return the substring befor the directory.tar
 void getPreTar(char *initial_string, char *result){
+    memset(result, 0, 512);
     int first_slach_beforTar = get_index_first_slach(initial_string);
-    result[0] = '\0';
     if(first_slach_beforTar == 0) return;//there is not a pre tar
     else if(first_slach_beforTar == -1){//the is not a .tar, so everithing is a pre tar
         strcpy(result, initial_string);
@@ -151,8 +160,8 @@ void getPreTar(char *initial_string, char *result){
 }
 //return the substring matched to the tar name
 void getTarName(char *initial_string, char *result){
+    memset(result, 0, 512);
     int first_slach_beforTar = get_index_first_slach(initial_string);
-    result[0] = '\0';
     if(first_slach_beforTar == -1)return;//there is nothing to complete
     //cherching the ending index .tar<-
     char *substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
@@ -167,8 +176,8 @@ void getTarName(char *initial_string, char *result){
 }
 //
 void getPostTar(char *initial_string, char *result){
+    memset(result, 0, 512);
     char *substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
-    result[0] = '\0';
     int len_initial = strlen(initial_string);
     //there is not a .tar so there is not an after .tar
     if(substring == NULL)return;
@@ -306,3 +315,17 @@ void get_tar_path(tsh_memory *memory, char *container, char *abs_path){
     int starting = sub - abs_path;
     strcpy(container, abs_path+starting+5);
 }
+//add slach betwen
+void concatenationPath(char *first, char *second, char *result){//sans malloc
+    memset(result, 0, 512);
+    strcpy(result, first);
+    result[strlen(first)] = '/';
+    strcat(result, second);
+}
+//witout slach
+void concatenation(char *first, char *second, char *result){
+    memset(result, 0, 512);
+    strcpy(result, first);
+    strcat(result, second);
+}
+

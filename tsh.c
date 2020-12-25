@@ -27,6 +27,7 @@ int main(void){
         memory->comand[strlen(memory->comand)-1] = '\0';
         execute(memory);
         resetBuffer(memory);
+        
     }
     free_tsh_memory(memory);
     return 0;

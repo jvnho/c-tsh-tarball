@@ -40,7 +40,7 @@ int cd(char *directory, tsh_memory *memory);
 //directory is the argument given, PATH is the path from tsh_memory
 int cd_in_tar(char * directory, tsh_memory *memory){//modify the current path in the memory
     //char *PATH, char *tar_fd, char *tar_name
-    if(strcmp(directory,".") == 0){ //ne marche pas encore, ça ne détecte pas le point sur l'entrée  standard
+    if((strcmp(directory,".") == 0) || (strcmp(directory,"./")== 0)){ //ne marche pas encore, ça ne détecte pas le point sur l'entrée  standard
         return 0;
     }
     if(strstr(directory, "..") == NULL) {//doesn't contains substring ".."
@@ -84,6 +84,7 @@ int cd(char *directory, tsh_memory *memory){
     }
     if(in_a_tar(memory) && directory[0] != '/'){//in a anormal circumstances and when it's not an absolute path
         remove_simple_dot_from_dir(directory); // remove eventual ./, /./, /. from the directory (details: string_traitement.c)
+        if(strlen(directory) == 0)return 0;
         if(cd_in_tar(directory, memory)==-1){
             copyMemory(&save, memory);//restore
             shouldSave = 1;
@@ -93,6 +94,7 @@ int cd(char *directory, tsh_memory *memory){
         else if(in_a_tar(memory)==0){
             close(string_to_int(save.tar_descriptor));
         }
+        refreshRealPaht(memory);
         return 0;
     }
     if(directory[0] == '/') clearMemory(memory);
@@ -124,8 +126,10 @@ int cd(char *directory, tsh_memory *memory){
                 shouldSave = 1;
                 return -1;
             }
+            refreshRealPaht(memory);
             return 0;
         }
     }
+    refreshRealPaht(memory);
     return 0;
 }
