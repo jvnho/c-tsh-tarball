@@ -6,10 +6,13 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <assert.h>
+#include <wait.h>
+
 #include "bloc.h"
 #include "tar.h"
 #include "string_traitement.h"
 #include "cd.h"
+
 content_bloc content[512];//fill it befor the specifc call of cp (cp_tar_tar or cp_tar_dir)
 int i_content = 0;//don't forget to reset this, with the tab
 int temp_fd;

@@ -14,10 +14,11 @@
 #include "string_traitement.h"
 #include "rm.h"
 #include "cp.h"
+#include "mv.h"
 
 
-char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir", "rm", "cp"};
-#define NB_FUN 8
+char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir", "rm", "cp", "mv"};
+#define NB_FUN 9
 char co[50];
 char option[50][50];
 int i_option = 0;
@@ -157,9 +158,12 @@ int adapter_cp(tsh_memory *memory){
     if(i_option)return copy_tar(option, args, i_option, i_args, memory);
     return copy_tar(NULL, args, i_option, i_args, memory);
 }
+int adapter_mv(tsh_memory *memory){
+    return mv(memory, args, i_args, option, i_option);
+}
 
 typedef int (*pt_adapter) (tsh_memory *memory);//declaration pointer of function
-pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls, adapter_rmdir, adapter_rm, adapter_cp};
+pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls, adapter_rmdir, adapter_rm, adapter_cp, adapter_mv};
 
 int getFuncitonIndex(char *name){
     for(int i=0; i<NB_FUN; i++){
