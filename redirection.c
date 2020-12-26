@@ -18,13 +18,31 @@
 
 tsh_memory old_memory; //will be use to save/restore a memory
 
-void convert_to_simple_cmd(tsh_memory *memory){ //removes redirection symbol from the tsh_memory "comand"
+//check if redirection entered by user make sense ex: "ls > fic >> fic2 2&>1" doesn't make sense
+//analysing the "redirection_array" struct
+int is_redirection_valid(redirection_array *data){
+    if(data->NUMBER > 2) return -1;
+    int nb_stdout, nb_stderr, nb_both; //number of redirection of each (>/>>; 2>/2>>; 2>&1)
+    for(int i = 0; i < data->NUMBER; i++)
+    {
+        if(data->STD[i] == 1) nb_stdout++;
+        if(data->STD[i] == 2) nb_stderr++;
+        if(data->STD[i] == 3) nb_both++;
+    }
+    if(nb_stdout < 2 && nb_stderr < 2 && nb_both < 2) return 1;
+    else return -1;
+}
+
+//removes redirection symbol from the tsh_memory "comand"
+//ex: "ls > fic 2> fic2" --> "ls"
+void convert_to_simple_cmd(tsh_memory *memory){ 
     char *cmd = strdup(memory->comand); //command line entered by user
     char new_cmd[strlen(cmd)];
     new_cmd[0] = '\0';
 
     char *tok = strtok(cmd, " ");
-    while(tok != NULL){
+    while(tok != NULL)
+    {
         if((strstr(tok,">") != NULL) || (strstr(tok, "2>") != NULL)) break;
         if(strstr(tok,"<") == NULL){
             strcat(new_cmd, tok);
@@ -44,7 +62,8 @@ int fill_redir_array(tsh_memory *memory, redirection_array *data, char *str, int
     memset(location,0, 512);
     getLocation(redir_name, location);
     copyMemory(memory, &old_memory);//Keeps the curent state of the programm
-    if(strlen(location) > 0){
+    if(strlen(location) > 0)
+    {
         if(cd(location, memory) == -1) return -1; //if one of the redirection is incorrect we abort
         redir_name += strlen(location);
     } else if(strlen(location) == 0 && strstr(redir_name, ".tar")){
@@ -52,7 +71,8 @@ int fill_redir_array(tsh_memory *memory, redirection_array *data, char *str, int
     }
     //starting to fill
     int index = data->NUMBER;
-    if(in_a_tar(memory) == 1){
+    if(in_a_tar(memory) == 1)
+    {
         data->IN_A_TAR[index] = 1;
         //NAME
         if(strlen(location) > 0) strcpy(data->NAME[index], redir_name);
@@ -67,7 +87,7 @@ int fill_redir_array(tsh_memory *memory, redirection_array *data, char *str, int
         data->IN_A_TAR[index] = 0;
         strcpy(data->REDIR_PATH[index], str);
     }
-    //MISCELLANEOUS
+    //AUTRES CHAMPS
     data->STD[index] = output;
     data->APPEND[index] = append;
     data->NUMBER++;
@@ -75,11 +95,15 @@ int fill_redir_array(tsh_memory *memory, redirection_array *data, char *str, int
     return 0;
 }
 
-struct redirection_array* associate_redirection(tsh_memory *memory, char *cmd){ //associating every redirection to the standard output/error interested by user
-    struct redirection_array *data = malloc(sizeof(redirection_array)); // check @redirection.h
+//associating every redirection to the standard output/error interested by user
+struct redirection_array* associate_redirection(tsh_memory *memory, char *cmd){ 
+    struct redirection_array *data; //Check @redirection.h
+    assert(( data = malloc(sizeof(redirection_array))) != NULL); 
     char *tok = strtok(cmd," ");
-    while(tok != NULL){
-        if(strstr(tok, "2>") != NULL){
+    while(tok != NULL)
+    {
+        if(strstr(tok, "2>") != NULL)
+        {
             if(strcmp(tok, "2>&1") == 0){
                 tok = strtok(NULL, " "); //next token
                 if(fill_redir_array(memory, data, tok, 3, 1) ==-1) return NULL; //one of the redirection path given doesn't exist
@@ -91,7 +115,9 @@ struct redirection_array* associate_redirection(tsh_memory *memory, char *cmd){ 
                 tok = strtok(NULL, " "); //next token
                 if(fill_redir_array(memory, data, tok, 2,append) == -1) return NULL;
             }
-        } else if(strstr(tok, ">") != NULL){
+        } 
+        else if(strstr(tok, ">") != NULL)
+        {
             int append;
             if( (tok+1)[0] == '>') append = 1; //>>
             else append = 0;
@@ -115,36 +141,42 @@ void delete_file(char *target){ //temporary
 
 int redirection(tsh_memory *memory){
     struct redirection_array *data = associate_redirection(memory, strdup(memory->comand)); 
-    if(data == NULL) return -1;
-    if(data->NUMBER > 2) return -1;
+    if( data == NULL || is_redirection_valid(data) == -1) return -1; //Redirection given by user doesn't make sense so we abort.
     convert_to_simple_cmd(memory); //Converting command line entered by user to make it readable by the programm
 
     int fd_fic_out = 0, fd_fic_err = 0, fd_fic_mix = 0;//Respectively file descriptor than will receive redirection from >, 2>, 2>&1
     int old_stdout = dup(STDOUT_FILENO), old_stderr = dup(STDERR_FILENO); 
 
-    for(int i = 0; i < data->NUMBER; i++){ //Going through this loop at most 2 times 
+    for(int i = 0; i < data->NUMBER; i++) //Going through this loop at most 2 times 
+    { 
         char *file_path;
         if(data->IN_A_TAR[i] == 0) file_path = data->REDIR_PATH[i];
         else file_path = data->NAME[i]; //creates a file just outside of the tar (it will be relocated)
         int append = data->APPEND[i];
-        if(data->STD[i] == 3){ //User wants a "2>&1" redirection 
+        if(data->STD[i] == 3) //User wants a "2>&1" redirection 
+        { 
             fd_fic_mix = open(file_path, O_WRONLY | O_CREAT | O_APPEND, 0644);
             assert(fd_fic_mix != -1);
         } 
-        else if(data->STD[i] == 2){ //User wants a "2>" redirection (maybe 2>> if append == 1)
+        else if(data->STD[i] == 2) //User wants a "2>" redirection (maybe 2>> if append == 1)
+        { 
             if(append == 1) fd_fic_err = open(file_path, O_WRONLY | O_CREAT | O_APPEND, 0644);
             else fd_fic_err = open(file_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
             assert(fd_fic_err != -1);
         } 
-        else { //User wants a ">" redirection (maybe 2>> if append == 1)
+        else //User wants a ">" redirection (maybe 2>> if append == 1)
+        { 
             if(append == 1) fd_fic_out = open(file_path, O_WRONLY | O_CREAT | O_APPEND, 0644);
             else fd_fic_out = open(file_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
             assert(fd_fic_out != -1);
         }
+
         if(fd_fic_mix != 0){ //If we opened a file to receive 2>&1
             dup2(fd_fic_mix, STDOUT_FILENO);
             dup2(fd_fic_mix, STDERR_FILENO);
-        } else {
+        } 
+        else 
+        {
             if(fd_fic_out != 0){ //If we opened a file to receive >
                 dup2(fd_fic_out, STDOUT_FILENO);
             }
@@ -162,11 +194,13 @@ int redirection(tsh_memory *memory){
     //restoring stdout and stderr
     dup2(old_stdout, STDOUT_FILENO);
     dup2(old_stderr, STDERR_FILENO);
-    for(int i = 0; i < data->NUMBER; i++){ //Now we move file to the tar if wanted by user
+    for(int i = 0; i < data->NUMBER; i++) //Now we move file to the tar if needed
+    { 
         if(data->IN_A_TAR[i] == 1){ //redirection file was supposed to be in a tar so we move it
             //cp_file_tar(data->NAME[i], data->REDIR_PATH[i], atoi(memory->tar_descriptor));
             delete_file(data->NAME[i]);
         } else continue;
     }
+    free(data);
     return 1;
 }
