@@ -100,36 +100,41 @@ int rm_in_tar(int fd, char* full_path, int arg_r, int first_call){
      }
 }
 
-int rm(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],int nb_option){
+int do_rm(tsh_memory *memory, char *arg, char option[50][50],int nb_option, int arg_r){
     char location[512];
+    copyMemory(memory, &old_memory);
+
+    getLocation(arg, location); //check string_traitement for details
+    int lenLocation = strlen(location);
+    char *dirToDelete = arg;
+
+    if(lenLocation > 0){//if there is an extra path cd to that path
+        if(cd(location, memory) == -1) 
+            return -1;
+        dirToDelete = arg + lenLocation;
+
+    }
+    if(in_a_tar(memory) == 1)
+    {
+        char *path_to_target;
+        if(arg_r == 1) {        
+            path_to_target = concatDirToPath(memory->FAKE_PATH, dirToDelete); //concate and adds slash at the end (@string_traitement.c)
+        } else { 
+            path_to_target = concate_string(memory->FAKE_PATH, dirToDelete);
+        }
+        rm_in_tar(atoi(memory->tar_descriptor),path_to_target,arg_r,1);
+    } else {
+        array_execvp = execvp_array("rm", dirToDelete, option, nb_option); //check @function.h
+        exec_cmd("rm", array_execvp);
+    }
+    restoreLastState(old_memory, memory);
+    return 1;
+}
+
+int rm(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],int nb_option){
+    int option_r = (option_present("-r", option, nb_option) == 1 || option_present("-R", option, nb_option) == 1); //if option -r or -R was given
     for(int i = 0; i < nb_arg; i++){
-        copyMemory(memory, &old_memory);
-
-        getLocation(args[i], location); //check string_traitement for details
-        int lenLocation = strlen(location);
-        char *dirToDelete = args[i];
-
-        if(lenLocation > 0){//if there is an extra path cd to that path
-            if(cd(location, memory) == -1) 
-                return -1;
-            dirToDelete = args[i] + lenLocation;
-
-        }
-
-        if(in_a_tar(memory) == 1){
-            char *path_to_target;
-            int option_r = (option_present("-r", option, nb_option) == 1 || option_present("-R", option, nb_option) == 1); //if option -r or -R was given
-            if(option_r == 1) {        
-                path_to_target = concatDirToPath(memory->FAKE_PATH, dirToDelete); //concate and adds slash at the end (@string_traitement.c)
-            } else { 
-                path_to_target = concate_string(memory->FAKE_PATH, dirToDelete);
-            }
-            rm_in_tar(atoi(memory->tar_descriptor),path_to_target,option_r,1);
-        } else {
-            array_execvp = execvp_array("rm", dirToDelete, option, nb_option); //check @function.h
-            exec_cmd("rm", array_execvp);
-        }
-        restoreLastState(old_memory, memory);
+        if(do_rm(memory, args[i], option, nb_option, option_r) == -1) continue;
     }
     return 1;
 }
