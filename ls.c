@@ -16,16 +16,44 @@ int is_in_array(char *string, struct ls_memory mem){ //checking if string is in 
 }
 
 char file_type(char typeflag){
-    if(typeflag == '0') return '-';
-        return 'd';
+    if(typeflag == '2') return 'l';
+    if(typeflag == '5') return 'd';    
+    if(typeflag == '6') return 'p';
+        return '-';
 }
 
-void fill_info_array(struct posix_header hd, struct ls_memory *mem){ //filling ls_memory's INFO array
+//return the size of a directory in a tarfile
+int size_of_directory(int fd, off_t initial, char *path){
+    struct posix_header hd;
+    lseek(fd, 0, SEEK_CUR); 
+    int size = 0;
+    while(read(fd, &hd, 512) > 0)
+    {
+        int filesize = 0;
+        sscanf(hd.size, "%o", &filesize);
+        int nb_bloc_fichier = (filesize + 512 -1) / 512;
+        if(strncmp(hd.name, path, strlen(path)) == 0)
+        {
+            if(hd.typeflag != '5') size += filesize;
+        }
+        lseek(fd,512*nb_bloc_fichier, SEEK_CUR);
+    }
+    lseek(fd, initial, SEEK_SET);
+    return size;
+}
+
+void fill_info_array(int fd, off_t initial,struct posix_header hd, struct ls_memory *mem){ //filling ls_memory's INFO array
     int filesize = 0;
-    sscanf(hd.size,"%o",&filesize);
-    char c[(strlen(hd.uname)+strlen(hd.gname)+strlen(hd.size)+12) * sizeof(char)];
-    sprintf(c, "%c%s %s %s %d", file_type(hd.typeflag), octal_to_string(hd.mode), hd.uname, hd.gname, filesize);
-    strcpy(mem->INFO[mem->NUMBER], c);
+    if(hd.typeflag == '5') //directory
+    { 
+        filesize = size_of_directory(fd, initial,hd.name);
+    } else {
+        sscanf(hd.size,"%o",&filesize);
+    }
+    char info[512], mode[512];
+    octal_to_string(hd.mode, mode);
+    sprintf(info, "%c%s %s %s %d", file_type(hd.typeflag), mode, hd.uname, hd.gname, filesize);
+    strcpy(mem->INFO[mem->NUMBER], info);
 }
 
 void print_ls_l(struct ls_memory mem){ //if option -l was given by user
@@ -98,7 +126,7 @@ int ls_in_tar_directory(int fd, char* full_path, int arg_l){
             CUT_PATH[len_name++] = '\0';
             if(is_in_array(CUT_PATH, mem) == 0)//avoiding dupplicates
             { 
-                if(arg_l == 1) fill_info_array(hd, &mem);//filling FILE_INFO's array if -l argument is given
+                if(arg_l == 1) fill_info_array(fd, lseek(fd, 0, SEEK_CUR),hd, &mem);//filling FILE_INFO's array if -l argument is given
                 strcpy(mem.NAME[mem.NUMBER], CUT_PATH);
                 mem.NUMBER++;
                 fic_found++;
@@ -114,6 +142,7 @@ int ls_in_tar_directory(int fd, char* full_path, int arg_l){
     return fic_found;
 }
 
+//execution of a ls on one argument
 void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, int l_opt){
     copyMemory(memory,&old_memory); //saving current state of the tsh_memory
 
@@ -143,22 +172,21 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
         }
         if(strlen(location) > 0)
         {
-            if(cd(location, memory) == -1){
-                restoreLastState(old_memory, memory);
-                return; //path doesn't exist
-            }
+            if(cd(location, memory) == -1) return; //path doesn't exist
             dirToVisit += strlen(location);
         }
         if(in_a_tar(memory) == 1)
         {
-            char *file_path = concate_string(memory->FAKE_PATH, dirToVisit);
+            char file_path[512];
+            concatenation(memory->FAKE_PATH, dirToVisit,file_path);
             if(ls_in_tar_file(atoi(memory->tar_descriptor), file_path, l_opt) == -1) //trying to find in the tar if the file "dirToVisit" exists
             { 
                 if(cd(dirToVisit, memory) != -1){ //trying now to find in the tar if the directory "dirToVisit" exists
                     ls_in_tar_directory(atoi(memory->tar_descriptor), memory->FAKE_PATH, l_opt); //at this point we are sure we are still in a tar
                 }
             }
-        } else {
+        } 
+        else {
             array_execvp = execvp_array("ls", dirToVisit,option,nb_option);
             exec_cmd("ls", array_execvp);  
         }

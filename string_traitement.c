@@ -198,22 +198,21 @@ int get_prev_directory(char *path){
     return -1;
 }
 
-char* octal_to_string(char *mode){
-    char *ret = malloc(sizeof(char)*9);
-    ret[0] = '\0';
-        for(int i = 0; i < strlen(mode); i++){
+void octal_to_string(char *mode, char *result){
+    memset(result, 0, sizeof(result));
+    for(int i = 0; i < strlen(mode); i++)
+    {
         switch(mode[i]){
-            case '1': strcat(ret,"r--"); break;
-            case '2': strcat(ret,"-w-"); break;
-            case '4': strcat(ret,"--x"); break;
-            case '3': strcat(ret,"rw-"); break;
-            case '5': strcat(ret,"r-x"); break;
-            case '6': strcat(ret,"-wx"); break;
-            case '7': strcat(ret,"rwx"); break;
+            case '1': strcat(result,"r--"); break;
+            case '2': strcat(result,"-w-"); break;
+            case '4': strcat(result,"--x"); break;
+            case '3': strcat(result,"rw-"); break;
+            case '5': strcat(result,"r-x"); break;
+            case '6': strcat(result,"-wx"); break;
+            case '7': strcat(result,"rwx"); break;
             default: break;//if char == 'zero' it does nothing (i.e mode is 00666, 00111,...)
         }
     }
-    return ret;
 }
 int firstSlach(char *dir){
     int len = strlen(dir);

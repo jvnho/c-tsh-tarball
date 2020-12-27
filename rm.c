@@ -116,11 +116,11 @@ int do_rm(tsh_memory *memory, char *arg, char option[50][50],int nb_option, int 
     }
     if(in_a_tar(memory) == 1)
     {
-        char *path_to_target;
+        char path_to_target[512];
         if(arg_r == 1){        
-            path_to_target = concatDirToPath(memory->FAKE_PATH, dirToDelete); //concate and adds slash at the end (@string_traitement.c)
+            concatenationPath(memory->FAKE_PATH, dirToDelete, path_to_target); //concate and adds slash (if needed) (@string_traitement.c)
         } else { 
-            path_to_target = concate_string(memory->FAKE_PATH, dirToDelete);
+            concatenation(memory->FAKE_PATH, dirToDelete, path_to_target); //same but doesn't add slash
         }
         rm_in_tar(atoi(memory->tar_descriptor),path_to_target,arg_r,1);
     } else {

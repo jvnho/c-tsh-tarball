@@ -44,7 +44,8 @@ int mv(tsh_memory *memory, char args[50][50], int nb_args, char option[50][50], 
                     closedir(directory);
                 }
             } else {
-                char *src_fullpath = concatDirToPath(tmp.FAKE_PATH, without_path); //adds slash to the concatenation to make it appears like a directory in the tarball
+                char src_fullpath[512];
+                concatenationPath(tmp.FAKE_PATH, without_path, src_fullpath); //adds slash to the concatenation to make it appears like a directory in the tarball
                 if(dir_exist(atoi(tmp.tar_descriptor), src_fullpath) == 1) arg_r = 1;
             }
         }
