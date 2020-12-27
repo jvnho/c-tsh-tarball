@@ -17,7 +17,7 @@ tsh_memory old_memory;
 
 int stop = 0; // stop the cat when giver without argument
 
-void cat_in_tar(int fd, char* PATH){
+void cat_in_tar(int fd, char* PATH){ //test tar
     lseek(fd,0,SEEK_SET);
     struct posix_header hd;
     memset(&hd,0,512);
