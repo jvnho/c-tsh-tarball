@@ -9,151 +9,33 @@
 #include "tsh_memory.h"
 #include "string_traitement.h"
 
-#include "tar.h"
-#include "tsh_memory.h"
-#include "ls.h"
+#include "cd.h"
 
 
-// write like printf("")
-    void display(char* str){
-        write(1,str,sizeof(char)*strlen(str));
+tsh_memory old_memory;
+
+
+int stop = 0; // stop the cat when giver without argument
+
+void cat_in_tar(int fd, char* PATH){
+    lseek(fd,0,SEEK_SET);
+    struct posix_header hd;
+    memset(&hd,0,512);
+
+    while(read(fd,&hd,BLOCKSIZE) > 0){
+        int file_s = 0;
+        sscanf(hd.size,"%o", &file_s);
+        int nb_bloc_fichier = (file_s + 512 -1) / 512;
+        if(strcmp(hd.name,PATH)==0){
+            char buffer[nb_bloc_fichier*512];
+            read(fd, buffer, BLOCKSIZE);
+            write(1,buffer,strlen(buffer));
+        }
+
+        //next header block
+        lseek(fd,nb_bloc_fichier*512,SEEK_SET);
 
     }
     
-
-
-char myPath[256]; // path of my array 256  
-
-
-int cat(int desc, char* path, int arg){ // I should use pointer rather than int next time
-    lseek(desc, 0, SEEK_SET);
-
-    struct posix_header *header = malloc(512); // 
-
-    if(header == NULL){
-        return 0;
-
-    } 
-
-   if(path != NULL && path[0]!= 32 && path[0] != 10){ // ascii code of Line Feed(saut de line) and space
-
-    while(read(desc, header, BLOCKSIZE) > 0){ // blocksize = 512
-
-        strncpy(myPath, header->name, strlen(path));
-        if(strcmp(myPath,path) == 0 && strcmp(myPath,header->name) != 0){ 
-            int myFile = 0;
-        sscanf(header->size, "%o", &myFile);
-        int nb_bloc_fichier = (myFile + 512 -1) / 512;
-        for(int i = 0; i < nb_bloc_fichier; i++){
-            read(desc, header, BLOCKSIZE);
-            //condition
-            display(header); //display
-            
-
-        } 
-       
-             
-        }
-    else{
-        //jump to the next header block
-        int file_s = 0;
-        sscanf(header->size, "%o", &file_s);
-        int nb_bloc_fichier = (file_s + 512 -1) / 512;
-        for(int i = 0; i < nb_bloc_fichier; i++){
-            read(desc, header, BLOCKSIZE);
-            //sans afficher car out of condition
-
-        } 
-    }
-        
-    }
-   }
-
-    //display all without condition
-    char myStr[255];
-    read(0,&myStr, sizeof(myStr));
-    while(myStr[0]!= 'Q' ){ //exit
-        int myRead= read(0,&myStr, sizeof(myStr));
-        if (myRead != 0){
-            write(1,&myStr,sizeof(myStr));
-
-        }
-        
-        
-
-    }
-
-
-        return 0;
-// write like printf("")
-    void display(char* str){
-        write(1,str,sizeof(char)*strlen(str));
-
-    }
     
-
-
-char myPath[256]; // path of my array 256  
-
-
-int cat(int desc, char* path, int arg){ // I should use pointer rather than int next time
-    lseek(desc, 0, SEEK_SET);
-
-    struct posix_header *header = malloc(512); // 
-
-    if(header == NULL){
-        return 0;
-
-    } 
-
-   if(path != NULL && path[0]!= 32 && path[0] != 10){ // ascii code of Line Feed(saut de line) and space
-
-    while(read(desc, header, BLOCKSIZE) > 0){ // blocksize = 512
-
-        strncpy(myPath, header->name, strlen(path));
-        if(strcmp(myPath,path) == 0 && strcmp(myPath,header->name) != 0){ 
-            int myFile = 0;
-        sscanf(header->size, "%o", &myFile);
-        int nb_bloc_fichier = (myFile + 512 -1) / 512;
-        for(int i = 0; i < nb_bloc_fichier; i++){
-            read(desc, header, BLOCKSIZE);
-            //condition
-            display(header); //display
-            
-
-        } 
-       
-             
-        }
-    else{
-        //jump to the next header block
-        int file_s = 0;
-        sscanf(header->size, "%o", &file_s);
-        int nb_bloc_fichier = (file_s + 512 -1) / 512;
-        for(int i = 0; i < nb_bloc_fichier; i++){
-            read(desc, header, BLOCKSIZE);
-            //sans afficher car out of condition
-
-        } 
-    }
-        
-    }
-   }
-
-    //display all without condition
-    char myStr[255];
-    read(0,&myStr, sizeof(myStr));
-    while(myStr[0]!= 'Q' ){ //exit
-        int myRead= read(0,&myStr, sizeof(myStr));
-        if (myRead != 0){
-            write(1,&myStr,sizeof(myStr));
-
-        }
-        
-        
-
-    }
-
-
-        return 0;
-    }
+}
