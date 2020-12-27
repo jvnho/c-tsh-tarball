@@ -42,6 +42,15 @@ int size_of_directory(int fd, off_t initial, char *path){
     return size;
 }
 
+//inspiré de https://koor.fr/C/ctime/struct_tm.wp
+void epoch_time_converter(char *buffer, char *result){
+    memset(result, 0, 80);
+    time_t cur_time = atoi(buffer);
+    struct tm  ts;
+    ts = *localtime(&cur_time);
+    strftime(result, sizeof(result), "%b. %d %H:%M", &ts);
+}
+
 void fill_info_array(int fd, off_t initial,struct posix_header hd, struct ls_memory *mem){ //filling ls_memory's INFO array
     int filesize = 0;
     if(hd.typeflag == '5') //directory
@@ -50,9 +59,10 @@ void fill_info_array(int fd, off_t initial,struct posix_header hd, struct ls_mem
     } else {
         sscanf(hd.size,"%o",&filesize);
     }
-    char info[512], mode[512];
+    char info[512], mode[512], time[80];
+    epoch_time_converter(hd.mtime, time);
     octal_to_string(hd.mode, mode);
-    sprintf(info, "%c%s %s %s %d", file_type(hd.typeflag), mode, hd.uname, hd.gname, filesize);
+    sprintf(info, "%c%s %s %s %d %s", file_type(hd.typeflag), mode, hd.uname, hd.gname, filesize, time);
     strcpy(mem->INFO[mem->NUMBER], info);
 }
 
