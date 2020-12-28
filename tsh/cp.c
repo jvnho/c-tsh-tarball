@@ -104,7 +104,7 @@ int cp_file_tar(char *source, char *target, int fd_target){
     }if(nb_write > 1){
         if(writeZero(fd_target)==-1)return -1;
         return writeZero(fd_target);
-    }*/
+    }
     return 0;
 }
 void simple_mkdir(char *directory, int fd_target){

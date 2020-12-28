@@ -60,7 +60,6 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
     return index_tab > 0 ? index_tab : -1;//nothing was writed
 }
 int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* starting_index){
-    printf("target = %s  source = %s\n", target, source);
     int fd_file;
     if((fd_file = open(source, O_RDONLY)) == -1){
         perror("");
