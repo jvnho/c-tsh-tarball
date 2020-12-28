@@ -1,6 +1,4 @@
 FROM ubuntu:latest
-RUN apt update
-RUN apt-get install -y linux-libc-dev
-RUN apt install build-essential
-RUN mkdir /home/projet
-COPY tsh /home/projet/tsh
+RUN apt-get update && apt-get -y install build-essential && apt-get -y install gcc
+RUN mkdir /home/projet/
+COPY tsh /home/projet/tsh/
