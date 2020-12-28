@@ -262,10 +262,6 @@ char **fusionCommand(char option[50][50], int size_option, char *source, char *t
     result[index_result + 2] = NULL;
     return result;
 }
-void exec_cp(char option[50][50], int size_option, char *source, char *target){
-    char **args = fusionCommand(option, size_option, source, target);
-    execvp(args[0], args);
-}
 void printfMemory(tsh_memory *memory){
     printf("real paht = %s\n", memory->REAL_PATH);
     printf("fake paht = %s\n", memory->FAKE_PATH);
@@ -348,19 +344,8 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
             return returnValue;
         }//outside -> outside
         else{
-            if(in_a_tar(&old_memory)){
-                restoreMemory(&old_memory, memory);
-                cp_outside_outside(source, target, memory, r);
-            }else{
-                restoreMemory(&old_memory, memory);
-                int pid_fils = fork();
-                if(pid_fils){//parent
-                    int status;
-                    waitpid(pid_fils, &status, 0);
-                    if(WEXITSTATUS(status)==-1)return -1;
-                }else exec_cp(listOption, size_option, source, target);
-            }
-            
+            restoreMemory(&old_memory, memory);
+            cp_outside_outside(source, target, memory, r);
         }
     }
     return 0;
