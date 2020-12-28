@@ -27,11 +27,18 @@ void message_dir(char *source){
     sprintf(message, "cp : %s is a directory (not copied).\n", source);
     write(2, message, strlen(message));
 }
+void message_not_found(char *source){
+    char message[512];
+    memset(message, 0, 512);
+    sprintf(message, "cp: %s: No such file or directory\n", source);
+    write(2, message, strlen(message));
+}
 //cp somthing from tar, in a tar -> befor go to the tar collect all the bloc and the fd of the tar, the cd to target, if we are in tar getThe fd and, execut this function
 int cp_tar_tar(char *source, char *target, int fd_source, int fd_target, char *fake_path, int r){
     //check if already exist
     char name_concat[512];
     char plus_slach[512];
+    int nb_header;
     concatenation(fake_path, source, name_concat);
     if(name_concat[strlen(name_concat) - 1] == '/'){
         memset(plus_slach, 0, 512);
@@ -42,10 +49,14 @@ int cp_tar_tar(char *source, char *target, int fd_source, int fd_target, char *f
             message_dir(source);
             return -1;
         }
+        nb_header = fill_fromTar(content, plus_slach, target, fd_source, "", &i_content);
+    }else{
+        nb_header = fill_fromTar(content, source, target, fd_source, fake_path, &i_content);
     }
-    
-    int nb_header = fill_fromTar(content, source, target, fd_source, fake_path, &i_content);
-    if(nb_header == -1)return -1;
+    if(nb_header == -1){
+        message_not_found(source);
+        return -1;
+    }
     put_at_the_first_null(fd_target);
     //write all the bloc in tab and the last bloc null
     int nb_write = 0;
@@ -81,7 +92,7 @@ int cp_file_tar(char *source, char *target, int fd_target){
     }
     int nb_write = 1;
     for(int iBloc = 0; iBloc < content[i_content - 1].nb_bloc; iBloc++){//write the bloc
-        if(write(fd_target, content[i_content - 1].content[0], 512) == -1){
+        if(write(fd_target, content[i_content - 1].content[iBloc], 512) == -1){
             perror("");
             return -1;
         }
@@ -93,7 +104,7 @@ int cp_file_tar(char *source, char *target, int fd_target){
     }if(nb_write > 1){
         if(writeZero(fd_target)==-1)return -1;
         return writeZero(fd_target);
-    }
+    }*/
     return 0;
 }
 void simple_mkdir(char *directory, int fd_target){

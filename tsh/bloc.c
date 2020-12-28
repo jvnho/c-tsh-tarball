@@ -18,7 +18,6 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
     //target should have a '/' at the end
     //source should have a '/' at the end if it's a directory
     char *path_to_source = simpleConcat(fake_path, source);//verification slach si dossier j'appel concat string, si fichier j'appel simple concat
-    
     lseek(descriptor, 0, SEEK_SET);
     struct posix_header header;
     int tmp = 0;
@@ -58,9 +57,10 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
         return -1;
     }
     *starting_index = index_tab;
-    return index_tab;
+    return index_tab > 0 ? index_tab : -1;//nothing was writed
 }
 int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* starting_index){
+    printf("target = %s  source = %s\n", target, source);
     int fd_file;
     if((fd_file = open(source, O_RDONLY)) == -1){
         perror("");
@@ -94,8 +94,9 @@ int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* st
     struct posix_header * newHead = create_header(concate_string(target, source), 0, sizeFile);
     tab[*starting_index].hd = *newHead;
     tab[*starting_index].nb_bloc = nb_bloc;
-    close(fd_file);
     *starting_index = *(starting_index) + 1;
+    close(fd_file);
+
     return 0;
 }
 //extract on the curent directory
