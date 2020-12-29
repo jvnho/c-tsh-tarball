@@ -13,6 +13,7 @@
 
 
 tsh_memory old_memory;
+//char **array_exec
 
 
 int stopCat = 0; // stop the cat when giver without argument
@@ -82,4 +83,8 @@ void exitFromCat(int signal){
         sigaction(SIGINT,&old_cat,NULL);
         return 1;
     }
+}
+
+int cat(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50], int nb_option){
+
 }
