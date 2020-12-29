@@ -54,7 +54,7 @@ void exitFromCat(int signal){
 
 
 //case of the cat where the user gives no arguement
-void exitFromCat(int signal){
+void exec_cat(int signal){
     int pipe_fd[2];
     pipe(pipe_fd);
     int pid = fork();
@@ -85,6 +85,17 @@ void exitFromCat(int signal){
     }
 }
 
+
 int cat(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50], int nb_option){
+    if(nb_arg == 0){
+        //redefining SIGINT signal behaviour
+        struct sigaction action, old_act;
+        memset(&action, 0,sizeof(action));
+        memset(&old_act, 0, sizeof(old_act));
+        action.sa_handler = exitFromCat;
+        signaction(SIGINT,&action, &old_act);
+        return exec_cat(old_act);
+    }
+    //loop
 
 }
