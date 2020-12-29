@@ -254,7 +254,7 @@ créer un adapteur de fonction de manière a ce qu'ils ont la même signature, q
 Et comment faire pour passer les autres argument comme la liste des options, liste d'argument ?
 -> facile on les a déjà stocker dans des tableau qui sont des varible global.
 
-A ce point on a utilisé l' **adaptor pattern** pour uniformaliser la signature et 
+A ce point on a utilisé l' **adaptor pattern** pour uniformaliser la signature, puis
 contourner le passage d'argument via les variables globales. 
 Il reste plus qu'a déclarer le tableau de pointeur de fonction, qui contiendra des pointeurs d'adapteur.
 Pour cela on déclare le type pt_adapter :
@@ -266,6 +266,8 @@ Puis le tableau de pointeur d'adapteur :
 pt_adapter listFun [NB_FUN] = {adapter_cd, adapter_pwd, adapter_mkdir,..
 ```
 Etape 3: execution de la fonction associé a la commande
-*  on sauvegarde d'abord l'ouverture du descritpeur zero, pour le remettre en place après
+*  on cherche dans le tableau de nom de commande
+
+si il existe dans le 
 
 
