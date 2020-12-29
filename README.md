@@ -263,7 +263,7 @@ typedef int (*pt_adapter) (tsh_memory *memory);
 ```
 Puis le tableau de pointeur d'adapteur :
 ```
-pt_adapter listFun [NB_FUN] = {adapter_cd, adapter_pwd, adapter_mkdir,..
+pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls, adapter_rmdir, adapter_rm, adapter_cp}
 ```
 Etape 3: execution de la fonction associé a la commande
 *  on cherche l'indice de la commande, dans le tableau de nom de commande
