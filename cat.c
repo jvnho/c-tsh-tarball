@@ -54,14 +54,6 @@ void exitFromCat(int signal){
     
 }
 
-void exitFromCat2(int signal){
-    if(signal == SIGINT){
-         stopCat = 1;
-    }
-    
-    exit(-1);
-    
-}
 
 
 //case of the cat where the user gives no arguement
