@@ -42,8 +42,12 @@ void cat_in_tar(int fd, char* PATH){ //test tar
 
 
 void exitFromCat(int signal){
-    if(signal == SIGINT) stopCat = 1;
-    else exit(-1);
+    if(signal == SIGINT){
+         stopCat = 1;
+    }
+    else {
+        exit(-1);
+    }
     
 }
 
