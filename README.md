@@ -266,8 +266,11 @@ Puis le tableau de pointeur d'adapteur :
 pt_adapter listFun [NB_FUN] = {adapter_cd, adapter_pwd, adapter_mkdir,..
 ```
 Etape 3: execution de la fonction associé a la commande
-*  on cherche dans le tableau de nom de commande
-
-si il existe dans le 
+*  on cherche l'indice de la commande, dans le tableau de nom de commande
+*  (-1) si il existe pas dans le tableau de nom, on fait un fork puis exec de la commande
+*  (i) si il existe dans le tableau, on appel la fonction a l'indice i du tableau de pointeur de fonction 
+```
+(*(listFun[fun_index]))(memory);
+```
 
 
