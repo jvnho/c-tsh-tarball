@@ -26,10 +26,12 @@ char** execvp_array(char *cmd, char *dir, char option[50][50], int nb_option){
     strcpy(ret[0], cmd);
     
     int index = 1;
-    for(int i = 0; i < nb_option; i++){
-        assert((ret[index] = malloc(sizeof(char)*strlen(option[i]))) != NULL);
-        strcpy(ret[index], option[i]);
-        index++;
+    if(option != NULL){
+        for(int i = 0; i < nb_option; i++){
+            assert((ret[index] = malloc(sizeof(char)*strlen(option[i]))) != NULL);
+            strcpy(ret[index], option[i]);
+            index++;
+        }
     }
     if(dir != NULL){
         assert((ret[index] = malloc(sizeof(char)*strlen(dir))) != NULL);

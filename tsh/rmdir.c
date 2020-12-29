@@ -11,9 +11,8 @@
 #include "rmdir.h"
 #include "cd.h"
 #include "string_traitement.h"
-#include "function.h"
+#include "exec_funcs.h"
 
-tsh_memory old_memory;
 char **array_execvp;
 
 //returns the number of times the path appears in the tarball
@@ -22,8 +21,10 @@ int occ_counter_path(int fd, char* full_path, off_t* file_offset, off_t *tar_siz
     lseek(fd, 0, SEEK_SET);
     int occurence = 0;
     struct posix_header hd;
-    while(read(fd, &hd, 512) > 0){//reading the entire tarball
-        if(strncmp(hd.name, full_path, strlen(full_path)) == 0){
+    while(read(fd, &hd, 512) > 0)
+    {
+        if(strncmp(hd.name, full_path, strlen(full_path)) == 0)
+        {
             occurence++;
             if(hd.typeflag == '5'){
                 *file_offset = lseek(fd,0,SEEK_CUR);//position of the blocks RIGHT NEXT to the one the user wants to delete
@@ -50,7 +51,8 @@ int rmdir_in_tar(int fd, char* full_path){
     }
     // we found one AND only ONE block so we proced to shift blocks
     lseek(fd,file_offset, SEEK_SET); //starting from the end of the block we want to delete
-    while(read(fd, &hd, BLOCKSIZE) > 0){
+    while(read(fd, &hd, BLOCKSIZE) > 0)
+    {
         lseek(fd, (-BLOCKSIZE*2), SEEK_CUR); //going back to the last block
         write(fd, &hd, BLOCKSIZE); //overwriting the block
         lseek(fd, BLOCKSIZE, SEEK_CUR); //repositionning the offset to the next replacing block
@@ -63,10 +65,10 @@ int rmdir_in_tar(int fd, char* full_path){
 
 int rmdir_func(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],int nb_option){
     char location[512];
-    for(int i = 0; i < nb_arg; i++){
-
+    tsh_memory old_memory;
+    for(int i = 0; i < nb_arg; i++)
+    {
         copyMemory(memory, &old_memory);
-
         getLocation(args[i], location); //check string_traitement for details
         int lenLocation = strlen(location);
         char *dirToDelete = args[i];
@@ -77,10 +79,13 @@ int rmdir_func(tsh_memory *memory, char args[50][50], int nb_arg, char option[50
             dirToDelete = args[i] + lenLocation;
         }
         
-        if(in_a_tar(memory) == 1){
+        if(in_a_tar(memory) == 1)
+        {
             char *path_to_dir = concatDirToPath(memory->FAKE_PATH, dirToDelete);
             rmdir_in_tar(atoi(memory->tar_descriptor),path_to_dir);
-        } else {
+        } 
+        else 
+        {
             if(option_present("-p", option, nb_option) == 1 || option_present("--parents", option, nb_option)){ //cas spécial du rmdir du système unix 
                 restoreLastState(old_memory,memory);
                 array_execvp = execvp_array("rmdir",args[i],option, nb_option);
@@ -88,6 +93,7 @@ int rmdir_func(tsh_memory *memory, char args[50][50], int nb_arg, char option[50
                 array_execvp = execvp_array("rmdir",dirToDelete,option, nb_option);
             }
             exec_cmd("rmdir", array_execvp);
+            if(array_execvp != NULL) free(array_execvp);
         }
         restoreLastState(old_memory,memory);
     }

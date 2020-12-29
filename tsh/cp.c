@@ -12,11 +12,13 @@
 #include "tar.h"
 #include "string_traitement.h"
 #include "cd.h"
+
 content_bloc content[512];//fill it befor the specifc call of cp (cp_tar_tar or cp_tar_dir)
 int i_content = 0;//don't forget to reset this, with the tab
 int temp_fd;
 tsh_memory old_memory;
 char location[512];
+
 void resetContent(){
     for(int i = 0; i<=i_content; i++){
         memset(&(content[i]), 0, sizeof(content_bloc));

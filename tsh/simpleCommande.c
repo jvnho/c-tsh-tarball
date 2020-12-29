@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 
 #include "tsh_memory.h"
+#include "simpleCommande.h"
 #include "cd.h"
 #include "pwd.h"
 #include "mkdir.h"
@@ -13,11 +14,13 @@
 #include "rmdir.h"
 #include "string_traitement.h"
 #include "rm.h"
+#include "redirection.h"
 #include "cp.h"
+#include "mv.h"
 
 
-char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir", "rm", "cp"};
-#define NB_FUN 8
+char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir", "rm", "cp", "mv"};
+#define NB_FUN 9
 char co[50];
 char option[50][50];
 int i_option = 0;
@@ -157,9 +160,12 @@ int adapter_cp(tsh_memory *memory){
     if(i_option)return copy_tar(option, args, i_option, i_args, memory);
     return copy_tar(NULL, args, i_option, i_args, memory);
 }
+int adapter_mv(tsh_memory *memory){
+    return mv(memory, args, i_args, option, i_option);
+}
 
 typedef int (*pt_adapter) (tsh_memory *memory);//declaration pointer of function
-pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls, adapter_rmdir, adapter_rm, adapter_cp};
+pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls, adapter_rmdir, adapter_rm, adapter_cp, adapter_mv};
 
 int getFuncitonIndex(char *name){
     for(int i=0; i<NB_FUN; i++){
@@ -217,9 +223,7 @@ int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
     return 0;
 }
 int execute(tsh_memory *memory){
-    if(strstr(memory->comand, "|")==NULL){//Pas de pipe
-        execSimpleCommande(memory);
-    }else{
+    if(strstr(memory->comand, "|") != NULL){//Pipe found in command line
         tsh_memory mem1;
         tsh_memory mem2;
         if(spilitPipe(memory, &mem1, &mem2) == -1){
@@ -227,6 +231,11 @@ int execute(tsh_memory *memory){
             return -1;
         }
         pipe_tsh(&mem1, &mem2);
+    } else if(strstr(memory->comand,"<") != NULL || strstr(memory->comand,">") != NULL){
+        redirection(memory);
+    }
+    else{
+        execSimpleCommande(memory);
     }
     return 0;
 }

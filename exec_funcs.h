@@ -1,5 +1,5 @@
-#ifndef FUNCTION_H
-#define FUNCTION_H
+#ifndef EXEC_FUNCS_H
+#define EXEC_FUNCS_H
 
 #include "tsh_memory.h"
 
