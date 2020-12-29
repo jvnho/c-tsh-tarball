@@ -11,7 +11,6 @@
 #include "tar.h"
 #include "tsh_memory.h"
 #include "string_traitement.h"
-#include "exec_funcs.h"
 #include "mv.h"
 
 //check if redirection entered by user make sense ex: "ls > fic >> fic2 2&>1" doesn't make sense
@@ -48,49 +47,78 @@ void convert_to_simple_cmd(tsh_memory *memory){
     }
     new_cmd[strlen(new_cmd)] = '\0';
     strcpy(memory->comand, new_cmd);
+    printf("%s %ld", memory->comand, strlen(memory->comand));
 }
 
-int fill_redir_array(tsh_memory *memory, redirection_array *data, char *target, int output, int append){
+int fill_redir_array(tsh_memory *src_memory, redirection_array *data, char *target, int output, int append){
     if(is_unix_directory(target) == 1 || target[strlen(target)-1] == '/') return -1; //redirection given is a directory so we abort
 
-    tsh_memory old_memory;
-    char *redir_name = target;
-    char location[512];
+    tsh_memory target_mem;
+    copyMemory(src_memory, &target_mem);//Copy the curent state of the programm
+
+    char *redir_name = target, location[512];
     getLocation(redir_name, location);
     int lenLocation = strlen(location);
-    copyMemory(memory, &old_memory);//Keeps the curent state of the programm
     if(lenLocation > 0)
     {
-        if(cd(location, memory) == -1) return -1; //if one of the redirection is incorrect we abort
+        if(cd(location, &target_mem) == -1) return -1; //if one of the redirection is incorrect we abort
         redir_name += strlen(location);
     }
-    else if(lenLocation == 0 && strstr(redir_name, ".tar"))
-    {
-        if(cd(target, memory) == -1) return -1; //same
+    else if(lenLocation == 0 && strstr(redir_name, ".tar")){
+        if(cd(target, &target_mem) == -1) return -1; //same
     }
-    //starting to fill
+
+    //Be careful and notice src_memory and target_mem
     int index = data->NUMBER;
-    if(in_a_tar(memory) == 1)
+    if(in_a_tar(src_memory) == 0) //outside tar to (somewhere...)
     {
-        data->IN_A_TAR[index] = 1;
-        if(lenLocation > 0) 
-            strcpy(data->NAME[index], redir_name);
-        else 
-            strcpy(data->NAME[index], target);
-        char *cur_full_path = getPath(memory);
-        cur_full_path[strlen(cur_full_path)-2] = '\0'; //removing'$'
-        char tar_path[512]; //will be the header path of the tar file
-        concatenationPath(memory->tar_name, "/", tar_path);
-        get_tar_path(memory, cur_full_path, tar_path); //check @string_traitement.c
-        strcpy(data->REDIR_PATH[index],tar_path);
-    } else {
-        data->IN_A_TAR[index] = 0;
-        strcpy(data->REDIR_PATH[index], target);
+        if(in_a_tar(&target_mem) == 0){ //outside a tar to outside a tar
+            //MARCHE
+            data->IN_A_TAR[index] = 0;
+            strcpy(data->REDIR_PATH[index], target);
+            //champ NAME de la struct pas important dans ce cas-là
+        }
+        else //outside a tar to inside a tar
+        {
+            //MARCHE
+            data->IN_A_TAR[index] = 1;
+            strcpy(data->NAME[index], redir_name); //name of the file
+            char *cur_full_path = getPath(&target_mem);
+            cur_full_path[strlen(cur_full_path)-2] = '\0'; //removing'$'
+            strcpy(data->REDIR_PATH[index],cur_full_path); //where the file will be relocated
+        }
+    }
+    else if(in_a_tar(src_memory) == 1) //inside a tar to (somewhere...)
+    { 
+        if(in_a_tar(&target_mem) == 1) //inside a tar to a inside a tar
+        {
+            //MARCHE MAIS PAS A LA RACINE DU TAR
+            data->IN_A_TAR[index] = 1;
+
+            char location_src[512]; //location of the created file which is just outside the open tar
+            getcwd(location_src, 512);
+            strcat(location_src, "/");
+            strcat(location_src, redir_name);
+            
+            strcpy(data->NAME[index], location_src); //location of the source file donner le chemin absolu juste en dehors du tar
+            strcpy(data->REDIR_PATH[index], location); //pas target ici
+        } 
+        else // inside a tar to outside a tar
+        {   
+            //MARCHE PAS
+            printf("tar -> out\n");
+            data->IN_A_TAR[index] = 0;
+            char *cur_full_path = getPath(&target_mem), location[512];
+            cur_full_path[strlen(cur_full_path)-2] = '\0'; //removing'$'
+            concatenation(cur_full_path,redir_name, location);
+            printf("%s\n", location);
+            strcpy(data->REDIR_PATH[index],location); //where the file will be located
+            //champ NAME non important non plus
+        }
     }
     data->STD[index] = output;
     data->APPEND[index] = append;
     data->NUMBER++;
-    restoreLastState(old_memory, memory);
     return 0;
 }
 
@@ -125,17 +153,6 @@ struct redirection_array* associate_redirection(tsh_memory *memory, char *cmd){
         else tok = strtok(NULL," ");
     }
     return data;
-}
-
-void print_date(redirection_array *data){
-    for(int i = 0 ; i < data->NUMBER; i++){
-        printf("NAME: %s\n", data->NAME[i]);
-        printf("STD %d \n", data->STD[i]);
-        printf("APPEND %d \n", data->APPEND[i]);
-        printf("IN_A_TAR %d\n", data->IN_A_TAR[i]);
-        printf("REDIR_PATH %s \n", data->REDIR_PATH[i]);
-        printf("NUMBER %d \n", data->NUMBER);
-    }
 }
 
 int redirection(tsh_memory *memory){
@@ -201,17 +218,11 @@ int redirection(tsh_memory *memory){
     dup2(old_stderr, STDERR_FILENO);
 
     //Procedure to move the file into the tar in needed
-    for(int i = 0; i < data->NUMBER; i++) 
+   for(int i = 0; i < data->NUMBER; i++) 
     { 
         if(data->IN_A_TAR[i] == 1){ //redirection file was supposed to be in a tar so we move it
-            char path_to_src[512]; //src file is located in the working directory
-            getcwd(path_to_src, 512);
-            strcat(path_to_src, "/");
-            strcat(path_to_src, data->NAME[i]);
-            printf("src %s\n", path_to_src);
-            printf("target %s\n", data->REDIR_PATH[i]);
-            do_mv(memory, path_to_src,data->REDIR_PATH[i], NULL, 0);
-        } else continue;
+            do_mv(memory, data->NAME[i],data->REDIR_PATH[i], NULL, 0);
+        }
     }
     free(data);
     return 1;
