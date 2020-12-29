@@ -13,10 +13,12 @@
 
 
 tsh_memory old_memory;
-//char **array_exec
+char **array_execvp;
 
 
-int stopCat = 0; // stop the cat when giver without argument
+//int stopCat = 0; // stop the cat when giver without argument
+
+int stopCat = 0;
 
 void cat_in_tar(int fd, char* PATH){ //test tar
     lseek(fd,0,SEEK_SET);
@@ -54,7 +56,7 @@ void exitFromCat(int signal){
 
 
 //case of the cat where the user gives no arguement
-int exec_cat(struct signaction old_act){
+int exec_cat(struct sigaction old_act){
     int pipe_fd[2];
     pipe(pipe_fd);
     int pid = fork();
@@ -62,7 +64,7 @@ int exec_cat(struct signaction old_act){
     memset(buffer,0,1024);
     if(pid == 0){
         close(pipe_fd[0]);
-        while(read(0,buffer,1024) > && stopCat == 0){
+        while(read(0,buffer,1024) > && stopCat == 0){ // don't work
             write(pipe_fd[1], buffer, strlen(buffer));
             memset(buffer,0,1024);
         }
@@ -77,10 +79,10 @@ int exec_cat(struct signaction old_act){
             memset(buffer,0,1024);
 
         }
-        close(pipe_fd[0])
+        close(pipe_fd[0]);
 
         //redefining SIGINT singal behaviour to default
-        sigaction(SIGINT,&old_cat,NULL);
+        //sigaction(SIGINT,&old_cat,NULL);
         return 1;
     }
 }
@@ -96,8 +98,34 @@ int cat(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50], 
         signaction(SIGINT,&action, &old_act);
         return exec_cat(old_act);
     }
-    //loop
     
+    for(int i = 0; i < nb_arg; i++){
+        //start
+        char *fileToCat = args[i];
+        if(fileToCat[strlen(fileToCat -1)] == '/' || is_unix_directory(fileToCat)== 1) continue; //lose directory
+          copyMemory(memory,&old_memory); // saving current state of tsh memory
+
+          char location[512];
+          memset(location, 0,512);
+          getLocation(fileToCat, location); //
+
+          if(strlen(location)> 0){
+              //if(cd(location,memory)== -1) continue; // when user give incorrect path
+              fileToCat += strlen(location);
+          }
+          if(in_a_tar(memory)==1){
+              char *path_to_target = concate_string(memory->FAKE_PATH, fileToCat);
+              cat_in_tar(ato1(memory->tar_descriptor), path_to_target);
+              free(path_to_target);
+          }
+          else{
+              array_execvp = execvp_array("cat", fileToCat, option, nb_option);
+
+          }
+          restoredLastState(old_memory,memory);
+
+    }
+    return 1;
 
 
 }
