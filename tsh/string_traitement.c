@@ -199,7 +199,7 @@ int get_prev_directory(char *path){
 }
 
 void octal_to_string(char *mode, char *result){
-    memset(result, 0, sizeof(result));
+    memset(result, 0, 512);
     for(int i = 0; i < strlen(mode); i++)
     {
         switch(mode[i]){
@@ -307,8 +307,7 @@ int spilitPipe(tsh_memory *source, tsh_memory *memory1, tsh_memory *memory2){
     return 0;
 }
 
-void get_tar_path(tsh_memory *memory, char *container, char *abs_path){
-    printf("abs_path %s\n", abs_path);
+void get_tar_path(tsh_memory *memory, char *abs_path, char *container){
     memset(container,0, 512);
     char *sub = strstr(abs_path, ".tar");
     int starting = sub - abs_path;
