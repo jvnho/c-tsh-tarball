@@ -82,6 +82,7 @@ int exec_cat(struct sigaction old_act){
         close(pipe_fd[0]);
 
         //redefining SIGINT singal behaviour to default
+        
         //sigaction(SIGINT,&old_cat,NULL);
         return 1;
     }
@@ -110,7 +111,7 @@ int cat(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50], 
           getLocation(fileToCat, location); //
 
           if(strlen(location)> 0){
-              //if(cd(location,memory)== -1) continue; // when user give incorrect path
+              if(cd(location,memory)== -1) continue; // when user give incorrect path (problem with cd function)
               fileToCat += strlen(location);
           }
           if(in_a_tar(memory)==1){
@@ -120,6 +121,7 @@ int cat(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50], 
           }
           else{
               array_execvp = execvp_array("cat", fileToCat, option, nb_option);
+              exec_cmd("cat",array_execvp);
 
           }
           restoredLastState(old_memory,memory);
