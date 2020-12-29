@@ -167,7 +167,6 @@ int redirection(tsh_memory *memory){
 
     int fd_fic_out = 0, fd_fic_err = 0, fd_fic_mix = 0;//Respectively file descriptor than will receive redirection from >, 2>, 2>&1
     int old_stdout = dup(STDOUT_FILENO), old_stderr = dup(STDERR_FILENO); 
-    /*
     for(int i = 0; i < data->NUMBER; i++) //Going through this loop at most 2 times 
     { 
         char *file_path;
@@ -230,6 +229,6 @@ int redirection(tsh_memory *memory){
             do_mv(memory, data->NAME[i],data->REDIR_PATH[i], NULL, 0);
         }
     }
-    free(data);*/
+    free(data);
     return 1;
 }
