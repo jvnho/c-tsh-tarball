@@ -218,5 +218,54 @@ D'ailleurs la commande est déjà dans les memory (le champs command)
 
 
 **3 - COMMANDE ET APPEL DE FONCTION**
-*traitement de commande*
+
+**3.1 - traitement de commande**
+*simpleCommande.c* `int execute(tsh_memory *memory)`
+
+Etape 1 : verifié la commande dans memory si il y a un charactère '|' ou '>', '2>'
+* si on a un '|' on split la commande en 2 par rapport au dernier slach, et on appel la fonction pipe_tsh
+* si on a une redirection, on appel la fonction de redirection
+* si on a pas de characère spécial on passe a l'étape 2
+
+
+Pour faciliter l'appel de fonction pour plus tard on stock séparément le nom de la commande, les options et les arguments.
+```
+char co[50];
+char option[50][50];
+char args[50][50];
+```
+Etape 2: appel de la fonction `int execSimpleCommande(tsh_memory *memory)` sur le memory
+* réinitialiser les tableaux co, option, args (du aux valeurs des appels précédents)
+* remplir le tableau en fonction de la commande actuelle
+* passage a l'étape 3
+
+Pour automatiser l'appel des fonctions en fonction du nom de commande, on utilisé deux tableaux :
+`char *listCommande[]` : pour chercher a quel indice se trouve le nom de la commande
+`pt_adapter listFun [NB_FUN]` : un tableau de pointeur de fonction pour pouvoir invoqué la fonction par son indice
+
+**pt_adapter**
+pour pouvoir stocker toutes les pointeur de fonctions dans un seul tableau, 
+il faut déjà que les fonction pointé ont la même signature, ce qui n'est pas notre cas 
+vu que certaines fonctions prennent la liste des arguments et d'autres non, et le seul point communs
+est qu'il prennent tous un `tsh_memory *` en arguments.
+
+*solution* 
+créer un adapteur de fonction de manière a ce qu'ils ont la même signature, qui prend un `tsh_memory *` et renvoie un `int`
+Et comment faire pour passer les autres argument comme la liste des options, liste d'argument ?
+-> facile on les a déjà stocker dans des tableau qui sont des varible global.
+
+A ce point on a utilisé l' **adaptor pattern** pour uniformaliser la signature et 
+contourner le passage d'argument via les variables globales. 
+Il reste plus qu'a déclarer le tableau de pointeur de fonction, qui contiendra des pointeurs d'adapteur.
+Pour cela on déclare le type pt_adapter :
+```
+typedef int (*pt_adapter) (tsh_memory *memory);
+```
+Puis le tableau de pointeur d'adapteur :
+```
+pt_adapter listFun [NB_FUN] = {adapter_cd, adapter_pwd, adapter_mkdir,..
+```
+Etape 3: execution de la fonction associé a la commande
+*  on sauvegarde d'abord l'ouverture du descritpeur zero, pour le remettre en place après
+
 
