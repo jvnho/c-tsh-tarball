@@ -40,6 +40,14 @@ void cat_in_tar(int fd, char* PATH){ //test tar
     
 }
 
+
+void exitFromCat(int signal){
+    if(signal == SIGINT) stopCat = 1;
+    else exit(-1);
+    
+}
+
+
 //case of the cat where the user gives no arguement
 void exitFromCat(int signal){
     int pipe_fd[2];
@@ -70,7 +78,4 @@ void exitFromCat(int signal){
         sigaction(SIGINT,&old_cat,NULL);
         return 1;
     }
-}
-void exitFromCat(int signal){
-    
 }
