@@ -6,6 +6,8 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <assert.h>
+#include <wait.h>
+
 #include "bloc.h"
 #include "tar.h"
 #include "string_traitement.h"

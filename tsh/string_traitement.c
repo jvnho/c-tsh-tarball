@@ -137,7 +137,7 @@ char *concate_string(char *s1, char *s2){
 }
 
 int get_index_first_slach(char *initial_string){
-    char * substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
+    char * substring = strstr(initial_string, ".tar");
     if(substring == NULL)return -1;//there is not a .tar -> so there is not first slach befor .tar
     int index_point = substring - initial_string;
     for(int i = index_point; 0<=i; i--){
@@ -164,7 +164,7 @@ void getTarName(char *initial_string, char *result){
     int first_slach_beforTar = get_index_first_slach(initial_string);
     if(first_slach_beforTar == -1)return;//there is nothing to complete
     //cherching the ending index .tar<-
-    char *substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
+    char *substring = strstr(initial_string, ".tar");
     int ending_index = substring - initial_string + strlen("tar");
     if(first_slach_beforTar == 0){//copy form 0 to ending index
         memcpy(result, initial_string, ending_index + 1);
@@ -177,7 +177,7 @@ void getTarName(char *initial_string, char *result){
 //
 void getPostTar(char *initial_string, char *result){
     memset(result, 0, 512);
-    char *substring = memmem(initial_string, strlen(initial_string), ".tar", strlen(".tar"));
+    char *substring = strstr(initial_string, ".tar");
     int len_initial = strlen(initial_string);
     //there is not a .tar so there is not an after .tar
     if(substring == NULL)return;
@@ -231,9 +231,9 @@ int getFirstDir(char *source, char *result){
 }
 char **addNullEnd(char **initial, int size){
     char **result;
-    assert(result = malloc((size + 1)*sizeof(char *)));
+    assert((result = malloc((size + 1)*sizeof(char *))) != NULL);
     for(int i = 0; i< size; i++){
-        assert(result[i] = malloc(strlen(initial[i])*sizeof(char)));
+        assert((result[i] = malloc(strlen(initial[i])*sizeof(char))) != NULL);
         strcpy(result[i], initial[i]);
     }
     result[size] = NULL;
