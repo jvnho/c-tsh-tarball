@@ -219,11 +219,9 @@ int execute(tsh_memory *memory){
         return pipe_tsh(&mem1, &mem2);
     } else if(strstr(memory->comand,"<") != NULL || strstr(memory->comand,">") != NULL)
     {
-        redirection(memory);
+        return redirection(memory);
     }
-    else
-    {
-        if((returnval = execSimpleCommande(memory)))printError(memory, returnval);
-        return returnval;
-    }
+    if((returnval = execSimpleCommande(memory)))
+        printError(memory, returnval);
+    return returnval;
 }
