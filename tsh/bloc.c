@@ -62,6 +62,7 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
     *starting_index = index_tab;
     return index_tab > 0 ? index_tab : -1;//nothing was writed
 }
+//***
 int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* starting_index){
     int fd_file;
     if((fd_file = open(source, O_RDONLY)) == -1){
@@ -93,18 +94,21 @@ int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* st
         close(fd_file);
         return -1;
     }
-    struct posix_header * newHead = create_header(concate_string(target, source), 0, sizeFile);
-    tab[*starting_index].hd = *newHead;
+    char newname[512];
+    concatenation(target, source, newname);
+    struct posix_header newHead = create_header(newname, 0, sizeFile);
+    tab[*starting_index].hd = newHead;
     tab[*starting_index].nb_bloc = nb_bloc;
     *starting_index = *(starting_index) + 1;
     close(fd_file);
 
     return 0;
 }
+//**
 //extract on the curent directory
 int fill_fromDir_outside(content_bloc *tab, char *directory, int* starting_index){
-    struct posix_header *new_head = create_header(directory, 1, 0);
-    tab[*starting_index].hd = *new_head;
+    struct posix_header new_head = create_header(directory, 1, 0);
+    tab[*starting_index].hd = new_head;
     *starting_index = *starting_index + 1;
     char name_concat[512];
     DIR *dir = opendir(directory);

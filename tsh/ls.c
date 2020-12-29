@@ -220,7 +220,7 @@ int ls(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],in
         } else { 
             array_execvp = execvp_array("ls", NULL,option,nb_option);
             exec_cmd("ls", array_execvp);
-            free(array_execvp);
+            if(array_execvp != NULL) free(array_execvp);
         }
     } 
     else 

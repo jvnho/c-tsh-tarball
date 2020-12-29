@@ -113,8 +113,8 @@ int cp_file_tar(char *source, char *target, int fd_target){
 }
 void simple_mkdir(char *directory, int fd_target){
     put_at_the_first_null(fd_target);
-    struct posix_header *new_head = create_header(directory, 1, 0);
-    write(fd_target, new_head, 512);
+    struct posix_header new_head = create_header(directory, 1, 0);
+    write(fd_target, &new_head, 512);
     writeZero(fd_target);
 }
 int cp_dir_tar(char *directory, char *target, int fd_target, int r){
@@ -136,7 +136,6 @@ int cp_dir_tar(char *directory, char *target, int fd_target, int r){
             struct stat buff;
             
             concatenationPath(directory, inoeud_nom->d_name, name_concat);
-            
             if(lstat(name_concat, &buff)==-1)perror("lstat:");
             if(S_IFDIR & buff.st_mode){//if it's a dir
                 cp_dir_tar(name_concat, target, fd_target, r);
@@ -302,6 +301,7 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
             return returnValue;
         }//from outside to -> .tar
         else{
+            printf("outisde\n");
             //check the file type
             struct stat status;
             if(lstat(fileToCopy, &status)==-1){//case of error restore the memory
