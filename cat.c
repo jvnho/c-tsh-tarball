@@ -54,7 +54,7 @@ void exitFromCat(int signal){
 
 
 //case of the cat where the user gives no arguement
-void exec_cat(int signal){
+int exec_cat(struct signaction old_act){
     int pipe_fd[2];
     pipe(pipe_fd);
     int pid = fork();
@@ -97,5 +97,7 @@ int cat(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50], 
         return exec_cat(old_act);
     }
     //loop
+    
+
 
 }
