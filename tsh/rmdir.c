@@ -81,7 +81,8 @@ int rmdir_func(tsh_memory *memory, char args[50][50], int nb_arg, char option[50
         
         if(in_a_tar(memory) == 1)
         {
-            char *path_to_dir = concatDirToPath(memory->FAKE_PATH, dirToDelete);
+            char path_to_dir[512];
+            concatDirToPath(memory->FAKE_PATH, dirToDelete, path_to_dir);
             rmdir_in_tar(atoi(memory->tar_descriptor),path_to_dir);
         } 
         else 

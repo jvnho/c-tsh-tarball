@@ -6,7 +6,7 @@ extern int string_to_int(char *chiffre);
 extern int get_prev_directory(char *path);
 extern char *int_to_string(int chiffre, char *result);
 extern char * simpleConcat(char *path, char *dir);
-extern char * concatDirToPath(char * path, char *dir);
+extern void concatDirToPath(char * path, char *dir, char *result);
 extern char *concate_string(char *s1, char *s2);
 extern void getPreTar(char *initial_string, char *result);
 extern void getTarName(char *initial_string, char *result);
