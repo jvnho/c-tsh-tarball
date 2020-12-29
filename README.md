@@ -7,7 +7,6 @@
         si on est dans un .tar (il contient l'ouverture pour ce .tar, le nom de ce .tar, la position courante dans ce .tar)
 
 *  une boucle principale qui affiche le répertoire courant, puis read sur l'entrée standard puis exécute la commande correspondante ce qui est dans le *buffer* du read.
-      **(pour le moment on a pas encore fait le lien entre la commande écrit via le read et l’appel de fonction correspondante)**
 
 
 **1.2 les commandes**
@@ -58,7 +57,9 @@ typedef struct tsh_memory{
     - getPath(tsh_memory *state) -> retourne la position courante global depuis position absolue
 
     - in_a_tar(tsh_memory *state) -> retourne un 0 ou 1 si on est dans un faux dossier (.tar)
-
+    
+    -copyMemory(tsh_memory *source, tsh_memory *target) -> sauvegarde l'état de source dans target
+    
 **2.2 cd.c:**  `cd(char *directory, tsh_memory *memory)`
 
 *  Si on est dans un .tar
@@ -81,10 +82,13 @@ typedef struct tsh_memory{
 concatener le répertoire courant du processus, avec **tar_ name et FAKE_PATH**
 
 **2.4 mkdir.c**
-`mkdir( char *directory, tsh_memory *memory)`
+`int mkdir_tar(char listOption[50][50], char listArgs[50][50], int size_option, int size_args, tsh_memory *memory)`
+
+on execute la fonction `int makeDirectory(char listOption[50][50], char *dir_name, int size_option, tsh_memory *memory)` 
+sur chaque arguments dans listAgs.
 
 *  Si on est pas dans un .tar
-		on crée un processus fils pour utilisé exec sur mkdir
+		on crée un processus fils pour utilisé exec sur mkdir avec les options passées en argument
 
 *  Si on est dans un .tar
 		on crée une variable *posix_header* qui aura comme name FAKE_PATH/directory
@@ -155,33 +159,50 @@ Elle fait également appel à une fonction `cat_all()`(si la conditon passe) qui
  Pour se rapprocher au maximum de ce que l'on peut rencontrer dans l'utilisation d'un cat classique
 certains réglages et améliorations, sans encore en cours d'élaboration...
 
+**2.8 cp.c**
+`int copy_tar(char listOption[50][50], char listArgs[50][50], int size_option, int size_args, tsh_memory *memory)`
+
+Appliqué en boucle la fonction `int copy(char listOption[50][50], int size_option, char *source, char *real_target, tsh_memory *memory, int r)`
+Etape 1 : identification du cas de copy
+- tar -> tar
+- outside -> tar
+- tar -> outside
+- outside -> outside
+
+pour cela on fait un cd vers le target et on sauvegarde l'état du memory courant dans un `memoryTarget`, 
+puis depuis l'état initial de la memory on fait un cd source et l'état, ce qui modifie memory en fonction de l'état du source.
+
+Etape 2 : appel de cp associé a chaque cas
+- (tar -> tar) cp_tar_tar
+- (outside -> tar) cp_dir_tar si source est un dossier, sinon cp_file_tar
+- (tar -> outside) cp_tar_outside
+- (outside -> outside) cp_outside_outside
+
+*Fonctionnement des cas particulier de cp*
+on lit les données de source que ce soit dans un tar ou a l'exterieur, on les stock dans un tableau de couple struct_posix header et bloc contenu 
+puis au target on lit ce tableau tout en écrivant ce qu'il y a dedans.
+
+*bloc.c*
+Pour mieux organiser le stockage et le parcours de donné on a utilisé la structure `content_bloc`
+```
+typedef struct content_bloc{
+    struct posix_header hd;//header
+    char content[512][512];
+    int nb_bloc;
+}content_bloc;
+```
+les données de cp sont donc un tableau de `content_bloc`
+
+**2.8 pipe.c**
+`int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2)`
+Normalement un pipe prend deux commande en argument, mais dans notre modélisation 
+une commande ne suffit pas il faut aussi le context d'execution de la commande (dans un tar ou pas, si oui quel est le descritpeur,.)
+D'ailleurs la commande est déjà dans les memory (le champs command)
+
+*  on sauvegarde d'abord l'ouverture du descritpeur zero, pour le remettre en place après
+*  creer un processus fils qui executera le memory1
+*  dans le père attend la fin de l'execution de memory1 pour executer memory2
 
 
+**3 - COMMANDE ET APPEL DE FONCTION**
 
-
-
-**3 - FUTURS FONCTIONALITÉS**
-Pour associer les commandes et les fonctions à appeler, on pensait faire un tableau de string contenant la liste des commandes (tab1) et un second tableau de pointeur de fonction (tab2)
-et utiliser une fonction `appel_de_fonction` qui:
-
-*  prend en argument le nom de la commande en string et ses arguments
-
-*  regarde l' indice de la commande dans tab1
-
-*  appel sur le pointeur de fonction dans tab2 a cette indice avec les argument passé en paramètre
-
-*  si jamais la commande n’est pas répertorié dans tab1 on fait un simple exec
-ex: 	tab1 ["cd", "mkdir"]  tab2 [cd, mkdir]
-	-> mkdir truc
-	->( *( tab2[getIndice(tab1, "mkdir")] ) ) (truc)
-
-**PROBLEME**
-Mais pour cela il faudra déjà réussir récupérer efficacement toutes les **sous string correspondants au nom de la commande et ses arguments** (dans un char * buffer_du_read)
-Ce qui s'avère très compliqué vu qu'on aura plusieurs commandes notamment à cause du pipe
-- comment, dans un char* chercher chaque commande en sous string (vu qu'on a plusieurs )
-et découper toutes ces commandes en paquet avec leur argument respectif  (vu que chaque commande auront une liste de (char *) argument)
-et tout ca sans faire trop de malloc, car c'est une opération répétée à chaque fois que l'utilisateur rentre une commande.
-
-**PROBLEMATIQUE**
-Comment le shell gère les commandes qu'il prend par le read,
-sachant que le buffer du read peut contenir plusieurs commandes avec des caractères pipe et chaque commandes peuvent avoir une liste d’arguments, le tout dans un buffer_du_read qui est un char*.
