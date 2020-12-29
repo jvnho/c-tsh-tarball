@@ -4,8 +4,6 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <assert.h>
-//#include <cp.h>
-#include <wait.h> //temporaire
 
 #include "simpleCommande.h"
 #include "tar.h"
@@ -13,10 +11,8 @@
 #include "cd.h"
 #include "string_traitement.h"
 #include "tsh_memory.h"
-#include "rm.h"
 #include "exec_funcs.h"
-
-tsh_memory old_memory; //will be use to save/restore a memory
+#include "mv.h"
 
 //check if redirection entered by user make sense ex: "ls > fic >> fic2 2&>1" doesn't make sense
 //analysing the "redirection_array" struct
@@ -57,9 +53,9 @@ void convert_to_simple_cmd(tsh_memory *memory){
 int fill_redir_array(tsh_memory *memory, redirection_array *data, char *str, int output, int append){
     if(is_unix_directory(str) == 1 || str[strlen(str)-1] == '/') return -1; //redirection given is a directory so we abort
 
+    tsh_memory old_memory;
     char *redir_name = str;
     char location[512];
-    memset(location,0, 512);
     getLocation(redir_name, location);
     copyMemory(memory, &old_memory);//Keeps the curent state of the programm
     if(strlen(location) > 0)
@@ -129,16 +125,6 @@ struct redirection_array* associate_redirection(tsh_memory *memory, char *cmd){
     return data;
 }
 
-void delete_file(char *target){ //temporary
-    int pid = fork();
-    if(pid == 0){ //child
-        execlp("rm", "rm", target, NULL);
-        exit(0);
-    } else { //parent   
-        waitpid(pid, NULL, 0);
-    }
-}
-
 int redirection(tsh_memory *memory){
     struct redirection_array *data = associate_redirection(memory, strdup(memory->comand)); 
     if( data == NULL || is_redirection_valid(data) == -1) return -1; //Redirection given by user doesn't make sense so we abort.
@@ -150,8 +136,10 @@ int redirection(tsh_memory *memory){
     for(int i = 0; i < data->NUMBER; i++) //Going through this loop at most 2 times 
     { 
         char *file_path;
-        if(data->IN_A_TAR[i] == 0) file_path = data->REDIR_PATH[i];
-        else file_path = data->NAME[i]; //creates a file just outside of the tar (it will be relocated)
+        if(data->IN_A_TAR[i] == 0) 
+            file_path = data->REDIR_PATH[i];
+        else 
+            file_path = data->NAME[i]; //creates a file just outside of the tar (it will be relocated)
         int append = data->APPEND[i];
         if(data->STD[i] == 3) //User wants a "2>&1" redirection 
         { 
@@ -197,8 +185,11 @@ int redirection(tsh_memory *memory){
     for(int i = 0; i < data->NUMBER; i++) //Now we move file to the tar if needed
     { 
         if(data->IN_A_TAR[i] == 1){ //redirection file was supposed to be in a tar so we move it
-            //cp_file_tar(data->NAME[i], data->REDIR_PATH[i], atoi(memory->tar_descriptor));
-            delete_file(data->NAME[i]);
+            char path_to_src[512]; //src file is located in the working directory
+            getcwd(path_to_src, 512);
+            strcat(path_to_src, "/");
+            strcat(path_to_src, data->NAME[i]);
+            do_mv(memory, path_to_src,data->REDIR_PATH[i], NULL, 0);
         } else continue;
     }
     free(data);
