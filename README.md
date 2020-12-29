@@ -211,9 +211,12 @@ une commande ne suffit pas il faut aussi le context d'execution de la commande (
 D'ailleurs la commande est déjà dans les memory (le champs command)
 
 *  on sauvegarde d'abord l'ouverture du descritpeur zero, pour le remettre en place après
-*  creer un processus fils qui executera le memory1
-*  dans le père attend la fin de l'execution de memory1 pour executer memory2
+*  on crée un tube anonyme
+*  creer un processus fils qui sera un écrivain sur le pipe, et executera la commande du contexte memory1.
+*  le père sera lecteur du pipe, il attend la fin de l'execution de memory1 pour executer memory2
+*  puis encore dans le père remettre le descripteur zéro a son ouverture de départ.(redirection vers la sauvegarde du début)
 
 
 **3 - COMMANDE ET APPEL DE FONCTION**
+*traitement de commande*
 
