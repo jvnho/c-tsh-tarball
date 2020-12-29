@@ -71,3 +71,6 @@ void exitFromCat(int signal){
         return 1;
     }
 }
+void exitFromCat(int signal){
+    
+}
