@@ -183,8 +183,11 @@ Etape 2 : appel de cp associé a chaque cas
 on lit les données de source que ce soit dans un tar ou a l'exterieur, on les stock dans un tableau de couple struct_posix header et bloc contenu 
 puis au target on lit ce tableau tout en écrivant ce qu'il y a dedans.
 
-*bloc.c*
-Pour mieux organiser le stockage et le parcours de donné on a utilisé la structure `content_bloc`
+**bloc.c**
+
+Pour mieux organiser le stockage et le parcours de donné on a utilisé la structure `content_bloc`,
+les données de cp sont donc un tableau `content_bloc content[512]` et on se repère quant on nombre
+de couple (header, contenue) on se repère via a la variable global `i_content`
 ```
 typedef struct content_bloc{
     struct posix_header hd;//header
@@ -192,7 +195,14 @@ typedef struct content_bloc{
     int nb_bloc;
 }content_bloc;
 ```
-les données de cp sont donc un tableau de `content_bloc`
+**Les champs:**
+
+    - hd: pour stocker le posix_header
+
+    - content: un tableau de buffer pour stocker les contenues associée au header
+
+    - nb_bloc: la taille du tableau de content 
+
 
 **2.8 pipe.c**
 `int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2)`
@@ -201,9 +211,12 @@ une commande ne suffit pas il faut aussi le context d'execution de la commande (
 D'ailleurs la commande est déjà dans les memory (le champs command)
 
 *  on sauvegarde d'abord l'ouverture du descritpeur zero, pour le remettre en place après
-*  creer un processus fils qui executera le memory1
-*  dans le père attend la fin de l'execution de memory1 pour executer memory2
+*  on crée un tube anonyme
+*  creer un processus fils qui sera un écrivain sur le pipe, et executera la commande du contexte memory1.
+*  le père sera lecteur du pipe, il attend la fin de l'execution de memory1 pour executer memory2
+*  puis encore dans le père remettre le descripteur zéro a son ouverture de départ.(redirection vers la sauvegarde du début)
 
 
 **3 - COMMANDE ET APPEL DE FONCTION**
+*traitement de commande*
 
