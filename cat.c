@@ -89,10 +89,6 @@ int exec_cat(struct sigaction old_act){
     }
 }
 
-void display(char* str){
-        write(1,str,sizeof(char)*strlen(str));
-
-    }
 
 int cat(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50], int nb_option){
     if(nb_arg == 0){
