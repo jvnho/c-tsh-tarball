@@ -254,7 +254,7 @@ créer un adapteur de fonction de manière a ce qu'ils ont la même signature, q
 Et comment faire pour passer les autres argument comme la liste des options, liste d'argument ?
 -> facile on les a déjà stocker dans des tableau qui sont des varible global.
 
-A ce point on a utilisé l' **adaptor pattern** pour uniformaliser la signature et 
+A ce point on a utilisé l' **adaptor pattern** pour uniformaliser la signature, puis
 contourner le passage d'argument via les variables globales. 
 Il reste plus qu'a déclarer le tableau de pointeur de fonction, qui contiendra des pointeurs d'adapteur.
 Pour cela on déclare le type pt_adapter :
@@ -263,9 +263,14 @@ typedef int (*pt_adapter) (tsh_memory *memory);
 ```
 Puis le tableau de pointeur d'adapteur :
 ```
-pt_adapter listFun [NB_FUN] = {adapter_cd, adapter_pwd, adapter_mkdir,..
+pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls, adapter_rmdir, adapter_rm, adapter_cp}
 ```
 Etape 3: execution de la fonction associé a la commande
-*  on sauvegarde d'abord l'ouverture du descritpeur zero, pour le remettre en place après
+*  on cherche l'indice de la commande, dans le tableau de nom de commande
+*  (fun_index = -1) si il existe pas dans le tableau de nom, on fait un fork puis exec de la commande
+*  (fun_index = i) si il existe dans le tableau, on appel la fonction a l'indice `fun_index` du tableau de pointeur de fonction 
+```
+(*(listFun[fun_index]))(memory);
+```
 
 
