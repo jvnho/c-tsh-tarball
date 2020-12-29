@@ -82,7 +82,7 @@ int exec_cat(struct sigaction old_act){
         close(pipe_fd[0]);
 
         //redefining SIGINT singal behaviour to default
-        
+
         //sigaction(SIGINT,&old_cat,NULL);
         return 1;
     }
@@ -99,7 +99,7 @@ int cat(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50], 
         signaction(SIGINT,&action, &old_act);
         return exec_cat(old_act);
     }
-    
+
     for(int i = 0; i < nb_arg; i++){
         //start
         char *fileToCat = args[i];
@@ -131,3 +131,37 @@ int cat(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50], 
 
 
 }
+
+int cat2(int desc, char* path, int arg){ 
+    lseek(desc, 0, SEEK_SET);
+
+    struct posix_header *header = malloc(512); // 
+
+    if(header == NULL){
+        return 0;
+
+    } 
+
+   if(path != NULL && path[0]!= 32 && path[0] != 10){ // ascii code of Line Feed(saut de line) and space
+
+    while(read(desc, header, BLOCKSIZE) > 0){ // blocksize = 512
+
+        strncpy(myPath, header->name, strlen(path));
+        if(strcmp(myPath,path) == 0 && strcmp(myPath,header->name) != 0){ 
+            int file_s = 0;
+        sscanf(header->size, "%o", &file_s);
+        int nb_bloc_fichier = (file_s + 512 -1) / 512;
+        for(int i = 0; i < nb_bloc_fichier; i++){
+            read(desc, header, BLOCKSIZE);
+            //condition
+            display(header); //display
+            
+
+        }
+    } 
+
+    
+   }
+   }
+}
+       
