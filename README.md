@@ -163,6 +163,7 @@ certains réglages et améliorations, sans encore en cours d'élaboration...
 `int copy_tar(char listOption[50][50], char listArgs[50][50], int size_option, int size_args, tsh_memory *memory)`
 
 Appliqué en boucle la fonction `int copy(char listOption[50][50], int size_option, char *source, char *real_target, tsh_memory *memory, int r)`
+
 Etape 1 : identification du cas de copy
 - tar -> tar
 - outside -> tar
