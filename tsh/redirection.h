@@ -7,7 +7,7 @@
 #define MAX_SIZE 1024
 
 typedef struct redirection_array{
-    char NAME[NB_ENTRY][MAX_SIZE]; //Name of the redirection target
+    char NAME[NB_ENTRY][MAX_SIZE]; //Name of the redirection target (useful only if user wishes the redirection in a tarfile)
     int STD[NB_ENTRY];// 0 stdin, 1 stdout, 2 strerr, 3 both(2>&1)
     int APPEND[NB_ENTRY]; //1 or 0
     int IN_A_TAR[NB_ENTRY]; //If the user wants the redirection file to be in a tar

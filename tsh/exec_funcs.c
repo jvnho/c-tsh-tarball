@@ -11,10 +11,10 @@
 
 void restoreLastState(tsh_memory old_memory, tsh_memory *memory){
     copyMemory(&old_memory, memory); //restoring the last state of the memory
-    char *destination = malloc(strlen(memory->REAL_PATH));
+    char destination[512];
+    memset(destination, 0, 512);
     strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);
     cd(destination,memory); //cd-ing back to where we were
-    free(destination);
 }
 
 //making an array for execvp
@@ -45,7 +45,7 @@ char** execvp_array(char *cmd, char *dir, char option[50][50], int nb_option){
 void exec_cmd(char *cmd, char **args){
     int r = fork();
     if(r == 0) execvp(cmd, args);
-    else wait(NULL);
+    else waitpid(r, NULL, 0);
 }
 
 //check if a certain "opt_name" is present in "option" array
