@@ -6,6 +6,7 @@
 #include <assert.h>
 
 #include "redirection.h"
+#include "exec_funcs.h"
 #include "simpleCommande.h"
 #include "cd.h"
 #include "tar.h"
@@ -32,8 +33,8 @@ int is_redirection_valid(redirection_array *data){
 //ex: "ls > fic 2> fic2" --> "ls"
 void convert_to_simple_cmd(tsh_memory *memory){ 
     char *cmd = strdup(memory->comand); //command line entered by user
-    char new_cmd[strlen(cmd)];
-    memset(new_cmd, 0, sizeof(new_cmd));
+    char new_cmd[512];
+    memset(new_cmd, 0, 512);
 
     char *tok = strtok(cmd, " ");
     while(tok != NULL)
@@ -89,32 +90,32 @@ int fill_redir_array(tsh_memory *src_memory, redirection_array *data, char *targ
     { 
         if(in_a_tar(&target_mem) == 1) //inside a tar to a inside a tar
         {
-            //MARCHE MAIS PAS A LA RACINE DU TAR (obligé de donner un chemin dans un tar)
             data->IN_A_TAR[index] = 1;
 
-            char location_src[512]; //location of the created file which is just outside the open tar
-            getcwd(location_src, 512);
+            char location_src[512]; //absolute location of the created file which is just outside the open tar
+            memset(location_src,0 ,512);
+            getcwd(location_src, 512); //current working directory
             strcat(location_src, "/");
-            //voir si len location == 0 et que pas de slash à la  fin pour la racine
             strcat(location_src, redir_name);
-            
-            strcpy(data->NAME[index], location_src); //location of the source file donner le chemin absolu juste en dehors du tar
+            strcat(location_src, "\0");
+            strcpy(data->NAME[index], location_src);
 
-            char redir_path[512];
+            char redir_path[512]; //absolute path of where the redirection file will be located
             memset(redir_path, 0, 512);
             strncpy(redir_path, target_mem.REAL_PATH, strlen(target_mem.REAL_PATH)-2);
-            strcpy(data->REDIR_PATH[index], location);
+            strcat(redir_path,"\0");
+            strcpy(data->REDIR_PATH[index], redir_path);
         } 
         else // inside a tar to outside a tar
         {   
-            printf("tar to ");
-            data->IN_A_TAR[index] = 0;
+            //this case needs to be fix !
+
+            /*data->IN_A_TAR[index] = 0;
             char path[512];
             strncpy(path,target_mem.REAL_PATH, strlen(target_mem.REAL_PATH)-2);
-
-            char pathBuffer[512];
-            concatenation(path, redir_name,pathBuffer);
-            strcpy(data->REDIR_PATH[index], pathBuffer);
+            strcat(path,redir_name);
+            strcpy(data->REDIR_PATH[index], path);*/
+            return -1;
         }
     }
     data->STD[index] = output;
@@ -208,7 +209,6 @@ int redirection(tsh_memory *memory){
             }
         }
     }
-    
     execSimpleCommande(memory); //output and/or errors will be written in open file
 
     //restoring stdout and stderr
@@ -221,10 +221,13 @@ int redirection(tsh_memory *memory){
     if(fd_fic_mix != 0) close(fd_fic_mix);
 
     //Procedure to move the file into the tar in needed
-   for(int i = 0; i < data.NUMBER; i++) 
+    tsh_memory save_mem;
+    for(int i = 0; i < data.NUMBER; i++) 
     { 
         if(data.IN_A_TAR[i] == 1){ //redirection file was supposed to be in a tar so we move it
+            copyMemory(memory, &save_mem);
             do_mv(memory, data.NAME[i],data.REDIR_PATH[i], NULL, 0);
+            restoreLastState(save_mem,memory);
         }
     }
     return 1;
