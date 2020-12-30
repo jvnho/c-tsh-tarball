@@ -12,5 +12,4 @@ Instructions afin de tester le programme:
 
 - Un répertoire `arbo` de teste ainsi que des commandes de testes sont fournies si besoin.
 
-
 Un rapport de projet est fourni sur le git sur le détails de l'implémentations des différentes commandes.
