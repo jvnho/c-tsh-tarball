@@ -178,7 +178,7 @@ La fonction 'int cat'
 - va au debut redefinir le **SIGACTION** avec un appel à la fonction 'exitFromCat'
 
 - Si répertoire on passe au suivant, si un repertoire copy l'etat de la memoire actuelle.
-- Si le chemin est correct  et si est bien dans le tar 'in_a_tar(memory)' (fonction prédéfinie), alors on concataner le chemin avec l'arguement.
+- Si le chemin est correct  et si est bien dans le tar 'in_a_tar(memory)' (fonction prédéfinie), alors on concataner le chemin avec l'argument.
 - A chaque fin la fonction utilise 'restoreLastState(old_memory,memory)' qui a pour but de retourner la ou on était avant l'utilisation de la commande cd.
 - 
 
