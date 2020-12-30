@@ -127,8 +127,6 @@ A la fin du parcours du tar, on a stocké tous les fichiers qui appartiennent au
 
 Remarque 1: pour ces deux fonctions si `arg_l` vaut 1 ça veut dire que l'option -l a été donnée et qu'on stocke dans un autre tableau les informations, l'affichage sera donc différent.
 
-Remarque 2: ces tableaux sont regroupés dans un type `struct ls_memory` (*la mémoire du ls* actuel en quelque sorte) dans le fichier `ls.h`.
-
 Que ce soit un ls effectué dans ou en dehors d'un tar, on restaure l'état précédent. 
 
 
