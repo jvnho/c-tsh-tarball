@@ -25,7 +25,6 @@ int number_of_block(int fd){
 //function that counts the number of content block to delete
 //returns -1 if such file/directory is not found
 int rm_in_tar_aux(int fd, char* full_path, int *nb_block_to_delete, off_t *debut, int arg_r){
-    printf("%s\n", full_path);
     lseek(fd, 0, SEEK_SET);
     int filesize = 0;
     struct posix_header hd;
@@ -135,7 +134,6 @@ int do_rm(tsh_memory *memory, char *arg, char option[50][50],int nb_option, int 
 int rm(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50],int nb_option){
     int option_r = (option_present("-r", option, nb_option) == 1 || option_present("-R", option, nb_option) == 1); //if option -r or -R was given
     for(int i = 0; i < nb_arg; i++){
-        printf("%s\n", args[i]);
         do_rm(memory, args[i], option, nb_option, option_r);
     }
     return 1;

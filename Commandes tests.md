@@ -1,5 +1,5 @@
 ## Enchaînements de commandes de test:
-(tapez "clear" si besoin)
+(n'hésitez pas à "clear" si besoin)
 - ls
 - cd ../arbo/archive1.tar/
 - pwd
@@ -12,7 +12,7 @@
 - cd ../
 - ls -l inexistant archive2.tar archive1.tar/dossier3/dossier7/../ ../tsh 2>&1 fic
 - cat fic
-- cd /home/projet/archive1.tar/
+- cd /home/projet/arbo/archive1.tar/
 - cat > catout
 (entrez ce que vous voulez et faites CTRL+C pour sortir du cat)
 - cat catout
@@ -22,8 +22,10 @@
 - cat redirf
 - mkdir archive1.tar/bonsoir/
 - mv svp archive1.tar/bonsoir/
-- cd ../../
+- cat svp archive1.tar/bonsoir/
+- cd ../
 - cp documents archive2.tar/ (renvoie une erreur)
 - cp -R documents archive2.tar
+- ls -l archive2.tar/documents/
 - cd ..
-- ls > archive.tar1/lsredir | ls 2> inexistant archive2.tar/err | echo merci > derien
+- ls > archive1.tar/lsredir | ls inexistant 2> archive2.tar/err | echo merci > derien
