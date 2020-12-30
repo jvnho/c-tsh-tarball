@@ -115,6 +115,8 @@ int fill_redir_array(tsh_memory *src_memory, redirection_array *data, char *targ
             strncpy(path,target_mem.REAL_PATH, strlen(target_mem.REAL_PATH)-2);
             strcat(path,redir_name);
             strcpy(data->REDIR_PATH[index], path);*/
+            char *msg_error = "WARNING: this case needs to be fix\n";
+            write(2, msg_error, strlen(msg_error));
             return -1;
         }
     }
@@ -133,11 +135,13 @@ int associate_redirection(tsh_memory *memory, redirection_array *data,char *cmd)
         {
             if(strcmp(tok, "2>&1") == 0){
                 tok = strtok(NULL, " "); //next token
+                if(tok == NULL) return -1;
                 if(fill_redir_array(memory, data, tok, 3, 1) ==-1) return -1; //one of the redirection path given doesn't exist
             } else {
                 int append = 0;
                 if((tok+2)[0] == '>') append = 1; //2>>
                 tok = strtok(NULL, " "); //next token
+                if(tok == NULL) return -1;
                 if(fill_redir_array(memory, data, tok, 2,append) == -1) return -1; //same
             }
         } 
@@ -146,6 +150,7 @@ int associate_redirection(tsh_memory *memory, redirection_array *data,char *cmd)
             int append = 0;
             if( (tok+1)[0] == '>') append = 1; //>>
             tok = strtok(NULL, " "); //next token
+            if(tok == NULL) return -1;
             if(fill_redir_array(memory, data, tok, 1,append) ==-1) return -1; //same
         } 
         else tok = strtok(NULL," ");
@@ -154,8 +159,8 @@ int associate_redirection(tsh_memory *memory, redirection_array *data,char *cmd)
 }
 
 int redirection(tsh_memory *memory){
-    struct redirection_array data;
-    memset(&data,0,sizeof(redirection_array)); //check @redirection.h
+    struct redirection_array data; //check @redirection.h
+    memset(&data,0,sizeof(redirection_array)); 
     if(associate_redirection(memory, &data, strdup(memory->comand)) == -1 || is_redirection_valid(&data) == -1)
     {
         char *err_msg = "error: redirections do not make sense.\n";

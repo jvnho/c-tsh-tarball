@@ -45,7 +45,7 @@ char** execvp_array(char *cmd, char *dir, char option[50][50], int nb_option){
 void exec_cmd(char *cmd, char **args){
     int r = fork();
     if(r == 0) execvp(cmd, args);
-    else wait(NULL);
+    else waitpid(r, NULL, 0);
 }
 
 //check if a certain "opt_name" is present in "option" array
