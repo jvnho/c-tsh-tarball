@@ -160,20 +160,28 @@ La fonction cat prend en argument  ***tsh_memory** , on regarde tout d'abord
 si l'utilisateur est dans un tar...
 
 - Si la condtion passe, on fait appel à notre méthode cat_in_tar
-- Sinon on fait un exec d'un cat classique.
+- cat_int_tar va vérifier si le chemin existe dans le tar en question.
 
 
-alors on affiche le contenu sans condition spécifique
+Alors on affiche le contenu sans condition spécifique
 
 La fonction  `cat_in_tar(int desc, char* path)` va prendre  en argument **le descripteur du fichier ouvert, le PATH**
 
-Elle va se charger des conditions necessaires à l'ulitation d'un cat et le parcours du tar, ainsi elle va se charger de lire notre tar avec les conditions spécifiques indiqué pour lancer `read(desc, buffer, &myFile)` et  `write(1, buffer, strlen(buffer))`.
+Elle va vérifier si le chemin existe dans le tar.
 
-Elle fait également appel à une fonction `cat_all()`(si la conditon passe) qui à pour but de lire et d'afficher tant que les conditions le permettent à l'aide d'un read et write, (une fonction `display(char* str)` facultative a été créée pour cela).
+La fonction 'exitFromCat' :
+Va etre utilisé pour le **SIGACTION** qui lui va changer le comportement du ctrl c...
 
+La fonction 'exec_cat' Crée un processus "fils" qui va écrire sur le pipe et le "père" va lire et réecrire dans le terminal en question. "1 = STOP" 0 ok.
 
- Pour se rapprocher au maximum de ce que l'on peut rencontrer dans l'utilisation d'un cat classique
-certains réglages et améliorations, sans encore en cours d'élaboration...
+La fonction 'int cat' 
+- va au debut redefinir le **SIGACTION** avec un appel à la fonction 'exitFromCat'
+
+- Si répertoire on passe au suivant, si un repertoire copy l'etat de la memoire actuelle.
+- Si le chemin est correct  et si est bien dans le tar 'in_a_tar(memory)' (fonction prédéfinie), alors on concataner le chemin avec l'arguement.
+- A chaque fin la fonction utilise 'restoreLastState(old_memory,memory)' qui a pour but de retourner la ou on était avant l'utilisation de la commande cd.
+- 
+
 
 **2.08 cp.c**
 `int copy_tar(char listOption[50][50], char listArgs[50][50], int size_option, int size_args, tsh_memory *memory)`
