@@ -28,4 +28,4 @@
 - cp -R documents archive2.tar
 - ls -l archive2.tar/documents/
 - cd ..
-- ls > archive1.tar/lsredir | ls inexistant 2> archive2.tar/err | echo merci > derien
+- ls > out | ls inexistant 2> err | echo merci > derien

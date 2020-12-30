@@ -235,5 +235,5 @@ int redirection(tsh_memory *memory){
             restoreLastState(save_mem,memory);
         }
     }
-    return 1;
+    return 0;
 }
