@@ -8,9 +8,13 @@
 tsh_memory old_memory; //will be use to save/restore a memory
 char **array_execvp;
 
-int is_in_array(char *string, struct ls_memory mem){ //checking if string is in ls_memory's NAME array
-    for(int i = 0; i < mem.NUMBER; i++){
-        if(strcmp(string, mem.NAME[i]) == 0) return 1;
+char NAME[512][1024]; //allow to keep the file or repository to display
+char INFO[512][1024]; // allow to keep file info (i.e size, uname, gname,...) if -l is given as argument
+int NUMBER; //keeps a track of the size of NAME
+
+int is_in_array(char *string){ //checking if string is in ls_memory's NAME array
+    for(int i = 0; i < NUMBER; i++){
+        if(strcmp(string, NAME[i]) == 0) return 1;
     }
     return 0;
 }
@@ -51,7 +55,7 @@ void epoch_time_converter(char *buffer, char *result){
     strftime(result, sizeof(result), "%b. %d %H:%M", &ts);
 }
 
-void fill_info_array(int fd, off_t initial,struct posix_header hd, struct ls_memory *mem){ //filling ls_memory's INFO array
+void fill_info_array(int fd, off_t initial,struct posix_header hd){ //filling ls_memory's INFO array
     int filesize = 0;
     if(hd.typeflag == '5') //directory
     { 
@@ -63,29 +67,29 @@ void fill_info_array(int fd, off_t initial,struct posix_header hd, struct ls_mem
     epoch_time_converter(hd.mtime, time);
     octal_to_string(hd.mode, mode);
     sprintf(info, "%c%s %s %s %d %s", file_type(hd.typeflag), mode, hd.uname, hd.gname, filesize, time);
-    strcpy(mem->INFO[mem->NUMBER], info);
+    strcpy(INFO[NUMBER], info);
 }
 
-void print_ls_l(struct ls_memory mem){ //if option -l was given by user
-    for(int i = 0; i < mem.NUMBER; i++){
-        write(1, mem.INFO[i], strlen(mem.INFO[i]));
+void print_ls_l(){ //if option -l was given by user
+    for(int i = 0; i < NUMBER; i++){
+        write(1, INFO[i], strlen(INFO[i]));
         write(1, " ", 1);
-        write(1, mem.NAME[i], strlen(mem.NAME[i]));
+        write(1, NAME[i], strlen(NAME[i]));
         write(1, "\n", 1);
     }
 }
 
-void print_ls(struct ls_memory mem){//if no option was given
-    for(int i = 0; i < mem.NUMBER; i++){
-        write(1, mem.NAME[i], strlen(mem.NAME[i]));
+void print_ls(){//if no option was given
+    for(int i = 0; i < NUMBER; i++){
+        write(1, NAME[i], strlen(NAME[i]));
         write(1," ", 1);
     }
     write(1,"\n",1);
 }
 
-void print_ls_to_STROUT(int arg_l, struct ls_memory mem){
-    if(arg_l == 0) print_ls(mem);
-    else print_ls_l(mem);
+void print_ls_to_STROUT(int arg_l){
+    if(arg_l == 0) print_ls();
+    else print_ls_l();
 }
 
 void print_filename_stdout(char *name){
@@ -93,10 +97,10 @@ void print_filename_stdout(char *name){
     write(1, "\n",1);
 }
 
-void clear_struct(struct ls_memory *mem){
-    mem-> NUMBER = 0;
-    memset(mem->NAME, 0, sizeof(mem->NAME));
-    memset(mem->INFO, 0, sizeof(mem->INFO));
+void clear_variables(){
+    NUMBER = 0;
+    memset(NAME, 0, sizeof(NAME));
+    memset(INFO, 0, sizeof(INFO));
 }
 
 //looking for a single file in the tar given a path and print it
@@ -119,8 +123,7 @@ int ls_in_tar_file(int fd, char* full_path, int arg_l){
 //looking for a directory: store in an array all file or directory belonging to to directory given
 int ls_in_tar_directory(int fd, char* full_path, int arg_l){
     struct posix_header hd;
-    struct ls_memory mem;
-    clear_struct(&mem);
+    clear_variables();
     int len_path = strlen(full_path), fic_found = 0;
     lseek(fd, 0, SEEK_SET);
     while(read(fd, &hd, 512) > 0)
@@ -134,11 +137,11 @@ int ls_in_tar_directory(int fd, char* full_path, int arg_l){
             }
             strncpy(CUT_PATH, hd.name+len_path, len_name); //"cutting" the name from its path
             CUT_PATH[len_name++] = '\0';
-            if(is_in_array(CUT_PATH, mem) == 0)//avoiding dupplicates
+            if(is_in_array(CUT_PATH) == 0)//avoiding dupplicates
             { 
-                if(arg_l == 1) fill_info_array(fd, lseek(fd, 0, SEEK_CUR),hd, &mem);//filling FILE_INFO's array if -l argument is given
-                strcpy(mem.NAME[mem.NUMBER], CUT_PATH);
-                mem.NUMBER++;
+                if(arg_l == 1) fill_info_array(fd, lseek(fd, 0, SEEK_CUR), hd);//filling FILE_INFO's array if -l argument is given
+                strcpy(NAME[NUMBER], CUT_PATH);
+                NUMBER++;
                 fic_found++;
             }
         }
@@ -148,7 +151,7 @@ int ls_in_tar_directory(int fd, char* full_path, int arg_l){
         int nb_bloc_fichier = (filesize + 512 -1) / 512;
         lseek(fd,512*nb_bloc_fichier, SEEK_CUR);
     }
-    if(mem.NUMBER > 0) print_ls_to_STROUT(arg_l, mem); //there is at least one thing to display
+    if(NUMBER > 0) print_ls_to_STROUT(arg_l); //there is at least one thing to display
     return fic_found;
 }
 

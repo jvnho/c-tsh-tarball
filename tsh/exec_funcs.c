@@ -11,10 +11,10 @@
 
 void restoreLastState(tsh_memory old_memory, tsh_memory *memory){
     copyMemory(&old_memory, memory); //restoring the last state of the memory
-    char *destination = malloc(strlen(memory->REAL_PATH));
+    char destination[512];
+    memset(destination, 0, 512);
     strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);
     cd(destination,memory); //cd-ing back to where we were
-    free(destination);
 }
 
 //making an array for execvp
