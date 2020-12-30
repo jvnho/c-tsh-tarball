@@ -168,6 +168,7 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
             } else {
                 array_execvp = execvp_array("ls", NULL,option,nb_option); //details @functions.h
                 exec_cmd("ls", array_execvp);
+                if(array_execvp != NULL) free(array_execvp);
             }
         }
     } 
@@ -207,10 +208,10 @@ void do_ls(tsh_memory *memory, char *dir, char option[50][50], int nb_option, in
         } 
         else {
             array_execvp = execvp_array("ls", dirToVisit,option,nb_option);
-            exec_cmd("ls", array_execvp);  
+            exec_cmd("ls", array_execvp); 
+            if(array_execvp != NULL) free(array_execvp); 
         }
     }
-    if(array_execvp != NULL)  free(array_execvp);
     restoreLastState(old_memory, memory);
 }
 
