@@ -105,10 +105,9 @@ char *int_to_string(int chiffre, char *result){
     return result;
 }
 //voir le cas ou dir se termine par un slach
-char * concatDirToPath(char * path, char *dir){
-
+void concatDirToPath(char * path, char *dir, char *result){
+    memset(result, 0, 512);
     int length = strlen(path)+strlen(dir)+2;
-    char * result = malloc(length);
     strcpy(result, path);
     result[strlen(path)] = '\0';
     strcat(result, dir);
@@ -118,7 +117,6 @@ char * concatDirToPath(char * path, char *dir){
         result[length-2] = '/';
         result[length-1] = '\0';
     }
-    return result;
 }
 char * simpleConcat(char *path, char *dir){
     int length = strlen(path) + strlen(dir) + 1;

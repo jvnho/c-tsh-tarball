@@ -25,9 +25,9 @@ void exec_mkdir(char option[50][50], int size_option, char *dir){
 }
 int mkdir_in_tar(char *dir_name, int tar_descriptor){
     if(dir_exist(tar_descriptor, dir_name))return 0;
-    struct posix_header *new_head = create_header(dir_name, 1, 0);
+    struct posix_header new_head = create_header(dir_name, 1, 0);
     put_at_the_first_null(tar_descriptor);
-    if(write((tar_descriptor), new_head, 512)==-1){//write on the first ending bloc
+    if(write((tar_descriptor), &new_head, 512)==-1){//write on the first ending bloc
         perror("");
         return -1;
     }
@@ -54,11 +54,13 @@ int makeDirectory(char listOption[50][50], char *dir_name, int size_option, tsh_
         dirToCreate = dir_name + lenLocation;
     }
     int result= 0;
-    char *destination;
+    char destination[512];
+    memset(destination, 0, 512);
     if(in_a_tar(memory)){//in tar -> so use our implementation of mkdir
-        result = mkdir_in_tar(concatDirToPath(memory->FAKE_PATH, dirToCreate), string_to_int(memory->tar_descriptor));
+        char name[512];
+        concatDirToPath(memory->FAKE_PATH, dirToCreate, name);
+        result = mkdir_in_tar(name, string_to_int(memory->tar_descriptor));
         copyMemory(&old_memory, memory);
-        destination = malloc(strlen(memory->REAL_PATH));
         strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);
         cd(destination,memory);
         return result;
@@ -68,7 +70,6 @@ int makeDirectory(char listOption[50][50], char *dir_name, int size_option, tsh_
             exec_mkdir(listOption, size_option, dirToCreate);
         }else{//parent
             copyMemory(&old_memory, memory);
-            destination = malloc(strlen(memory->REAL_PATH));
             strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);
             cd(destination,memory);
             int status;

@@ -133,6 +133,13 @@ char ** argsPlusNULL(){
     result[index_result] = NULL;
     return result;
 }
+void freeArgPlusNull(char **result){
+    int len = i_option + i_args + 2;
+    for(int i = 0; i< len; i++){
+        free(result[i]);
+    }
+    free(result);
+}
 //Adapter Pattern
 int adapter_exit(tsh_memory *memory){
     return exit2(memory);
@@ -184,13 +191,13 @@ int execSimpleCommande(tsh_memory *memory){
 
     int fun_index = getFuncitonIndex(co);
     if(fun_index<0){
-        
+        char **args2 = argsPlusNULL();
         int pid_fils = fork();
         if(pid_fils==0){
-            char **args2 = argsPlusNULL();//ou mettre free?
             if(strlen(args2[0])==0)exit(130);//no command passed
             if(execvp(args2[0], args2) == -1)exit(127);//command not found
         }else{
+            freeArgPlusNull(args2);
             int status;
             waitpid(pid_fils, &status, WUNTRACED);
             if(WIFEXITED(status)){//if the child used exit
@@ -202,12 +209,13 @@ int execSimpleCommande(tsh_memory *memory){
     }
     return 0;
 }
+/*
 void printError(tsh_memory *memory, int error){
-    char message[50];
-    memset(message, 0, 50);
+    char message[538];
+    memset(message, 0, 538);
     sprintf(message, "tsh : command not found: %s\n", memory->comand);
     if(error == 127)write(2, message, strlen(message));
-}
+}*/
 
 int execute(tsh_memory *memory){
     if(strstr(memory->comand, "|") != NULL) //Pipe found in command line
@@ -224,7 +232,5 @@ int execute(tsh_memory *memory){
     {
         return redirection(memory);
     }
-    if((returnval = execSimpleCommande(memory)))
-        printError(memory, returnval);
-    return returnval;
+    return execSimpleCommande(memory);
 }

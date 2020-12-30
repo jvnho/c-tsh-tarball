@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "tsh_memory.h"
 #include "simpleCommande.h"
-#include <wait.h>
+#include <sys/wait.h>
 int save_read_fd;
 int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
     
