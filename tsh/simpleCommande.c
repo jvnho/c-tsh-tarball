@@ -18,9 +18,10 @@
 #include "cp.h"
 #include "mv.h"
 #include "pipe.h"
+#include "cat.h"
 
-char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir", "rm", "cp", "mv"};
-#define NB_FUN 9
+char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir", "rm", "cp", "mv", "cat"};
+#define NB_FUN 10
 char co[50];
 char option[50][50];
 int i_option = 0;
@@ -170,9 +171,12 @@ int adapter_cp(tsh_memory *memory){
 int adapter_mv(tsh_memory *memory){
     return mv(memory, args, i_args, option, i_option);
 }
+int adapter_cat(tsh_memory *memory){
+    return cat(memory,args,i_args,option,i_option);
+}
 
 typedef int (*pt_adapter) (tsh_memory *memory);//declaration pointer of function
-pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls, adapter_rmdir, adapter_rm, adapter_cp, adapter_mv};
+pt_adapter listFun [NB_FUN] = {adapter_exit, adapter_cd, adapter_pwd, adapter_mkdir, adapter_ls, adapter_rmdir, adapter_rm, adapter_cp, adapter_mv, adapter_cat};
 
 int getFuncitonIndex(char *name){
     for(int i=0; i<NB_FUN; i++){
