@@ -301,7 +301,6 @@ int copy(char listOption[50][50], int size_option, char *source, char *real_targ
             return returnValue;
         }//from outside to -> .tar
         else{
-            printf("outisde\n");
             //check the file type
             struct stat status;
             if(lstat(fileToCopy, &status)==-1){//case of error restore the memory

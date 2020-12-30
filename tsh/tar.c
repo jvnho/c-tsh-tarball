@@ -104,8 +104,8 @@ struct posix_header create_header(char * name, int dir, int size){
     sprintf(result.gid, "000024 ");
 
     sprintf(result.size, "%011o", size);
-    sprintf(result.mtime, "%ld", time(NULL));//au pire metre zero
-
+    //sprintf(result.mtime, "%ld", time(NULL));//au pire metre zero
+    sprintf(result.mtime, "%d", 0);//au pire metre zero
 
     if(dir){result.typeflag = '5';}else result.typeflag = '0';
     result.linkname[0] = '\0';
@@ -114,8 +114,8 @@ struct posix_header create_header(char * name, int dir, int size){
     result.version[0]='0';
     result.version[1]= '0';
 
-    strcpy(result.uname, getlogin());//sarobidy
-    strcpy(result.gname, getlogin());//staff
+    strcpy(result.uname, "sarobidy");//getlogin()
+    strcpy(result.gname, "staff");//staff
 
     strcpy(result.devmajor, "000000 ");
     strcpy(result.devminor, "000000 ");

@@ -72,7 +72,6 @@ int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* st
     //fill the bloc
     int nb_bloc = 0;
     int leng = 0;
-    int i = 1;
     int sizeFile = 0;
     while((leng = read(fd_file, tab[*starting_index].content[nb_bloc], 512))>0){
         if(leng<512){//complet the rest of this bloc by zero
@@ -86,7 +85,6 @@ int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* st
         }
         sizeFile = sizeFile + leng;
         nb_bloc++;
-        i++;
     }
     
     if(leng == -1){//error from read

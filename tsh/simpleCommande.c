@@ -206,12 +206,13 @@ int execSimpleCommande(tsh_memory *memory){
     }
     return 0;
 }
+/*
 void printError(tsh_memory *memory, int error){
-    char message[50];
-    memset(message, 0, 50);
+    char message[538];
+    memset(message, 0, 538);
     sprintf(message, "tsh : command not found: %s\n", memory->comand);
     if(error == 127)write(2, message, strlen(message));
-}
+}*/
 
 int execute(tsh_memory *memory){
     if(strstr(memory->comand, "|") != NULL) //Pipe found in command line
@@ -228,7 +229,5 @@ int execute(tsh_memory *memory){
     {
         return redirection(memory);
     }
-    if((returnval = execSimpleCommande(memory)))
-        printError(memory, returnval);
-    return returnval;
+    return execSimpleCommande(memory);
 }
