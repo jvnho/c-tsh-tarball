@@ -6,7 +6,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <assert.h>
-#include <wait.h>
+#include <sys/wait.h>
 
 #include "bloc.h"
 #include "tar.h"
@@ -113,8 +113,8 @@ int cp_file_tar(char *source, char *target, int fd_target){
 }
 void simple_mkdir(char *directory, int fd_target){
     put_at_the_first_null(fd_target);
-    struct posix_header *new_head = create_header(directory, 1, 0);
-    write(fd_target, new_head, 512);
+    struct posix_header new_head = create_header(directory, 1, 0);
+    write(fd_target, &new_head, 512);
     writeZero(fd_target);
 }
 int cp_dir_tar(char *directory, char *target, int fd_target, int r){
@@ -136,7 +136,6 @@ int cp_dir_tar(char *directory, char *target, int fd_target, int r){
             struct stat buff;
             
             concatenationPath(directory, inoeud_nom->d_name, name_concat);
-            
             if(lstat(name_concat, &buff)==-1)perror("lstat:");
             if(S_IFDIR & buff.st_mode){//if it's a dir
                 cp_dir_tar(name_concat, target, fd_target, r);
@@ -157,9 +156,7 @@ void createDir(content_bloc dirBloc){
     }
 }
 void createFile(content_bloc fileBloc){
-    if((temp_fd = open(fileBloc.hd.name, O_CREAT|O_WRONLY| O_APPEND, 0664))== -1){//create file
-        perror("create file ");
-    }else{//then write it's content
+    if((temp_fd = open(fileBloc.hd.name, O_CREAT|O_WRONLY| O_APPEND, 0664))!= -1){//create file
         for(int i = 0; i<fileBloc.nb_bloc; i++){
             write(temp_fd, fileBloc.content[i], strlen(fileBloc.content[i]));
         } 
@@ -194,7 +191,8 @@ int cp_tar_outside(char *file, char *target, int fd_source, char *fake_path, int
 }
 void restoreMemory(tsh_memory *old_memory, tsh_memory *memory){
     copyMemory(old_memory, memory);
-    char *destination = malloc(strlen(memory->REAL_PATH));
+    char destination[512];
+    memset(destination, 0, 512);
     strncpy(destination, memory->REAL_PATH, strlen(memory->REAL_PATH)-2);//remove the $
     cd(destination, memory);
     strcpy(memory->tar_descriptor, old_memory->tar_descriptor);
@@ -259,30 +257,6 @@ void addSlach(char *dir, char *result){
     if(dir[strlen(dir)-1] != '/')
         concatenationPath(dir, "", result);
     
-}
-char **fusionCommand(char option[50][50], int size_option, char *source, char *target){
-    char **result;
-    assert((result = malloc((size_option + 4)*sizeof(char *))) !=NULL);
-    assert((result[0] = malloc((strlen("cp")+1) *sizeof(char))) != NULL);
-    strcpy(result[0], "cp");
-    result[0][2] = '\0';
-    int index_result = 1;
-    for(int i = 0; i< size_option; i++){
-        assert((result[index_result] = malloc(strlen(option[i])*sizeof(char))) != NULL);
-        strcpy(result[index_result], option[i]);
-        index_result++;
-    }
-    result[index_result] = source;
-    result[index_result + 1] = target;
-    result[index_result + 2] = NULL;
-    return result;
-}
-void printfMemory(tsh_memory *memory){
-    printf("real paht = %s\n", memory->REAL_PATH);
-    printf("fake paht = %s\n", memory->FAKE_PATH);
-    printf("tar name = %s\n", memory->tar_name);
-    printf("tar descriptor = %s\n", memory->tar_descriptor);
-
 }
 int containsOptionR(char listOption[50][50], int size_option){
     for(int i = 0; i<size_option; i++){

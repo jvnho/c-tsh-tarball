@@ -17,7 +17,8 @@ int getIndexLastSlach(char *path){
 int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, char *fake_path, int *starting_index){
     //target should have a '/' at the end
     //source should have a '/' at the end if it's a directory
-    char *path_to_source = simpleConcat(fake_path, source);//verification slach si dossier j'appel concat string, si fichier j'appel simple concat
+    char path_to_source[512];
+    concatenation(fake_path, source, path_to_source);
     lseek(descriptor, 0, SEEK_SET);
     struct posix_header header;
     int tmp = 0;
@@ -33,7 +34,9 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
         
         if(strcmp(FILE_PATH, path_to_source) == 0){//found a bloc to cp
             //fill the the header 
-            tab[index_tab].hd = copyHeader(header, simpleConcat(target, strcpy(new_name, header.name + without_path)));
+            concatenation(target, header.name + without_path, new_name);
+            //tab[index_tab].hd = copyHeader(header, simpleConcat(target, strcpy(new_name, header.name + without_path)));
+            tab[index_tab].hd = copyHeader(header, new_name);
             
             //fill the bloc
             sscanf(header.size, "%o", &tmp);
@@ -59,6 +62,7 @@ int fill_fromTar(content_bloc *tab, char *source, char *target, int descriptor, 
     *starting_index = index_tab;
     return index_tab > 0 ? index_tab : -1;//nothing was writed
 }
+//***
 int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* starting_index){
     int fd_file;
     if((fd_file = open(source, O_RDONLY)) == -1){
@@ -68,7 +72,6 @@ int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* st
     //fill the bloc
     int nb_bloc = 0;
     int leng = 0;
-    int i = 1;
     int sizeFile = 0;
     while((leng = read(fd_file, tab[*starting_index].content[nb_bloc], 512))>0){
         if(leng<512){//complet the rest of this bloc by zero
@@ -82,7 +85,6 @@ int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* st
         }
         sizeFile = sizeFile + leng;
         nb_bloc++;
-        i++;
     }
     
     if(leng == -1){//error from read
@@ -90,18 +92,21 @@ int fill_fromFile_outside(content_bloc *tab, char *source, char *target, int* st
         close(fd_file);
         return -1;
     }
-    struct posix_header * newHead = create_header(concate_string(target, source), 0, sizeFile);
-    tab[*starting_index].hd = *newHead;
+    char newname[512];
+    concatenation(target, source, newname);
+    struct posix_header newHead = create_header(newname, 0, sizeFile);
+    tab[*starting_index].hd = newHead;
     tab[*starting_index].nb_bloc = nb_bloc;
     *starting_index = *(starting_index) + 1;
     close(fd_file);
 
     return 0;
 }
+//**
 //extract on the curent directory
 int fill_fromDir_outside(content_bloc *tab, char *directory, int* starting_index){
-    struct posix_header *new_head = create_header(directory, 1, 0);
-    tab[*starting_index].hd = *new_head;
+    struct posix_header new_head = create_header(directory, 1, 0);
+    tab[*starting_index].hd = new_head;
     *starting_index = *starting_index + 1;
     char name_concat[512];
     DIR *dir = opendir(directory);
