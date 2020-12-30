@@ -5,12 +5,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
- #include <signal.h>
+#include <signal.h>
 
+#include "exec_funcs.h"
 #include "tar.h"
 #include "tsh_memory.h"
 #include "string_traitement.h"
-
 #include "cd.h"
 
 char **array_execvp;
@@ -63,7 +63,7 @@ int exec_cat(struct sigaction old_act){
     memset(buffer,0,1024);
     if(pid == 0){
         close(pipe_fd[0]);
-        while(read(0,buffer,1024) > && stopCat == 0){ // don't work
+        while(read(0,buffer,1024) > 0 && stopCat == 0){ // don't work
             write(pipe_fd[1], buffer, strlen(buffer));
             memset(buffer,0,1024);
         }
@@ -95,7 +95,7 @@ int cat(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50], 
         memset(&action, 0,sizeof(action));
         memset(&old_act, 0, sizeof(old_act));
         action.sa_handler = exitFromCat;
-        signaction(SIGINT,&action, &old_act);
+        sigaction(SIGINT,&action, &old_act);
         return exec_cat(old_act);
     }
     tsh_memory old_memory;
@@ -115,7 +115,7 @@ int cat(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50], 
           }
           if(in_a_tar(memory)==1){
               char *path_to_target = concate_string(memory->FAKE_PATH, fileToCat);
-              cat_in_tar(ato1(memory->tar_descriptor), path_to_target);
+              cat_in_tar(atoi(memory->tar_descriptor), path_to_target);
               free(path_to_target);
           }
           else{
@@ -123,7 +123,7 @@ int cat(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50], 
               exec_cmd("cat",array_execvp);
 
           }
-          restoredLastState(old_memory,memory);
+          restoreLastState(old_memory,memory);
 
     }
     return 1;
