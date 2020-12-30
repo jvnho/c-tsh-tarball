@@ -18,6 +18,7 @@
 #include "cp.h"
 #include "mv.h"
 #include "pipe.h"
+#include "cat.h"
 
 char *listCommande[] = {"exit", "cd", "pwd", "mkdir", "ls", "rmdir", "rm", "cp", "mv", "cat"};
 #define NB_FUN 10
