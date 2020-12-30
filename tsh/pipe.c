@@ -23,7 +23,6 @@ int pipe_tsh(tsh_memory *memory1, tsh_memory *memory2){
         if(WIFEXITED(status)){//if the child used exit()
             if(WEXITSTATUS(status)){//if the number passed by exit is not 0, then the child finished with error
                 dup2(save_read_fd, 0);
-                printf("here = %d\n", WEXITSTATUS(status));
                 return WEXITSTATUS(status);//report the error of my child to my parent
             }
         }

@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <stdlib.h>
-#include <wait.h>
+#include <sys/wait.h>
 #include <fcntl.h> 
 #include <signal.h>
 

@@ -230,5 +230,5 @@ int redirection(tsh_memory *memory){
         }
     }
     free(data);
-    return 1;
+    return 0;
 }
