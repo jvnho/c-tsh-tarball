@@ -130,13 +130,13 @@ int associate_redirection(tsh_memory *memory, redirection_array *data,char *cmd)
         {
             if(strcmp(tok, "2>&1") == 0){
                 tok = strtok(NULL, " "); //next token
-                if(tok == NULL) return -1;
+                if(tok == NULL) return -1; //expression mal typée 
                 if(fill_redir_array(memory, data, tok, 3, 1) ==-1) return -1; //one of the redirection path given doesn't exist
             } else {
                 int append = 0;
                 if((tok+2)[0] == '>') append = 1; //2>>
                 tok = strtok(NULL, " "); //next token
-                if(tok == NULL) return -1;
+                if(tok == NULL) return -1; //pareil
                 if(fill_redir_array(memory, data, tok, 2,append) == -1) return -1; //same
             }
         } 
@@ -145,7 +145,7 @@ int associate_redirection(tsh_memory *memory, redirection_array *data,char *cmd)
             int append = 0;
             if( (tok+1)[0] == '>') append = 1; //>>
             tok = strtok(NULL, " "); //next token
-            if(tok == NULL) return -1;
+            if(tok == NULL) return -1; //pareil
             if(fill_redir_array(memory, data, tok, 1,append) ==-1) return -1; //same
         } 
         else tok = strtok(NULL," ");
