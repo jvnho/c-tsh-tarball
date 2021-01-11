@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <errno.h>  
 
 #include "redirection.h"
 #include "exec_funcs.h"
@@ -64,9 +65,9 @@ int fill_redir_array(tsh_memory *src_memory, redirection_array *data, char *targ
         if(cd(location, &target_mem) == -1) return -1; //if one of the redirection is incorrect we abort
         redir_name += strlen(location);
     }
-    else if(lenLocation == 0 && strstr(redir_name, ".tar")){
+    /*else if(lenLocation == 0 && strstr(redir_name, ".tar")){
         if(cd(target, &target_mem) == -1) return -1; //same
-    }
+    }*/
 
     //Be careful and notice src_memory and target_mem
     int index = data->NUMBER;
@@ -80,6 +81,8 @@ int fill_redir_array(tsh_memory *src_memory, redirection_array *data, char *targ
         else //outside a tar to inside a tar
         {
             data->IN_A_TAR[index] = 1;
+            //on vérifie ici qu'on a les droits d'écriture dans ce dossier avec FAKE_PATH du target_mem!!!!!!!
+            //sinon on return -1
             strcpy(data->NAME[index], redir_name); //name of the file
             char *cur_full_path = getPath(&target_mem);
             cur_full_path[strlen(cur_full_path)-2] = '\0'; //removing'$'
@@ -90,6 +93,8 @@ int fill_redir_array(tsh_memory *src_memory, redirection_array *data, char *targ
     { 
         if(in_a_tar(&target_mem) == 1) //inside a tar to a inside a tar
         {
+            //on vérifie ici qu'on a les droits d'écriture dans ce dossier avec FAKE_PATH du target_mem!!!!!!!
+            //sinon on return -1
             data->IN_A_TAR[index] = 1;
 
             char location_src[512]; //absolute location of the created file which is just outside the open tar
@@ -182,27 +187,34 @@ int redirection(tsh_memory *memory){
         if(data.STD[i] == 3) //User wants a "2>&1" redirection 
         { 
             fd_fic_mix = open(file_path, O_WRONLY | O_CREAT | O_APPEND, 0644);
-            assert(fd_fic_mix != -1);
         }else if(data.STD[i] == 2) //User wants a "2>" redirection (maybe 2>> if append == 1)
         { 
             if(append == 1) 
                 fd_fic_err = open(file_path, O_WRONLY | O_CREAT | O_APPEND, 0644);
             else 
                 fd_fic_err = open(file_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            assert(fd_fic_err != -1);
         }else //User wants a ">" redirection (maybe 2>> if append == 1)
         { 
             if(append == 1) 
                 fd_fic_out = open(file_path, O_WRONLY | O_CREAT | O_APPEND, 0644);
             else 
                 fd_fic_out = open(file_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            assert(fd_fic_out != -1);
+        }
+        if(fd_fic_mix == -1 ||fd_fic_err == -1 || fd_fic_out == -1) //erreur s'est produite 
+        { 
+            char *msg;
+            if(errno == EACCES){ //permissions denied
+                msg = "tsh: permissions denied.\n";
+            } else if(errno == EEXIST){
+                msg = "tsh: file already exists.\n";
+            }
+            write(2, msg, strlen(msg));
+            return -1;
         }
         if(fd_fic_mix != 0){ //If we opened a file to receive 2>&1
             dup2(fd_fic_mix, STDOUT_FILENO);
             dup2(fd_fic_mix, STDERR_FILENO);
-        } 
-        else 
+        }else 
         {
             if(fd_fic_out != 0){ //If we opened a file to receive >
                 if(dup2(fd_fic_out, STDOUT_FILENO) == -1) return -1;
