@@ -12,6 +12,18 @@
 
 char **array_execvp;
 
+void rmErrorMsg(int type){ //-1 file not found, -2 no permission, -3 directory given
+    char *msg;
+    if(type == -1){
+        msg = "rm: file not found or target is a directory.\n";
+    }else if(type == -2){
+        msg = "rm: no permissions to delete.\n";
+    }else if(type == -3){
+        msg = "rm: target is a directory missing -R option.\n";
+    }
+    write(2,msg,strlen(msg));
+}
+
 //return the number total of block in a tar (i.e its size)
 int number_of_block(int fd){
     char buffer[512];
@@ -34,17 +46,21 @@ int rm_in_tar_aux(int fd, char* full_path, int *nb_block_to_delete, off_t *debut
         int nb_bloc_fichier = (filesize + 512 -1) / 512;
         if(strcmp(hd.name, full_path) == 0)
         {
+            char mode[512]; //on vérifie les droits d'écriture sur l'élément qu'on veut supprimer (que ce soit fichier ou dossier)
+            octal_to_string(hd.mode, mode);
+            if(mode[1] != 'w') return -2;
             *debut = lseek(fd, 0, SEEK_CUR);
             if(arg_r == 0)
             {
                 if(hd.typeflag != '5'){ //if it's not a directory
                     *nb_block_to_delete = nb_bloc_fichier;
                     return 1;
-                }
+                } else return -3; //c'est un dossier mais l'utilisateur n'a pas donnée -R
+        
             } 
             else //argument -r was given as option
             { 
-                while(strncmp(hd.name, full_path,strlen(full_path)) == 0)
+                while(strncmp(hd.name, full_path,strlen(full_path)) == 0) //fichiers ou dossiers qui apprtiennent au dossier qu'on veut supprimer
                 {
                     sscanf(hd.size, "%o", &filesize);
                     nb_bloc_fichier = (filesize + 512 -1) / 512;
@@ -63,18 +79,13 @@ int rm_in_tar_aux(int fd, char* full_path, int *nb_block_to_delete, off_t *debut
 
 //full_path is the concatenation of PATH and the "target" user wants to delete (rm)
 int rm_in_tar(int fd, char* full_path, int arg_r, int first_call){
-    int nb_content_bloc = 0;
-    off_t file_offset = 0;
+    int nb_content_bloc = 0; //le nombre de blocs qu'on devra supprimer
+    off_t file_offset = 0; //adresse où se trouve le premier bloc
 
-    if(rm_in_tar_aux(fd, full_path, &nb_content_bloc,&file_offset, arg_r) < 0)
+    int valeurRetour = 0;
+    if((valeurRetour = rm_in_tar_aux(fd, full_path, &nb_content_bloc,&file_offset, arg_r)) < 0)
     {
-        if(first_call == 1)
-        {
-            char *msg;
-            if(arg_r == 0) msg = "File not found or target is a directory.\n";
-            else msg = "Directory not found.\n";
-            write(2,msg,strlen(msg));
-        }
+        if(first_call == 1) rmErrorMsg(valeurRetour);
         return -1;
     }
     struct posix_header hd;

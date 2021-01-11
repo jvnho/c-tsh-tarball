@@ -15,6 +15,19 @@
 
 char **array_execvp;
 
+void rmdirErrorMsg(int type){
+    char *err;
+    if(type > 1){
+        err = "rmdir: directory is not empty.\n";
+    } else if(type == 0){
+       err = "rmdir: directory not found.\n";
+    }
+    else if(type == -1){
+        err = "rmdir: no permissions to delete.\n";
+    }
+    write(2, err, strlen(err));
+}
+
 //returns the number of times the path appears in the tarball
 //returns to a pointer 'file_offset' the position of the rep and the number of blocks found
 int occ_counter_path(int fd, char* full_path, off_t* file_offset, off_t *tar_size){
@@ -23,7 +36,13 @@ int occ_counter_path(int fd, char* full_path, off_t* file_offset, off_t *tar_siz
     struct posix_header hd;
     while(read(fd, &hd, 512) > 0)
     {
-        if(strncmp(hd.name, full_path, strlen(full_path)) == 0)
+        if(strcmp(hd.name, full_path) == 0) //vérification du droit d'écriture sur le répertoire supposé qu'on veut supprimer
+        {
+            char mode[512];
+            octal_to_string(hd.mode, mode);
+            if(mode[1] != 'w') return -1;
+        }
+        else if(strncmp(hd.name, full_path, strlen(full_path)) == 0)
         {
             occurence++;
             if(hd.typeflag == '5'){
@@ -45,8 +64,7 @@ int rmdir_in_tar(int fd, char* full_path){
     off_t file_offset = 0, final_size = 0; //offset will allow to start reading from a certain position
     int occurrence = occ_counter_path(fd, full_path, &file_offset, &final_size);
     if(occurrence != 1){
-        char s[] = "Directory is not empty or does not exist.\n";
-        write(2, s, strlen(s));
+        rmdirErrorMsg(occurrence);
         return -1;
     }
     // we found one AND only ONE block so we proced to shift blocks

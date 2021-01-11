@@ -17,27 +17,50 @@ char **array_execvp;
 
 int stopCat = 0; // stop the cat when giver without argument
 
-void cat_in_tar(int fd, char* PATH){ //test tar
+void catErrorMsg(char *arg, int type){ //0 file not found, 1 not a file, 2 no permissions,
+    char msg[512];
+    if(type == 0)
+        sprintf(msg, "cat: %s not found.\n%c", arg, '\0');
+    else if(type == 1)
+        sprintf(msg, "cat: %s is not an ordinary file.\n%c", arg, '\0');
+    else 
+        sprintf(msg, "cat: not allowed to read %s.\n%c", arg, '\0');
+    write(2, msg, strlen(msg));
+}
+
+void cat_in_tar(int fd, char* PATH, char* arg){ //"arg" is the argument given by the user, it's used in case of error !!
     lseek(fd,0,SEEK_SET);
     struct posix_header hd;
     memset(&hd,0,512);
-
-    while(read(fd,&hd,BLOCKSIZE) > 0){
+    while(read(fd,&hd,BLOCKSIZE) > 0)
+    {
         int file_s = 0;
         sscanf(hd.size,"%o", &file_s);
         int nb_bloc_fichier = (file_s + 512 -1) / 512;
-        if(strcmp(hd.name,PATH)==0){
-            char buffer[nb_bloc_fichier*512];
-            read(fd, buffer, BLOCKSIZE*nb_bloc_fichier);
-            write(1,buffer,strlen(buffer));
+        if(strcmp(hd.name,PATH)==0)
+        {
+            if(hd.typeflag == '0')
+            {
+                char mode[512]; //checking permission
+                octal_to_string(hd.mode,mode); // check @string_traitement.c
+                if(mode[1] == 'w')
+                {
+                    char buffer[nb_bloc_fichier*512];
+                    read(fd, buffer, BLOCKSIZE*nb_bloc_fichier);
+                    write(1,buffer,strlen(buffer));
+                    return;
+                } else {
+                    catErrorMsg(arg, 2); //no permissions to read file
+                }
+            } 
+            else {
+                catErrorMsg(arg, 1); //directory was given
+            }
         }
-
         //next header block
         lseek(fd,nb_bloc_fichier*512,SEEK_CUR);
-
     }
-    
-    
+    catErrorMsg(arg, 0); //file not found
 }
 
 
@@ -97,7 +120,7 @@ int cat(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50], 
           }
           if(in_a_tar(memory)==1){
               char *path_to_target = concate_string(memory->FAKE_PATH, fileToCat);
-              cat_in_tar(atoi(memory->tar_descriptor), path_to_target);
+              cat_in_tar(atoi(memory->tar_descriptor), path_to_target, args[i]);
               free(path_to_target);
           }
           else{
@@ -106,7 +129,6 @@ int cat(tsh_memory *memory, char args[50][50], int nb_arg, char option[50][50], 
 
           }
           restoreLastState(old_memory,memory);
-
     }
     return 1;
 
