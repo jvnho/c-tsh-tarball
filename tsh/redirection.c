@@ -108,16 +108,11 @@ int fill_redir_array(tsh_memory *src_memory, redirection_array *data, char *targ
         } 
         else // inside a tar to outside a tar
         {   
-            //this case needs to be fix !
-
-            /*data->IN_A_TAR[index] = 0;
+            data->IN_A_TAR[index] = 0;
             char path[512];
             strncpy(path,target_mem.REAL_PATH, strlen(target_mem.REAL_PATH)-2);
             strcat(path,redir_name);
-            strcpy(data->REDIR_PATH[index], path);*/
-            char *msg_error = "WARNING: this case needs to be fix\n";
-            write(2, msg_error, strlen(msg_error));
-            return -1;
+            strcpy(data->REDIR_PATH[index], path);
         }
     }
     data->STD[index] = output;
@@ -160,13 +155,16 @@ int associate_redirection(tsh_memory *memory, redirection_array *data,char *cmd)
 
 int redirection(tsh_memory *memory){
     struct redirection_array data; //check @redirection.h
-    memset(&data,0,sizeof(redirection_array)); 
+    memset(&data,0,sizeof(redirection_array));
+    tsh_memory old_memory;
+    copyMemory(memory, &old_memory); 
     if(associate_redirection(memory, &data, strdup(memory->comand)) == -1 || is_redirection_valid(&data) == -1)
     {
         char *err_msg = "error: redirections do not make sense.\n";
         write(2, err_msg, strlen(err_msg));
         return -1; //Redirection given by user doesn't make sense so we abort.
     }
+    restoreLastState(old_memory, memory);
     convert_to_simple_cmd(memory); //Converting command line entered by user to make it readable by the programm
 
     int fd_fic_out = 0, fd_fic_err = 0, fd_fic_mix = 0;//Respectively file descriptor than will receive redirection from >, 2>, 2>&1
