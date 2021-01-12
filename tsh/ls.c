@@ -122,23 +122,24 @@ int ls_in_tar_file(int fd, char* full_path, int arg_l){
 
 //looking for a directory: store in an array all file or directory belonging to to directory given
 int ls_in_tar_directory(int fd, char* full_path, int arg_l){
-    struct posix_header hd;
+    struct posix_header hd; 
     clear_variables();
     int len_path = strlen(full_path), fic_found = 0;
     lseek(fd, 0, SEEK_SET);
     while(read(fd, &hd, 512) > 0)
     {
-        if(strcmp(hd.name, full_path) ==0) //on vérifie qu'on a les droit d'exécution et de lecture du dossier qu'on veut lister
+        if(strcmp(hd.name, full_path) == 0 && strcmp(full_path, " ") != 0) 
+        //probleme si on se trouve à la racine du tar, la deuxieme condition passe quand même
         {
-            char mode[512];
+            /*char mode[512];
             octal_to_string(hd.mode,mode);
             if(mode[0] != 'r' || mode[2] != 'x')
-            {
+            { 
                 //ne possède pas la permission de lister le dossier
-                char *errMsg = "ls: not allowed to list the directory.";
+                char *errMsg = "ls: not allowed to list the directory.\n";
                 write(2, errMsg, strlen(errMsg));
                 return -1;
-            }
+            }*/
         }
         else if(strncmp(hd.name, full_path, len_path)==0) //fichiers et dossiers qui appartiennent à l'arborescence
         {

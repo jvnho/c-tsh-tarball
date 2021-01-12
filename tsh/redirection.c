@@ -205,8 +205,6 @@ int redirection(tsh_memory *memory){
             char *msg;
             if(errno == EACCES){ //permissions denied
                 msg = "tsh: permissions denied.\n";
-            } else if(errno == EEXIST){
-                msg = "tsh: file already exists.\n";
             }
             write(2, msg, strlen(msg));
             return -1;

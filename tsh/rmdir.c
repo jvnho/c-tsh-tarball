@@ -42,7 +42,7 @@ int occ_counter_path(int fd, char* full_path, off_t* file_offset, off_t *tar_siz
             octal_to_string(hd.mode, mode);
             if(mode[1] != 'w') return -1;
         }
-        else if(strncmp(hd.name, full_path, strlen(full_path)) == 0)
+        if(strncmp(hd.name, full_path, strlen(full_path)) == 0) //fichiers ou dossier qui peuvent appartenir au dossier qu'on veut supprimer
         {
             occurence++;
             if(hd.typeflag == '5'){
